@@ -35,7 +35,7 @@ return new class extends Migration
             // Add indexes for better query performance
             $table->index('sku');
             $table->index('barcode');
-            $table->index('name');
+            // $table->index('name');
             $table->index('category_id');
             $table->index('is_active');
         });
