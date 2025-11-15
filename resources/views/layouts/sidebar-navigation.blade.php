@@ -20,6 +20,12 @@
                 'roles' => ['admin', 'manager', 'store_keeper'],
             ],
             [
+                'name' => 'Categories',
+                'route' => 'categories.index',
+                'icon' => 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0a4 4 0 004-4v-4a4 4 0 014-4h.344M15 10l3-3m0 0l-3-3m3 3H9',
+                'roles' => ['admin', 'manager', 'store_keeper'],
+            ],
+            [
                 'name' => 'Purchase',
                 'route' => 'purchase.index',
                 'icon' => 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
