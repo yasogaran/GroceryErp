@@ -7,6 +7,7 @@ use App\Livewire\Settings\SettingsManagement;
 use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
 use App\Livewire\Categories\CategoryManagement;
+use App\Livewire\Products\ProductManagement;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -46,6 +47,11 @@ Route::middleware(['auth'])->group(function () {
     // Category routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/categories', CategoryManagement::class)->name('categories.index');
+    });
+
+    // Product routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
+        Route::get('/products', ProductManagement::class)->name('products.index');
     });
 
     // Additional routes will be added here as we build more modules
