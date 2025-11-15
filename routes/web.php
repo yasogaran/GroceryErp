@@ -8,6 +8,9 @@ use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
 use App\Livewire\Categories\CategoryManagement;
 use App\Livewire\Products\ProductManagement;
+use App\Livewire\Customers\CustomerManagement;
+use App\Livewire\Shifts\OpenShift;
+use App\Livewire\Shifts\CloseShift;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -52,6 +55,17 @@ Route::middleware(['auth'])->group(function () {
     // Product routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/products', ProductManagement::class)->name('products.index');
+    });
+
+    // Customer routes (cashier, manager, admin)
+    Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/customers', CustomerManagement::class)->name('customers.index');
+    });
+
+    // Shift routes (cashier, manager, admin)
+    Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/shift/open', OpenShift::class)->name('shift.open');
+        Route::get('/shift/close', CloseShift::class)->name('shift.close')->middleware('shift.active');
     });
 
     // Additional routes will be added here as we build more modules
