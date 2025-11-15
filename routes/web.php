@@ -11,6 +11,9 @@ use App\Livewire\Products\ProductManagement;
 use App\Livewire\Customers\CustomerManagement;
 use App\Livewire\Shifts\OpenShift;
 use App\Livewire\Shifts\CloseShift;
+use App\Livewire\POS\POSInterface;
+use App\Livewire\Reports\DailySalesReport;
+use App\Livewire\Reports\StockReport;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -68,16 +71,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/shift/close', CloseShift::class)->name('shift.close')->middleware('shift.active');
     });
 
-    // Additional routes will be added here as we build more modules
-    // POS routes (cashier, manager, admin)
-    // Route::middleware(['check.role:cashier,manager,admin'])->prefix('pos')->name('pos.')->group(function () {
-    //     Route::get('/', POSComponent::class)->name('index');
-    // });
+    // POS routes (cashier, manager, admin) - requires active shift
+    Route::middleware(['check.role:cashier,manager,admin', 'shift.active'])->group(function () {
+        Route::get('/pos', POSInterface::class)->name('pos.index');
+    });
 
-    // Inventory routes (store_keeper, manager, admin)
-    // Route::middleware(['check.role:store_keeper,manager,admin'])->prefix('inventory')->name('inventory.')->group(function () {
-    //     Route::get('/', InventoryIndex::class)->name('index');
-    // });
-
-    // And so on for other modules...
+    // Report routes (manager, admin)
+    Route::middleware(['check.role:manager,admin'])->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/daily-sales', DailySalesReport::class)->name('daily-sales');
+        Route::get('/stock', StockReport::class)->name('stock');
+    });
 });

@@ -100,6 +100,26 @@ class SettingsSeeder extends Seeder
                 'group_name' => 'pos',
                 'description' => 'Allow discounts in POS (1 = yes, 0 = no)',
             ],
+
+            // Printer Settings
+            [
+                'key' => 'printer_type',
+                'value' => 'file',
+                'group_name' => 'printer',
+                'description' => 'Printer connection type (file or network)',
+            ],
+            [
+                'key' => 'printer_path',
+                'value' => '/dev/usb/lp0',
+                'group_name' => 'printer',
+                'description' => 'Printer device path or IP address',
+            ],
+            [
+                'key' => 'auto_print_receipt',
+                'value' => 'true',
+                'group_name' => 'printer',
+                'description' => 'Automatically print receipt after sale',
+            ],
         ];
 
         foreach ($settings as $setting) {
