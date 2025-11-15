@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Dashboard;
 use App\Livewire\Users\UserManagement;
-use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,19 +18,6 @@ Route::middleware(['guest'])->group(function () {
 
 // Auth action routes
 Route::post('/logout', function () {
-    $user = Auth::user();
-
-    if ($user) {
-        // Log logout event
-        \Illuminate\Support\Facades\Log::info("[User: {$user->name}] logged out at " . now()->toDateTimeString(), [
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'action' => 'logged out',
-            'ip_address' => request()->ip(),
-            'timestamp' => now()->toDateTimeString(),
-        ]);
-    }
-
     Auth::logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
@@ -46,7 +32,6 @@ Route::middleware(['auth'])->group(function () {
     // Admin routes
     Route::middleware(['check.role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', UserManagement::class)->name('users.index');
-        Route::get('/activity-logs', ActivityLogs::class)->name('activity-logs');
     });
 
     // Additional routes will be added here as we build more modules
