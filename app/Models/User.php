@@ -21,6 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'is_active',
+        'created_by',
+        'updated_by',
     ];
 
     /**
@@ -43,6 +47,71 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the user who created this user.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the user who last updated this user.
+     */
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Get users created by this user.
+     */
+    public function createdUsers()
+    {
+        return $this->hasMany(User::class, 'created_by');
+    }
+
+    /**
+     * Get users updated by this user.
+     */
+    public function updatedUsers()
+    {
+        return $this->hasMany(User::class, 'updated_by');
+    }
+
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Check if user has any of the given roles.
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role, $roles);
+    }
+
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to filter by role.
+     */
+    public function scopeRole($query, string $role)
+    {
+        return $query->where('role', $role);
     }
 }
