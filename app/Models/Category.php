@@ -82,6 +82,14 @@ class Category extends Model
     }
 
     /**
+     * Get the products for the category.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
      * Check if the category can be deleted.
      * A category cannot be deleted if it has subcategories or products.
      */
@@ -92,10 +100,10 @@ class Category extends Model
             return false;
         }
 
-        // TODO: When products are implemented, also check:
-        // if ($this->products()->count() > 0) {
-        //     return false;
-        // }
+        // Check if has products
+        if ($this->products()->count() > 0) {
+            return false;
+        }
 
         return true;
     }

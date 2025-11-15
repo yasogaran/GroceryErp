@@ -7,6 +7,8 @@ use App\Livewire\Settings\SettingsManagement;
 use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
 use App\Livewire\Categories\CategoryManagement;
+use App\Livewire\Accounts\AccountManagement;
+use App\Livewire\Inventory\StockMovements;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -46,6 +48,16 @@ Route::middleware(['auth'])->group(function () {
     // Category routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/categories', CategoryManagement::class)->name('categories.index');
+    });
+
+    // Account routes (accountant, admin)
+    Route::middleware(['check.role:accountant,admin'])->group(function () {
+        Route::get('/accounts', AccountManagement::class)->name('accounts.index');
+    });
+
+    // Stock Movement routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
+        Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
     });
 
     // Additional routes will be added here as we build more modules
