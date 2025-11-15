@@ -6,6 +6,7 @@ use App\Models\Setting;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Layout;
 
 class SettingsManagement extends Component
 {
@@ -101,6 +102,7 @@ class SettingsManagement extends Component
         session()->flash('success', 'Logo removed successfully.');
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $groupedSettings = Setting::getAllGrouped();

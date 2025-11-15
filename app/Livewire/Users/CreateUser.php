@@ -6,6 +6,7 @@ use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Attributes\Layout;
 
 class CreateUser extends Component
 {
@@ -46,7 +47,8 @@ class CreateUser extends Component
         $this->dispatch('user-created');
         $this->reset();
     }
-
+    
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.users.create-user', [

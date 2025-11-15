@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Models\User;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -83,6 +84,7 @@ class UserManagement extends Component
         $this->selectedUserId = null;
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $users = User::query()

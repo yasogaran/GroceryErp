@@ -6,6 +6,7 @@ use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Attributes\Layout;
 
 class EditUser extends Component
 {
@@ -67,6 +68,7 @@ class EditUser extends Component
         $this->password_confirmation = '';
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.users.edit-user', [
