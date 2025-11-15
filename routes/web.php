@@ -6,6 +6,7 @@ use App\Livewire\Users\UserManagement;
 use App\Livewire\Settings\SettingsManagement;
 use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
+use App\Livewire\Categories\CategoryManagement;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -40,6 +41,11 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/activity-logs', ActivityLogs::class)->name('activity-logs');
 
+    });
+
+    // Category routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
+        Route::get('/categories', CategoryManagement::class)->name('categories.index');
     });
 
     // Additional routes will be added here as we build more modules
