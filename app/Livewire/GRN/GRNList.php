@@ -3,6 +3,7 @@
 namespace App\Livewire\GRN;
 
 use App\Models\GRN;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -44,6 +45,7 @@ class GRNList extends Component
         $this->resetPage();
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $query = GRN::query()->with(['supplier', 'creator', 'approver', 'items']);

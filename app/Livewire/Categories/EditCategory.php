@@ -3,6 +3,7 @@
 namespace App\Livewire\Categories;
 
 use App\Models\Category;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class EditCategory extends Component
@@ -87,6 +88,7 @@ class EditCategory extends Component
     /**
      * Render the component.
      */
+    #[Layout('layouts.app')]
     public function render()
     {
         // Get all parent categories except the current one and its children

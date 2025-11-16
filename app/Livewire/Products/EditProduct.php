@@ -8,6 +8,7 @@ use App\Models\ProductPackaging;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Layout;
 
 class EditProduct extends Component
 {
@@ -241,6 +242,7 @@ class EditProduct extends Component
     /**
      * Render the component.
      */
+    #[Layout('layouts.app')]
     public function render()
     {
         $categories = Category::active()->orderBy('name')->get();

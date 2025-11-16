@@ -11,6 +11,7 @@ use App\Models\Customer;
 use App\Services\InventoryService;
 use App\Services\PrintService;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 
 class PaymentModal extends Component
 {
@@ -145,6 +146,7 @@ class PaymentModal extends Component
         $this->reset(['cashReceived', 'change', 'grandTotal', 'cartData']);
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.pos.payment-modal');

@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\StockAdjustment;
 use App\Models\Product;
+use Livewire\Attributes\Layout;
 
 class StockAdjustments extends Component
 {
@@ -137,6 +138,7 @@ class StockAdjustments extends Component
         }
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $query = StockAdjustment::with(['product', 'creator', 'approver']);

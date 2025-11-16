@@ -5,6 +5,7 @@ namespace App\Livewire\POS;
 use Livewire\Component;
 use App\Models\Product;
 use App\Models\Category;
+use Livewire\Attributes\Layout;
 
 class ProductSearch extends Component
 {
@@ -72,6 +73,7 @@ class ProductSearch extends Component
         $this->reset(['searchTerm', 'selectedCategory']);
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $query = Product::with(['category', 'packaging'])

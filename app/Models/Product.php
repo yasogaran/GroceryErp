@@ -134,4 +134,9 @@ class Product extends Model
 
         return $barcode;
     }
+
+    public function packaging(): HasMany
+    {
+        return $this->hasMany(ProductPackaging::class);
+    }
 }

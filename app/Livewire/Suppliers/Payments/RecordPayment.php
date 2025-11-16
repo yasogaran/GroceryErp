@@ -4,6 +4,7 @@ namespace App\Livewire\Suppliers\Payments;
 
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class RecordPayment extends Component
@@ -71,6 +72,7 @@ class RecordPayment extends Component
         }
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $suppliers = Supplier::active()

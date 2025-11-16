@@ -3,6 +3,7 @@
 namespace App\Livewire\Categories;
 
 use App\Models\Category;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class CreateCategory extends Component
@@ -57,6 +58,7 @@ class CreateCategory extends Component
     /**
      * Render the component.
      */
+    #[Layout('layouts.app')]
     public function render()
     {
         $parentCategories = Category::whereNull('parent_id')

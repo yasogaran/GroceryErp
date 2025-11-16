@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Product;
 use App\Services\InventoryService;
+use Livewire\Attributes\Layout;
 
 class DamagedStockManagement extends Component
 {
@@ -149,6 +150,7 @@ class DamagedStockManagement extends Component
         }
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $query = Product::with('category');

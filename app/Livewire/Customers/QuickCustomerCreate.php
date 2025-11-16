@@ -3,6 +3,7 @@
 namespace App\Livewire\Customers;
 
 use App\Models\Customer;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class QuickCustomerCreate extends Component
@@ -38,6 +39,7 @@ class QuickCustomerCreate extends Component
     /**
      * Render the component
      */
+    #[Layout('layouts.app')]
     public function render()
     {
         return view('livewire.customers.quick-customer-create');

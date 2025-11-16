@@ -5,6 +5,7 @@ namespace App\Livewire\Products;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductPackaging;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -194,6 +195,7 @@ class CreateProduct extends Component
     /**
      * Render the component.
      */
+    #[Layout('layouts.app')]
     public function render()
     {
         $categories = Category::active()->orderBy('name')->get();

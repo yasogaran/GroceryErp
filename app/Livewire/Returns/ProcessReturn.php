@@ -7,6 +7,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Account;
 use App\Services\ReturnService;
+use Livewire\Attributes\Layout;
 
 class ProcessReturn extends Component
 {
@@ -206,6 +207,7 @@ class ProcessReturn extends Component
         $this->step = 2;
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $bankAccounts = Account::where('account_type', 'asset')

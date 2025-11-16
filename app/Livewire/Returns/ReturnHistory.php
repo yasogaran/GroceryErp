@@ -5,6 +5,7 @@ namespace App\Livewire\Returns;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\SaleReturn;
+use Livewire\Attributes\Layout;
 
 class ReturnHistory extends Component
 {
@@ -57,6 +58,7 @@ class ReturnHistory extends Component
         $this->resetPage();
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $query = SaleReturn::with(['originalSale', 'customer', 'items.product', 'creator']);

@@ -3,6 +3,7 @@
 namespace App\Livewire\Accounts;
 
 use App\Models\Account;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class CreateAccount extends Component
@@ -64,6 +65,7 @@ class CreateAccount extends Component
     /**
      * Render the component.
      */
+    #[Layout('layouts.app')]
     public function render()
     {
         $parentAccounts = Account::whereNull('parent_id')

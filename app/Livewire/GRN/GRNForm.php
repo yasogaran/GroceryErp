@@ -7,6 +7,7 @@ use App\Models\GRNItem;
 use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class GRNForm extends Component
@@ -223,6 +224,7 @@ class GRNForm extends Component
         return redirect()->route('grn.index');
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $suppliers = Supplier::active()->orderBy('name')->get();

@@ -3,6 +3,7 @@
 namespace App\Livewire\Suppliers;
 
 use App\Models\Supplier;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -71,6 +72,7 @@ class SupplierManagement extends Component
         $this->deleteConfirmId = null;
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
         $query = Supplier::query()->with(['grns', 'payments']);
