@@ -76,6 +76,8 @@ Route::middleware(['auth'])->group(function () {
     // Stock Movement routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
+    });
+
     // Product routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/products', ProductManagement::class)->name('products.index');
