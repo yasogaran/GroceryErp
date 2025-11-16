@@ -75,6 +75,30 @@ class Sale extends Model
     }
 
     /**
+     * Get all returns for this sale
+     */
+    public function returns()
+    {
+        return $this->hasMany(SaleReturn::class, 'original_sale_id');
+    }
+
+    /**
+     * Check if this sale has been returned
+     */
+    public function hasBeenReturned()
+    {
+        return $this->returns()->exists();
+    }
+
+    /**
+     * Get the total amount returned for this sale
+     */
+    public function getReturnedAmountAttribute()
+    {
+        return $this->returns()->sum('total_refund_amount');
+    }
+
+    /**
      * Generate a unique invoice number
      */
     public static function generateInvoiceNumber()
