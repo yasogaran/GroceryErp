@@ -81,9 +81,7 @@ class Category extends Model
         return $this->children()->count() > 0;
     }
 
-    /**
-     * Get the products for this category.
-     */
+ 
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
