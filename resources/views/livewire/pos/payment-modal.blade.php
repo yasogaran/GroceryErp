@@ -122,7 +122,7 @@
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2">
                                 <option value="">Select Bank Account</option>
                                 @foreach($bankAccounts as $account)
-                                    <option value="{{ $account->id }}">{{ $account->name }}</option>
+                                    <option value="{{ $account->id }}">{{ $account->account_name }}</option>
                                 @endforeach
                             </select>
                             @error('currentBankAccount')

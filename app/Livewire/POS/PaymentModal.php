@@ -71,7 +71,7 @@ class PaymentModal extends Component
         $bankAccountName = null;
         if ($this->currentPaymentMode === 'bank_transfer' && $this->currentBankAccount) {
             $account = Account::find($this->currentBankAccount);
-            $bankAccountName = $account ? $account->name : null;
+            $bankAccountName = $account ? $account->account_name : null;
         }
 
         // Add payment to array
@@ -242,8 +242,11 @@ class PaymentModal extends Component
 
     public function render()
     {
+        // Get all active asset accounts for bank transfers
+        // This includes cash and bank accounts
         $bankAccounts = Account::where('account_type', 'asset')
-            ->whereIn('code', ['BANK1', 'BANK2'])
+            ->where('is_active', true)
+            ->orderBy('account_name')
             ->get();
 
         return view('livewire.pos.payment-modal', [
