@@ -114,4 +114,28 @@ class User extends Authenticatable
     {
         return $query->where('role', $role);
     }
+
+    /**
+     * Get the current open shift for this user.
+     */
+    public function currentShift()
+    {
+        return $this->hasOne(Shift::class, 'cashier_id')->whereNull('shift_end');
+    }
+
+    /**
+     * Check if user has an open shift.
+     */
+    public function hasOpenShift()
+    {
+        return $this->currentShift()->exists();
+    }
+
+    /**
+     * Get all shifts for this user.
+     */
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class, 'cashier_id');
+    }
 }

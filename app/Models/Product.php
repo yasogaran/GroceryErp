@@ -43,6 +43,11 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'unit_price' => 'decimal:2',
+        'box_price' => 'decimal:2',
+        'current_stock_quantity' => 'decimal:2',
+        'damaged_stock_quantity' => 'decimal:2',
+        'minimum_stock_level' => 'decimal:2',
         'min_selling_price' => 'decimal:2',
         'max_selling_price' => 'decimal:2',
         'current_stock_quantity' => 'decimal:2',
@@ -58,38 +63,6 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
-    }
-
-    /**
-     * Get the user who created the product.
-     */
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /**
-     * Get the user who last updated the product.
-     */
-    public function updater(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    /**
-     * Get the packaging options for the product.
-     */
-    public function packaging(): HasMany
-    {
-        return $this->hasMany(ProductPackaging::class);
-    }
-
-    /**
-     * Scope a query to only include active products.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
     }
 
     /**

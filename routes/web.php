@@ -7,6 +7,8 @@ use App\Livewire\Settings\SettingsManagement;
 use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
 use App\Livewire\Categories\CategoryManagement;
+use App\Livewire\Accounts\AccountManagement;
+use App\Livewire\Inventory\StockMovements;
 use App\Livewire\Products\ProductManagement;
 use App\Livewire\Suppliers\SupplierManagement;
 use App\Livewire\Suppliers\SupplierForm;
@@ -16,6 +18,12 @@ use App\Livewire\GRN\GRNForm;
 use App\Livewire\GRN\GRNApproval;
 use App\Livewire\Suppliers\Payments\RecordPayment;
 use App\Livewire\Suppliers\Payments\PaymentHistory;
+use App\Livewire\Customers\CustomerManagement;
+use App\Livewire\Shifts\OpenShift;
+use App\Livewire\Shifts\CloseShift;
+use App\Livewire\POS\POSInterface;
+use App\Livewire\Reports\DailySalesReport;
+use App\Livewire\Reports\StockReport;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -57,6 +65,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/categories', CategoryManagement::class)->name('categories.index');
     });
 
+    // Account routes (accountant, admin)
+    Route::middleware(['check.role:accountant,admin'])->group(function () {
+        Route::get('/accounts', AccountManagement::class)->name('accounts.index');
+    });
+
+    // Stock Movement routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
+        Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
     // Product routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/products', ProductManagement::class)->name('products.index');
@@ -89,11 +105,25 @@ Route::middleware(['auth'])->group(function () {
     // Route::middleware(['check.role:cashier,manager,admin'])->prefix('pos')->name('pos.')->group(function () {
     //     Route::get('/', POSComponent::class)->name('index');
     // });
+    // Customer routes (cashier, manager, admin)
+    Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/customers', CustomerManagement::class)->name('customers.index');
+    });
 
-    // Inventory routes (store_keeper, manager, admin)
-    // Route::middleware(['check.role:store_keeper,manager,admin'])->prefix('inventory')->name('inventory.')->group(function () {
-    //     Route::get('/', InventoryIndex::class)->name('index');
-    // });
+    // Shift routes (cashier, manager, admin)
+    Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/shift/open', OpenShift::class)->name('shift.open');
+        Route::get('/shift/close', CloseShift::class)->name('shift.close')->middleware('shift.active');
+    });
 
-    // And so on for other modules...
+    // POS routes (cashier, manager, admin) - requires active shift
+    Route::middleware(['check.role:cashier,manager,admin', 'shift.active'])->group(function () {
+        Route::get('/pos', POSInterface::class)->name('pos.index');
+    });
+
+    // Report routes (manager, admin)
+    Route::middleware(['check.role:manager,admin'])->prefix('reports')->name('reports.')->group(function () {
+        Route::get('/daily-sales', DailySalesReport::class)->name('daily-sales');
+        Route::get('/stock', StockReport::class)->name('stock');
+    });
 });
