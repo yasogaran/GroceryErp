@@ -30,6 +30,25 @@ class StockMovement extends Model
         'product_id',
         'movement_type',
         'quantity',
+        'unit_cost',
+        'batch_number',
+        'expiry_date',
+        'reference_type',
+        'reference_id',
+        'notes',
+        'created_by'
+    ];
+
+    protected $casts = [
+        'quantity' => 'decimal:2',
+        'unit_cost' => 'decimal:2',
+        'expiry_date' => 'date',
+    ];
+
+    /**
+     * Get the product for this stock movement
+     */
+    public function product()
         'reference_type',
         'reference_id',
         'batch_number',
@@ -59,6 +78,13 @@ class StockMovement extends Model
     }
 
     /**
+     * Get the user who created this stock movement
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+  /*
      * Get the user who performed this stock movement.
      */
     public function performedBy(): BelongsTo
