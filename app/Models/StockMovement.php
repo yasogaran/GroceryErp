@@ -30,6 +30,13 @@ class StockMovement extends Model
         'product_id',
         'movement_type',
         'quantity',
+        'reference_type',
+        'reference_id',
+        'batch_number',
+        'manufacturing_date',
+        'expiry_date',
+        'performed_by',
+        'notes',
         'unit_cost',
         'batch_number',
         'expiry_date',
@@ -78,6 +85,79 @@ class StockMovement extends Model
     }
 
     /**
+     * Get the user who performed the movement.
+     */
+    public function performer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    /**
+     * Scope a query to only include stock-in movements.
+     */
+    public function scopeStockIn($query)
+    {
+        return $query->where('movement_type', 'in');
+    }
+
+    /**
+     * Scope a query to only include stock-out movements.
+     */
+    public function scopeStockOut($query)
+    {
+        return $query->where('movement_type', 'out');
+    }
+
+    /**
+     * Scope a query to only include adjustments.
+     */
+    public function scopeAdjustments($query)
+    {
+        return $query->where('movement_type', 'adjustment');
+    }
+
+    /**
+     * Scope a query to filter by reference type.
+     */
+    public function scopeByReference($query, string $type, ?int $id = null)
+    {
+        $query->where('reference_type', $type);
+
+        if ($id !== null) {
+            $query->where('reference_id', $id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope a query to filter by expiring soon.
+     */
+    public function scopeExpiringSoon($query, int $days = 30)
+    {
+        return $query->whereNotNull('expiry_date')
+            ->where('expiry_date', '<=', now()->addDays($days))
+            ->where('expiry_date', '>=', now());
+    }
+
+    /**
+     * Check if the stock is expired.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expiry_date && $this->expiry_date->isPast();
+    }
+
+    /**
+     * Check if the stock is expiring soon (within 30 days).
+     */
+    public function isExpiringSoon(int $days = 30): bool
+    {
+        return $this->expiry_date &&
+               $this->expiry_date->isFuture() &&
+               $this->expiry_date->lte(now()->addDays($days));
+    }
+  /*
      * Get the user who created this stock movement
      */
     public function creator()
