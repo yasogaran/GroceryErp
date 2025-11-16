@@ -4,132 +4,232 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\StockMovement;
-use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class InventoryService
 {
     /**
-     * Add stock to a product
+     * Add stock to a product.
+     *
+     * @param Product $product
+     * @param float $quantity
+     * @param array $details ['reference_type' => '', 'reference_id' => '', 'batch_number' => '', 'expiry_date' => '', 'notes' => '']
+     * @return StockMovement
+     * @throws Exception
      */
-    public function addStock(Product $product, float $quantity, array $options = [])
+    public function addStock(Product $product, float $quantity, array $details = []): StockMovement
     {
-        DB::transaction(function () use ($product, $quantity, $options) {
-            // Update product stock
+        if ($quantity <= 0) {
+            throw new Exception('Quantity must be greater than zero.');
+        }
+
+        return DB::transaction(function () use ($product, $quantity, $details) {
+            // Increment product stock
             $product->increment('current_stock_quantity', $quantity);
 
             // Create stock movement record
-            StockMovement::create([
+            $movement = StockMovement::create([
                 'product_id' => $product->id,
-                'movement_type' => $options['movement_type'] ?? 'in',
+                'movement_type' => 'in',
                 'quantity' => $quantity,
-                'unit_cost' => $options['unit_cost'] ?? null,
-                'batch_number' => $options['batch_number'] ?? null,
-                'expiry_date' => $options['expiry_date'] ?? null,
-                'reference_type' => $options['reference_type'] ?? null,
-                'reference_id' => $options['reference_id'] ?? null,
-                'notes' => $options['notes'] ?? null,
-                'created_by' => auth()->id(),
+                'reference_type' => $details['reference_type'] ?? null,
+                'reference_id' => $details['reference_id'] ?? null,
+                'batch_number' => $details['batch_number'] ?? null,
+                'expiry_date' => $details['expiry_date'] ?? null,
+                'notes' => $details['notes'] ?? null,
+                'performed_by' => $details['performed_by'] ?? Auth::id(),
             ]);
-        });
 
-        return $product->fresh();
+            return $movement;
+        });
     }
 
     /**
-     * Reduce stock from a product
+     * Reduce stock from a product.
+     *
+     * @param Product $product
+     * @param float $quantity
+     * @param array $details ['reference_type' => '', 'reference_id' => '', 'notes' => '']
+     * @return StockMovement
+     * @throws Exception
      */
-    public function reduceStock(Product $product, float $quantity, array $options = [])
+    public function reduceStock(Product $product, float $quantity, array $details = []): StockMovement
     {
-        DB::transaction(function () use ($product, $quantity, $options) {
-            // Check if sufficient stock is available
-            if ($product->current_stock_quantity < $quantity) {
-                throw new Exception("Insufficient stock for product: {$product->name}. Available: {$product->current_stock_quantity}, Required: {$quantity}");
-            }
+        if ($quantity <= 0) {
+            throw new Exception('Quantity must be greater than zero.');
+        }
 
-            // Update product stock
+        // Check if sufficient stock available
+        if ($product->current_stock_quantity < $quantity) {
+            throw new Exception(
+                "Insufficient stock for product '{$product->name}'. " .
+                "Available: {$product->current_stock_quantity}, Requested: {$quantity}"
+            );
+        }
+
+        return DB::transaction(function () use ($product, $quantity, $details) {
+            // Decrement product stock
             $product->decrement('current_stock_quantity', $quantity);
 
-            // Create stock movement record
-            StockMovement::create([
+            // Create stock movement record (negative quantity for OUT)
+            $movement = StockMovement::create([
                 'product_id' => $product->id,
-                'movement_type' => $options['movement_type'] ?? 'out',
-                'quantity' => $quantity,
-                'unit_cost' => $options['unit_cost'] ?? null,
-                'batch_number' => $options['batch_number'] ?? null,
-                'expiry_date' => $options['expiry_date'] ?? null,
-                'reference_type' => $options['reference_type'] ?? null,
-                'reference_id' => $options['reference_id'] ?? null,
-                'notes' => $options['notes'] ?? null,
-                'created_by' => auth()->id(),
+                'movement_type' => 'out',
+                'quantity' => -$quantity, // Negative for OUT
+                'reference_type' => $details['reference_type'] ?? null,
+                'reference_id' => $details['reference_id'] ?? null,
+                'batch_number' => $details['batch_number'] ?? null,
+                'expiry_date' => $details['expiry_date'] ?? null,
+                'notes' => $details['notes'] ?? null,
+                'performed_by' => $details['performed_by'] ?? Auth::id(),
             ]);
-        });
 
-        return $product->fresh();
+            return $movement;
+        });
     }
 
     /**
-     * Mark stock as damaged
+     * Mark stock as damaged.
+     *
+     * @param Product $product
+     * @param float $quantity
+     * @param string|null $reason
+     * @return StockMovement
+     * @throws Exception
      */
-    public function markAsDamaged(Product $product, float $quantity, ?string $notes = null)
+    public function markAsDamaged(Product $product, float $quantity, ?string $reason = null): StockMovement
     {
-        DB::transaction(function () use ($product, $quantity, $notes) {
-            // Check if sufficient stock is available
-            if ($product->current_stock_quantity < $quantity) {
-                throw new Exception("Insufficient stock to mark as damaged. Available: {$product->current_stock_quantity}, Requested: {$quantity}");
-            }
+        if ($quantity <= 0) {
+            throw new Exception('Quantity must be greater than zero.');
+        }
 
-            // Update product stock
+        // Check if sufficient stock available
+        if ($product->current_stock_quantity < $quantity) {
+            throw new Exception(
+                "Insufficient stock to mark as damaged for product '{$product->name}'. " .
+                "Available: {$product->current_stock_quantity}, Requested: {$quantity}"
+            );
+        }
+
+        return DB::transaction(function () use ($product, $quantity, $reason) {
+            // Decrement current stock
             $product->decrement('current_stock_quantity', $quantity);
+
+            // Increment damaged stock
             $product->increment('damaged_stock_quantity', $quantity);
 
             // Create stock movement record
-            StockMovement::create([
+            $movement = StockMovement::create([
                 'product_id' => $product->id,
                 'movement_type' => 'damage',
-                'quantity' => $quantity,
-                'notes' => $notes,
-                'created_by' => auth()->id(),
+                'quantity' => -$quantity, // Negative because it's removed from current stock
+                'reference_type' => null,
+                'reference_id' => null,
+                'batch_number' => null,
+                'expiry_date' => null,
+                'notes' => $reason ?? 'Stock marked as damaged',
+                'performed_by' => Auth::id(),
             ]);
-        });
 
-        return $product->fresh();
+            return $movement;
+        });
     }
 
     /**
-     * Adjust stock (manual correction)
+     * Adjust stock manually (for stock corrections).
+     *
+     * @param Product $product
+     * @param float $quantity (positive to add, negative to reduce)
+     * @param string $reason
+     * @return StockMovement
+     * @throws Exception
      */
-    public function adjustStock(Product $product, float $newQuantity, ?string $notes = null)
+    public function adjustStock(Product $product, float $quantity, string $reason): StockMovement
     {
-        DB::transaction(function () use ($product, $newQuantity, $notes) {
-            $currentQuantity = $product->current_stock_quantity;
-            $difference = $newQuantity - $currentQuantity;
+        if ($quantity == 0) {
+            throw new Exception('Adjustment quantity cannot be zero.');
+        }
 
-            // Update product stock
-            $product->update(['current_stock_quantity' => $newQuantity]);
+        // If reducing stock, check if sufficient stock available
+        if ($quantity < 0 && $product->current_stock_quantity < abs($quantity)) {
+            throw new Exception(
+                "Cannot reduce stock below zero for product '{$product->name}'. " .
+                "Current stock: {$product->current_stock_quantity}, Adjustment: " . abs($quantity)
+            );
+        }
+
+        return DB::transaction(function () use ($product, $quantity, $reason) {
+            // Update product stock (increment for positive, decrement for negative)
+            if ($quantity > 0) {
+                $product->increment('current_stock_quantity', $quantity);
+            } else {
+                $product->decrement('current_stock_quantity', abs($quantity));
+            }
 
             // Create stock movement record
-            StockMovement::create([
+            $movement = StockMovement::create([
                 'product_id' => $product->id,
                 'movement_type' => 'adjustment',
-                'quantity' => abs($difference),
-                'notes' => $notes ?? "Stock adjusted from {$currentQuantity} to {$newQuantity}",
-                'created_by' => auth()->id(),
+                'quantity' => $quantity,
+                'reference_type' => 'adjustment',
+                'reference_id' => null,
+                'batch_number' => null,
+                'expiry_date' => null,
+                'notes' => $reason,
+                'performed_by' => Auth::id(),
             ]);
-        });
 
-        return $product->fresh();
+            return $movement;
+        });
     }
 
     /**
-     * Get stock movement history for a product
+     * Get stock movement history for a product.
+     *
+     * @param Product $product
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getStockHistory(Product $product, int $limit = 50)
     {
         return StockMovement::where('product_id', $product->id)
-            ->with('creator')
+            ->with('performedBy')
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Calculate total stock in for a product within a date range.
+     *
+     * @param Product $product
+     * @param string $startDate
+     * @param string $endDate
+     * @return float
+     */
+    public function getTotalStockIn(Product $product, string $startDate, string $endDate): float
+    {
+        return (float) StockMovement::where('product_id', $product->id)
+            ->where('movement_type', 'in')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('quantity');
+    }
+
+    /**
+     * Calculate total stock out for a product within a date range.
+     *
+     * @param Product $product
+     * @param string $startDate
+     * @param string $endDate
+     * @return float
+     */
+    public function getTotalStockOut(Product $product, string $startDate, string $endDate): float
+    {
+        return (float) abs(StockMovement::where('product_id', $product->id)
+            ->where('movement_type', 'out')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('quantity'));
     }
 }
