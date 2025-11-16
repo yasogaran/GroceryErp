@@ -38,4 +38,12 @@ class PointTransaction extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    /**
+     * Get the sale that owns this transaction (if reference_type is 'sale')
+     */
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class, 'reference_id');
+    }
 }

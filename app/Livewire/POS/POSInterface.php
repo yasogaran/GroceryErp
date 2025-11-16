@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Services\POSService;
+use App\Services\OfferService;
 use Illuminate\Support\Str;
 
 class POSInterface extends Component
@@ -83,6 +84,9 @@ class POSInterface extends Component
                 'quantity' => $quantity,
                 'unit_price' => $product->max_selling_price,
                 'item_discount' => 0,
+                'offer_id' => null,
+                'offer_discount' => 0,
+                'offer_description' => null,
                 'total' => 0,
             ];
         }
@@ -141,6 +145,7 @@ class POSInterface extends Component
     {
         $this->subtotal = 0;
         $posService = app(POSService::class);
+        $offerService = app(OfferService::class);
 
         foreach ($this->cartItems as &$item) {
             $product = Product::with('packaging')->find($item['product_id']);
@@ -149,6 +154,7 @@ class POSInterface extends Component
                 continue;
             }
 
+            // Calculate base pricing (includes box discount)
             $pricing = $posService->calculateItemPrice(
                 $product,
                 $item['quantity'],
@@ -157,8 +163,26 @@ class POSInterface extends Component
 
             $item['unit_price'] = $pricing['unit_price'];
             $item['item_discount'] = $pricing['discount'];
-            $item['total'] = $pricing['final_total'];
 
+            // Apply offers (best offer auto-applies)
+            $offer = $offerService->findBestOffer(
+                $product,
+                $item['quantity'],
+                $pricing['final_total']
+            );
+
+            if ($offer) {
+                $item['offer_id'] = $offer['offer_id'];
+                $item['offer_discount'] = $offer['discount_amount'];
+                $item['offer_description'] = $offer['description'];
+            } else {
+                $item['offer_id'] = null;
+                $item['offer_discount'] = 0;
+                $item['offer_description'] = null;
+            }
+
+            // Final total = base price - box discount - offer discount
+            $item['total'] = $pricing['final_total'] - ($item['offer_discount'] ?? 0);
             $this->subtotal += $item['total'];
         }
 
