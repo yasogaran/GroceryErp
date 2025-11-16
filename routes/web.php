@@ -24,6 +24,9 @@ use App\Livewire\Shifts\CloseShift;
 use App\Livewire\POS\POSInterface;
 use App\Livewire\Reports\DailySalesReport;
 use App\Livewire\Reports\StockReport;
+use App\Livewire\Offers\OfferManagement;
+use App\Livewire\Offers\OfferForm;
+use App\Livewire\Customers\PointsHistory;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -108,6 +111,7 @@ Route::middleware(['auth'])->group(function () {
     // Customer routes (cashier, manager, admin)
     Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
         Route::get('/customers', CustomerManagement::class)->name('customers.index');
+        Route::get('/customers/{customerId}/points', PointsHistory::class)->name('customers.points');
     });
 
     // Shift routes (cashier, manager, admin)
@@ -119,6 +123,13 @@ Route::middleware(['auth'])->group(function () {
     // POS routes (cashier, manager, admin) - requires active shift
     Route::middleware(['check.role:cashier,manager,admin', 'shift.active'])->group(function () {
         Route::get('/pos', POSInterface::class)->name('pos.index');
+    });
+
+    // Offer routes (manager, admin)
+    Route::middleware(['check.role:manager,admin'])->prefix('offers')->name('offers.')->group(function () {
+        Route::get('/', OfferManagement::class)->name('index');
+        Route::get('/create', OfferForm::class)->name('create');
+        Route::get('/{id}/edit', OfferForm::class)->name('edit');
     });
 
     // Report routes (manager, admin)
