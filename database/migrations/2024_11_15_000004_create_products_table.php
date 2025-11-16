@@ -13,30 +13,30 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
             $table->string('sku')->unique();
-            $table->foreignId('category_id')->constrained('categories')->onDelete('restrict');
-            $table->text('description')->nullable();
-
-            // Pricing
-            $table->decimal('unit_price', 10, 2); // Price per piece
-            $table->decimal('box_price', 10, 2)->nullable(); // Price per box (with discount)
-            $table->integer('pieces_per_box')->nullable(); // How many pieces in a box
-
-            // Stock tracking
-            $table->decimal('current_stock_quantity', 10, 2)->default(0); // In pieces
-            $table->decimal('damaged_stock_quantity', 10, 2)->default(0); // In pieces
-            $table->decimal('minimum_stock_level', 10, 2)->default(0); // Reorder point
-
-            // Additional fields
             $table->string('barcode')->nullable()->unique();
+            $table->string('name')->index();
+            $table->text('description')->nullable();
+            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
+            $table->string('brand')->nullable();
+            $table->string('base_unit')->default('piece'); // piece, kg, liter, etc.
+            $table->decimal('min_selling_price', 10, 2);
+            $table->decimal('max_selling_price', 10, 2); // MRP
+            $table->decimal('current_stock_quantity', 10, 2)->default(0);
+            $table->decimal('damaged_stock_quantity', 10, 2)->default(0);
+            $table->decimal('reorder_level', 10, 2)->default(0);
+            $table->string('image_path')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->boolean('has_packaging')->default(false);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            // Indexes
-            $table->index('category_id');
+            // Add indexes for better query performance
             $table->index('sku');
             $table->index('barcode');
+            // $table->index('name');
+            $table->index('category_id');
             $table->index('is_active');
         });
     }

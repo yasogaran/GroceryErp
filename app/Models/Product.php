@@ -18,18 +18,23 @@ class Product extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
         'sku',
-        'category_id',
+        'barcode',
+        'name',
         'description',
-        'unit_price',
-        'box_price',
-        'pieces_per_box',
+        'category_id',
+        'brand',
+        'base_unit',
+        'min_selling_price',
+        'max_selling_price',
         'current_stock_quantity',
         'damaged_stock_quantity',
-        'minimum_stock_level',
-        'barcode',
+        'reorder_level',
+        'image_path',
         'is_active',
+        'has_packaging',
+        'created_by',
+        'updated_by',
     ];
 
     /**
@@ -43,7 +48,13 @@ class Product extends Model
         'current_stock_quantity' => 'decimal:2',
         'damaged_stock_quantity' => 'decimal:2',
         'minimum_stock_level' => 'decimal:2',
+        'min_selling_price' => 'decimal:2',
+        'max_selling_price' => 'decimal:2',
+        'current_stock_quantity' => 'decimal:2',
+        'damaged_stock_quantity' => 'decimal:2',
+        'reorder_level' => 'decimal:2',
         'is_active' => 'boolean',
+        'has_packaging' => 'boolean',
     ];
 
     /**
@@ -55,58 +66,72 @@ class Product extends Model
     }
 
     /**
-     * Get the stock movements for the product.
+     * Scope a query to filter by category.
      */
-    public function stockMovements(): HasMany
+    public function scopeByCategory($query, $categoryId)
     {
-        return $this->hasMany(StockMovement::class);
+        return $query->where('category_id', $categoryId);
     }
 
     /**
-     * Scope a query to only include active products.
+     * Scope a query to search by name, SKU, or barcode.
      */
-    public function scopeActive($query)
+    public function scopeSearch($query, $search)
     {
-        return $query->where('is_active', true);
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('sku', 'like', "%{$search}%")
+                ->orWhere('barcode', 'like', "%{$search}%");
+        });
     }
 
     /**
-     * Scope a query to only include products with low stock.
+     * Check if the product has stock.
      */
-    public function scopeLowStock($query)
+    public function hasStock(): bool
     {
-        return $query->whereColumn('current_stock_quantity', '<=', 'minimum_stock_level');
+        return $this->current_stock_quantity > 0;
     }
 
     /**
-     * Check if the product is low on stock.
+     * Check if the product can be deleted.
+     * A product cannot be deleted if it has stock.
      */
-    public function isLowStock(): bool
+    public function canBeDeleted(): bool
     {
-        return $this->current_stock_quantity <= $this->minimum_stock_level;
+        return !$this->hasStock() && $this->damaged_stock_quantity == 0;
     }
 
     /**
-     * Check if the product supports box pricing.
+     * Check if the product is below reorder level.
      */
-    public function hasBoxPricing(): bool
+    public function isBelowReorderLevel(): bool
     {
-        return $this->box_price !== null && $this->pieces_per_box !== null;
+        return $this->current_stock_quantity <= $this->reorder_level;
     }
 
     /**
-     * Get the total stock value (current stock * unit price).
+     * Generate a unique SKU.
      */
-    public function getStockValue(): float
+    public static function generateUniqueSku(): string
     {
-        return (float) ($this->current_stock_quantity * $this->unit_price);
+        do {
+            $sku = 'PRD-' . strtoupper(substr(uniqid(), -8));
+        } while (self::where('sku', $sku)->exists());
+
+        return $sku;
     }
 
     /**
-     * Get the available stock (excluding damaged).
+     * Generate a unique barcode.
      */
-    public function getAvailableStock(): float
+    public static function generateUniqueBarcode(): string
     {
-        return (float) $this->current_stock_quantity;
+        do {
+            // Generate a 13-digit EAN-13 barcode
+            $barcode = '20' . str_pad(rand(0, 99999999999), 11, '0', STR_PAD_LEFT);
+        } while (self::where('barcode', $barcode)->exists() || ProductPackaging::where('package_barcode', $barcode)->exists());
+
+        return $barcode;
     }
 }
