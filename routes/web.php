@@ -28,6 +28,7 @@ use App\Livewire\Reports\StockReport;
 use App\Livewire\Offers\OfferManagement;
 use App\Livewire\Offers\OfferForm;
 use App\Livewire\Customers\PointsHistory;
+use App\Livewire\Backups\BackupManagement;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -57,11 +58,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['check.role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', UserManagement::class)->name('users.index');
 
-
         Route::get('/settings', SettingsManagement::class)->name('settings');
 
         Route::get('/activity-logs', ActivityLogs::class)->name('activity-logs');
 
+        Route::get('/backups', BackupManagement::class)->name('backups.index');
     });
 
     // Category routes (store_keeper, manager, admin)

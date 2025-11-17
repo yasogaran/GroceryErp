@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Add security headers to all requests
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // Middleware aliases
         $middleware->alias([
             'check.role' => \App\Http\Middleware\CheckRole::class,
             'shift.active' => \App\Http\Middleware\RequireActiveShift::class,
