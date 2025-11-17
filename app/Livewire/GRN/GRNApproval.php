@@ -3,6 +3,7 @@
 namespace App\Livewire\GRN;
 
 use App\Models\GRN;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class GRNApproval extends Component
@@ -51,8 +52,9 @@ class GRNApproval extends Component
         $this->showApprovalModal = false;
     }
 
+    #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.grn.grn-approval')->layout('layouts.app');
+        return view('livewire.grn.grn-approval');
     }
 }
