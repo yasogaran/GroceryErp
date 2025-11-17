@@ -47,7 +47,7 @@ class POSInterface extends Component
     /**
      * Add product to cart
      */
-    public function addToCart($productId, $isBoxSale = false)
+    public function addToCart($productId, $isBoxSale = false, $batchId = null)
     {
         $product = Product::with('packaging')->find($productId);
 
@@ -67,8 +67,26 @@ class POSInterface extends Component
             return;
         }
 
-        // Check if already in cart
-        $cartKey = $this->findInCart($productId, $isBoxSale);
+        // Get batch details if batch is selected, otherwise use FIFO
+        $inventoryService = app(\App\Services\InventoryService::class);
+        $batchDetails = null;
+
+        if ($batchId) {
+            $batchDetails = $inventoryService->getBatchDetails($batchId);
+        } else {
+            // Auto-select FIFO batch
+            $fifoBatch = $inventoryService->getFIFOBatch($product);
+            $batchDetails = [
+                'stock_movement_id' => $fifoBatch['stock_movement_id'],
+                'unit_cost' => $fifoBatch['unit_cost'],
+                'min_selling_price' => $fifoBatch['min_selling_price'],
+                'max_selling_price' => $fifoBatch['max_selling_price'],
+                'batch_number' => $fifoBatch['batch_number'],
+            ];
+        }
+
+        // Check if already in cart (same product, box_sale type, and batch)
+        $cartKey = $this->findInCartWithBatch($productId, $isBoxSale, $batchDetails['stock_movement_id'] ?? null);
 
         if ($cartKey !== null) {
             // Increment existing item
@@ -82,7 +100,10 @@ class POSInterface extends Component
                 'sku' => $product->sku,
                 'is_box_sale' => $isBoxSale,
                 'quantity' => $quantity,
-                'unit_price' => $product->max_selling_price,
+                'unit_price' => $batchDetails['max_selling_price'] ?? $product->max_selling_price,
+                'batch_id' => $batchDetails['stock_movement_id'] ?? null,
+                'batch_number' => $batchDetails['batch_number'] ?? 'N/A',
+                'batch_cost' => $batchDetails['unit_cost'] ?? null,
                 'item_discount' => 0,
                 'offer_id' => null,
                 'offer_discount' => 0,
@@ -93,6 +114,21 @@ class POSInterface extends Component
 
         $this->calculateTotals();
         session()->flash('success', $product->name . ' added to cart');
+    }
+
+    /**
+     * Find item in cart considering batch
+     */
+    private function findInCartWithBatch($productId, $isBoxSale, $batchId)
+    {
+        foreach ($this->cartItems as $key => $item) {
+            if ($item['product_id'] == $productId &&
+                $item['is_box_sale'] == $isBoxSale &&
+                ($item['batch_id'] ?? null) == $batchId) {
+                return $key;
+            }
+        }
+        return null;
     }
 
     /**

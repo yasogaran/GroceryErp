@@ -75,6 +75,14 @@ class Product extends Model
     }
 
     /**
+     * Get all stock movements for this product.
+     */
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    /**
      * Scope a query to filter by category.
      */
     public function scopeByCategory($query, $categoryId)
@@ -150,5 +158,57 @@ class Product extends Model
         } while (self::where('barcode', $barcode)->exists() || ProductPackaging::where('package_barcode', $barcode)->exists());
 
         return $barcode;
+    }
+
+    /**
+     * Calculate the weighted average unit cost based on stock IN movements.
+     * Uses FIFO batches with pricing information.
+     *
+     * @return float Average unit cost, or 0 if no cost data available
+     */
+    public function getAverageUnitCost(): float
+    {
+        // Get all stock IN movements with unit_cost
+        $stockMovements = $this->stockMovements()
+            ->where('movement_type', 'in')
+            ->whereNotNull('unit_cost')
+            ->select('unit_cost', 'quantity')
+            ->get();
+
+        if ($stockMovements->isEmpty()) {
+            return 0;
+        }
+
+        // Calculate weighted average
+        $totalCost = 0;
+        $totalQuantity = 0;
+
+        foreach ($stockMovements as $movement) {
+            $totalCost += $movement->unit_cost * abs($movement->quantity);
+            $totalQuantity += abs($movement->quantity);
+        }
+
+        return $totalQuantity > 0 ? $totalCost / $totalQuantity : 0;
+    }
+
+    /**
+     * Calculate the total value of damaged stock using average cost.
+     *
+     * @return float Total value of damaged stock
+     */
+    public function getDamagedStockValue(): float
+    {
+        if ($this->damaged_stock_quantity <= 0) {
+            return 0;
+        }
+
+        $averageCost = $this->getAverageUnitCost();
+
+        // If no cost data available, use min_selling_price as fallback
+        if ($averageCost <= 0) {
+            $averageCost = $this->min_selling_price ?? 0;
+        }
+
+        return $this->damaged_stock_quantity * $averageCost;
     }
 }

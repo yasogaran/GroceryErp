@@ -150,7 +150,7 @@
                     <!-- Unit Price -->
                     <div>
                         <label for="unit_price" class="block text-sm font-medium text-gray-700">
-                            Unit Price <span class="text-red-500">*</span>
+                            Unit Cost <span class="text-red-500">*</span>
                         </label>
                         <input
                             wire:model="unit_price"
@@ -160,6 +160,39 @@
                             step="0.01"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         >
+                        <p class="mt-1 text-xs text-gray-500">Purchase price per piece</p>
+                    </div>
+
+                    <!-- Min Selling Price -->
+                    <div>
+                        <label for="min_selling_price" class="block text-sm font-medium text-gray-700">
+                            Min Selling Price <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            wire:model="min_selling_price"
+                            type="number"
+                            id="min_selling_price"
+                            min="0"
+                            step="0.01"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        >
+                        <p class="mt-1 text-xs text-gray-500">Minimum retail price</p>
+                    </div>
+
+                    <!-- Max Selling Price -->
+                    <div>
+                        <label for="max_selling_price" class="block text-sm font-medium text-gray-700">
+                            Max Selling Price (MRP) <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            wire:model="max_selling_price"
+                            type="number"
+                            id="max_selling_price"
+                            min="0"
+                            step="0.01"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        >
+                        <p class="mt-1 text-xs text-gray-500">Maximum retail price</p>
                     </div>
 
                     <!-- Batch Number -->
@@ -227,8 +260,10 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Boxes</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Pieces</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Min SP</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Max SP (MRP)</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch/Expiry</th>
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
@@ -240,6 +275,8 @@
                                         <td class="px-6 py-4 text-sm text-right text-gray-900">{{ $item['received_boxes'] }}</td>
                                         <td class="px-6 py-4 text-sm text-right text-gray-900">{{ number_format($item['received_pieces'], 2) }}</td>
                                         <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($item['unit_price'], 2) }}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($item['min_selling_price'] ?? 0, 2) }}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($item['max_selling_price'] ?? 0, 2) }}</td>
                                         <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">₹{{ number_format($item['total_amount'], 2) }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-500">
                                             @if($item['batch_number'])
@@ -261,7 +298,7 @@
                                     </tr>
                                 @endforeach
                                 <tr class="bg-gray-50 font-semibold">
-                                    <td colspan="4" class="px-6 py-4 text-right text-sm text-gray-900">Grand Total:</td>
+                                    <td colspan="6" class="px-6 py-4 text-right text-sm text-gray-900">Grand Total:</td>
                                     <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format(array_sum(array_column($items, 'total_amount')), 2) }}</td>
                                     <td colspan="2"></td>
                                 </tr>

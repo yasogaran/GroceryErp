@@ -211,7 +211,7 @@ class ProcessReturn extends Component
     public function render()
     {
         $bankAccounts = Account::where('account_type', 'asset')
-            ->whereIn('code', ['BANK1', 'BANK2'])
+            ->whereIn('account_code', ['BANK1', 'BANK2'])
             ->get();
 
         return view('livewire.returns.process-return', [

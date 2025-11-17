@@ -160,22 +160,40 @@ class PaymentModal extends Component
 
                 // Create sale items and reduce stock
                 foreach ($this->cartData['items'] as $item) {
+                    // Reduce stock using InventoryService and get the stock movement
+                    $product = Product::find($item['product_id']);
+
+                    // If batch was selected in cart, use that batch's pricing
+                    $details = [
+                        'reference_type' => 'sale',
+                        'reference_id' => $sale->id,
+                    ];
+
+                    // If specific batch was selected, get its details
+                    if (isset($item['batch_id']) && $item['batch_id']) {
+                        $batchDetails = app(InventoryService::class)->getBatchDetails($item['batch_id']);
+                        if ($batchDetails) {
+                            $details['unit_cost'] = $batchDetails['unit_cost'];
+                            $details['min_selling_price'] = $batchDetails['min_selling_price'];
+                            $details['max_selling_price'] = $batchDetails['max_selling_price'];
+                            $details['batch_number'] = $batchDetails['batch_number'];
+                        }
+                    }
+
+                    $stockMovement = app(InventoryService::class)->reduceStock($product, $item['quantity'], $details);
+
+                    // Create sale item with batch tracking and COGS
                     SaleItem::create([
                         'sale_id' => $sale->id,
                         'product_id' => $item['product_id'],
+                        'stock_movement_id' => $stockMovement->id, // Link to the stock movement (batch)
                         'quantity' => $item['quantity'],
                         'is_box_sale' => $item['is_box_sale'],
                         'unit_price' => $item['unit_price'],
+                        'unit_cost' => $stockMovement->unit_cost ?? $item['batch_cost'] ?? null, // Cost from selected/FIFO batch for COGS calculation
                         'discount_amount' => $item['item_discount'] ?? 0,
                         'total_price' => $item['total'],
                         'offer_id' => $item['offer_id'] ?? null,
-                    ]);
-
-                    // Reduce stock using InventoryService
-                    $product = Product::find($item['product_id']);
-                    app(InventoryService::class)->reduceStock($product, $item['quantity'], [
-                        'reference_type' => 'sale',
-                        'reference_id' => $sale->id,
                     ]);
                 }
 

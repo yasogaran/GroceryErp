@@ -48,7 +48,9 @@ class StockMovement extends Model
         'unit_cost' => 'decimal:2',
         'min_selling_price' => 'decimal:2',
         'max_selling_price' => 'decimal:2',
+        'manufacturing_date' => 'date',
         'expiry_date' => 'date',
+        'created_at' => 'datetime',
     ];
 
     /**
@@ -63,6 +65,14 @@ class StockMovement extends Model
      * Get the user who performed the movement.
      */
     public function performer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    /**
+     * Get the user who performed the movement (alias for performer).
+     */
+    public function performedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performed_by');
     }

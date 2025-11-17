@@ -69,7 +69,7 @@ class InventoryService
      *
      * @param Product $product
      * @param float $quantity
-     * @param array $details Additional details like reference, notes
+     * @param array $details Additional details like reference, notes, pricing
      * @return StockMovement
      * @throws \Exception
      */
@@ -79,6 +79,15 @@ class InventoryService
             // Check if sufficient stock is available
             if ($product->current_stock_quantity < $quantity) {
                 throw new \Exception("Insufficient stock. Available: {$product->current_stock_quantity}, Required: {$quantity}");
+            }
+
+            // Get pricing from FIFO batch if not provided
+            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price'])) {
+                $fifoBatch = $this->getFIFOBatch($product);
+                $details['unit_cost'] = $details['unit_cost'] ?? $fifoBatch['unit_cost'] ?? null;
+                $details['min_selling_price'] = $details['min_selling_price'] ?? $fifoBatch['min_selling_price'] ?? $product->min_selling_price;
+                $details['max_selling_price'] = $details['max_selling_price'] ?? $fifoBatch['max_selling_price'] ?? $product->max_selling_price;
+                $details['batch_number'] = $details['batch_number'] ?? $fifoBatch['batch_number'] ?? null;
             }
 
             // Decrease product stock
@@ -92,6 +101,9 @@ class InventoryService
                 'reference_type' => $details['reference_type'] ?? null,
                 'reference_id' => $details['reference_id'] ?? null,
                 'batch_number' => $details['batch_number'] ?? null,
+                'unit_cost' => $details['unit_cost'] ?? null,
+                'min_selling_price' => $details['min_selling_price'] ?? null,
+                'max_selling_price' => $details['max_selling_price'] ?? null,
                 'performed_by' => auth()->id(),
                 'notes' => $details['notes'] ?? null,
             ]);
@@ -145,7 +157,7 @@ class InventoryService
      *
      * @param Product $product
      * @param float $quantity
-     * @param array $details ['reference_type' => '', 'reference_id' => '', 'notes' => '']
+     * @param array $details ['reference_type' => '', 'reference_id' => '', 'notes' => '', pricing details]
      * @return StockMovement
      * @throws Exception
      */
@@ -164,6 +176,15 @@ class InventoryService
         }
 
         return DB::transaction(function () use ($product, $quantity, $details) {
+            // Get pricing from FIFO batch if not provided
+            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price'])) {
+                $fifoBatch = $this->getFIFOBatch($product);
+                $details['unit_cost'] = $details['unit_cost'] ?? $fifoBatch['unit_cost'] ?? null;
+                $details['min_selling_price'] = $details['min_selling_price'] ?? $fifoBatch['min_selling_price'] ?? $product->min_selling_price;
+                $details['max_selling_price'] = $details['max_selling_price'] ?? $fifoBatch['max_selling_price'] ?? $product->max_selling_price;
+                $details['batch_number'] = $details['batch_number'] ?? $fifoBatch['batch_number'] ?? null;
+            }
+
             // Decrement product stock
             $product->decrement('current_stock_quantity', $quantity);
 
@@ -176,6 +197,9 @@ class InventoryService
                 'reference_id' => $details['reference_id'] ?? null,
                 'batch_number' => $details['batch_number'] ?? null,
                 'expiry_date' => $details['expiry_date'] ?? null,
+                'unit_cost' => $details['unit_cost'] ?? null,
+                'min_selling_price' => $details['min_selling_price'] ?? null,
+                'max_selling_price' => $details['max_selling_price'] ?? null,
                 'notes' => $details['notes'] ?? null,
                 'performed_by' => $details['performed_by'] ?? Auth::id(),
             ]);
@@ -211,6 +235,15 @@ class InventoryService
         $details = is_array($reasonOrDetails) ? $reasonOrDetails : ['notes' => $reasonOrDetails];
 
         return DB::transaction(function () use ($product, $quantity, $details) {
+            // Get pricing from FIFO batch if not provided
+            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price'])) {
+                $fifoBatch = $this->getFIFOBatch($product);
+                $details['unit_cost'] = $details['unit_cost'] ?? $fifoBatch['unit_cost'] ?? null;
+                $details['min_selling_price'] = $details['min_selling_price'] ?? $fifoBatch['min_selling_price'] ?? $product->min_selling_price;
+                $details['max_selling_price'] = $details['max_selling_price'] ?? $fifoBatch['max_selling_price'] ?? $product->max_selling_price;
+                $details['batch_number'] = $details['batch_number'] ?? $fifoBatch['batch_number'] ?? null;
+            }
+
             // Decrement current stock
             $product->decrement('current_stock_quantity', $quantity);
 
@@ -224,8 +257,11 @@ class InventoryService
                 'quantity' => -$quantity, // Negative because it's removed from current stock
                 'reference_type' => $details['reference_type'] ?? null,
                 'reference_id' => $details['reference_id'] ?? null,
-                'batch_number' => null,
+                'batch_number' => $details['batch_number'] ?? null,
                 'expiry_date' => null,
+                'unit_cost' => $details['unit_cost'] ?? null,
+                'min_selling_price' => $details['min_selling_price'] ?? null,
+                'max_selling_price' => $details['max_selling_price'] ?? null,
                 'notes' => $details['notes'] ?? 'Stock marked as damaged',
                 'performed_by' => Auth::id(),
             ]);
@@ -393,5 +429,106 @@ class InventoryService
             ->where('movement_type', 'out')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('quantity'));
+    }
+
+    /**
+     * Get the oldest stock batch (FIFO - First In First Out) for a product.
+     * Returns pricing details from the oldest stock IN movement.
+     *
+     * @param Product $product
+     * @return array ['unit_cost' => float|null, 'min_selling_price' => float|null, 'max_selling_price' => float|null, 'batch_number' => string|null]
+     */
+    public function getFIFOBatch(Product $product): array
+    {
+        // Get the oldest stock IN movement with pricing information
+        $oldestBatch = StockMovement::where('product_id', $product->id)
+            ->where('movement_type', 'in')
+            ->whereNotNull('unit_cost')
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if ($oldestBatch) {
+            return [
+                'unit_cost' => $oldestBatch->unit_cost,
+                'min_selling_price' => $oldestBatch->min_selling_price,
+                'max_selling_price' => $oldestBatch->max_selling_price,
+                'batch_number' => $oldestBatch->batch_number,
+                'stock_movement_id' => $oldestBatch->id,
+            ];
+        }
+
+        // Fallback to current product prices if no batch found
+        return [
+            'unit_cost' => null,
+            'min_selling_price' => $product->min_selling_price,
+            'max_selling_price' => $product->max_selling_price,
+            'batch_number' => null,
+            'stock_movement_id' => null,
+        ];
+    }
+
+    /**
+     * Get all available stock batches for a product with remaining quantities.
+     * This helps in multi-batch inventory management.
+     *
+     * @param Product $product
+     * @return array Array of batches with details
+     */
+    public function getAvailableBatches(Product $product): array
+    {
+        // Get all stock IN movements (these represent batches)
+        $stockInMovements = StockMovement::where('product_id', $product->id)
+            ->where('movement_type', 'in')
+            ->whereNotNull('unit_cost')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $batches = [];
+
+        foreach ($stockInMovements as $movement) {
+            // For simplicity, we're grouping by batch_number + unit_cost + prices
+            // In reality, each stock IN movement is a separate batch
+            $batchKey = $movement->id;
+
+            $batches[] = [
+                'stock_movement_id' => $movement->id,
+                'batch_number' => $movement->batch_number ?? 'N/A',
+                'grn_date' => $movement->created_at->format('Y-m-d'),
+                'quantity_in' => $movement->quantity,
+                'unit_cost' => $movement->unit_cost,
+                'min_selling_price' => $movement->min_selling_price,
+                'max_selling_price' => $movement->max_selling_price,
+                'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
+                'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
+            ];
+        }
+
+        return $batches;
+    }
+
+    /**
+     * Get specific batch details by stock movement ID.
+     *
+     * @param int $stockMovementId
+     * @return array|null
+     */
+    public function getBatchDetails(int $stockMovementId): ?array
+    {
+        $movement = StockMovement::find($stockMovementId);
+
+        if (!$movement || $movement->movement_type !== 'in') {
+            return null;
+        }
+
+        return [
+            'stock_movement_id' => $movement->id,
+            'batch_number' => $movement->batch_number ?? 'N/A',
+            'unit_cost' => $movement->unit_cost,
+            'min_selling_price' => $movement->min_selling_price,
+            'max_selling_price' => $movement->max_selling_price,
+            'grn_date' => $movement->created_at->format('Y-m-d'),
+            'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
+            'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
+        ];
     }
 }

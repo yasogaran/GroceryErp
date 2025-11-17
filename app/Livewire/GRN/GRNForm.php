@@ -42,8 +42,8 @@ class GRNForm extends Component
         'items.*.product_id' => 'required|exists:products,id',
         'items.*.received_pieces' => 'required|numeric|min:0.01',
         'items.*.unit_price' => 'required|numeric|min:0',
-        'items.*.min_selling_price' => 'nullable|numeric|min:0',
-        'items.*.max_selling_price' => 'nullable|numeric|min:0|gte:items.*.min_selling_price',
+        'items.*.min_selling_price' => 'required|numeric|min:0|gte:items.*.unit_price',
+        'items.*.max_selling_price' => 'required|numeric|min:0|gte:items.*.min_selling_price',
     ];
 
     public function mount($id = null)
@@ -77,17 +77,15 @@ class GRNForm extends Component
         // Load items
         $this->items = [];
         foreach ($grn->items as $item) {
-            // Get current product prices as default
-            $product = $item->product;
             $this->items[] = [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
-                'product_name' => $product->name,
+                'product_name' => $item->product->name,
                 'received_boxes' => $item->received_boxes,
                 'received_pieces' => $item->received_pieces,
                 'unit_price' => $item->unit_price,
-                'min_selling_price' => $product->min_selling_price ?? 0,
-                'max_selling_price' => $product->max_selling_price ?? 0,
+                'min_selling_price' => $item->min_selling_price ?? $item->product->min_selling_price ?? 0,
+                'max_selling_price' => $item->max_selling_price ?? $item->product->max_selling_price ?? 0,
                 'total_amount' => $item->total_amount,
                 'batch_number' => $item->batch_number,
                 'manufacturing_date' => $item->manufacturing_date?->format('Y-m-d'),
@@ -132,6 +130,21 @@ class GRNForm extends Component
     {
         if (!$this->product_id || $this->received_pieces <= 0 || $this->unit_price < 0) {
             session()->flash('item_error', 'Please fill all required fields correctly');
+            return;
+        }
+
+        if ($this->min_selling_price <= 0 || $this->max_selling_price <= 0) {
+            session()->flash('item_error', 'Please enter valid selling prices');
+            return;
+        }
+
+        if ($this->min_selling_price < $this->unit_price) {
+            session()->flash('item_error', 'Minimum selling price must be greater than or equal to unit cost');
+            return;
+        }
+
+        if ($this->max_selling_price < $this->min_selling_price) {
+            session()->flash('item_error', 'Maximum selling price must be greater than or equal to minimum selling price');
             return;
         }
 
