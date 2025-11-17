@@ -66,6 +66,14 @@ class Product extends Model
     }
 
     /**
+     * Get the packaging options for the product.
+     */
+    public function packaging(): HasMany
+    {
+        return $this->hasMany(ProductPackaging::class);
+    }
+
+    /**
      * Scope a query to filter by category.
      */
     public function scopeByCategory($query, $categoryId)
