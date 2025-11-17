@@ -174,9 +174,15 @@ class DamagedStockManagement extends Component
             $summaryQuery->where('damaged_stock_quantity', '>', 0);
         }
 
+        // Calculate total damaged stock value using average cost method
+        $productsWithDamage = Product::where('damaged_stock_quantity', '>', 0)->with('stockMovements')->get();
+        $totalDamagedStockValue = $productsWithDamage->sum(function($product) {
+            return $product->getDamagedStockValue();
+        });
+
         $summary = [
-            'total_products_with_damage' => Product::where('damaged_stock_quantity', '>', 0)->count(),
-            'total_damaged_stock_value' => Product::selectRaw('SUM(damaged_stock_quantity * max_selling_price) as total')->value('total') ?? 0,
+            'total_products_with_damage' => $productsWithDamage->count(),
+            'total_damaged_stock_value' => $totalDamagedStockValue,
             'total_damaged_quantity' => Product::sum('damaged_stock_quantity'),
         ];
 

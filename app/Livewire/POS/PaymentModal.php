@@ -160,22 +160,25 @@ class PaymentModal extends Component
 
                 // Create sale items and reduce stock
                 foreach ($this->cartData['items'] as $item) {
+                    // Reduce stock using InventoryService and get the stock movement (with FIFO batch info)
+                    $product = Product::find($item['product_id']);
+                    $stockMovement = app(InventoryService::class)->reduceStock($product, $item['quantity'], [
+                        'reference_type' => 'sale',
+                        'reference_id' => $sale->id,
+                    ]);
+
+                    // Create sale item with batch tracking and COGS
                     SaleItem::create([
                         'sale_id' => $sale->id,
                         'product_id' => $item['product_id'],
+                        'stock_movement_id' => $stockMovement->id, // Link to the stock movement (batch)
                         'quantity' => $item['quantity'],
                         'is_box_sale' => $item['is_box_sale'],
                         'unit_price' => $item['unit_price'],
+                        'unit_cost' => $stockMovement->unit_cost, // Cost from FIFO batch for COGS calculation
                         'discount_amount' => $item['item_discount'] ?? 0,
                         'total_price' => $item['total'],
                         'offer_id' => $item['offer_id'] ?? null,
-                    ]);
-
-                    // Reduce stock using InventoryService
-                    $product = Product::find($item['product_id']);
-                    app(InventoryService::class)->reduceStock($product, $item['quantity'], [
-                        'reference_type' => 'sale',
-                        'reference_id' => $sale->id,
                     ]);
                 }
 

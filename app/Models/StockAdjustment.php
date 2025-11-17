@@ -15,6 +15,10 @@ class StockAdjustment extends Model
         'product_id',
         'adjustment_type',
         'quantity',
+        'unit_cost',
+        'min_selling_price',
+        'max_selling_price',
+        'batch_number',
         'reason',
         'notes',
         'status',
@@ -25,6 +29,9 @@ class StockAdjustment extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
+        'unit_cost' => 'decimal:2',
+        'min_selling_price' => 'decimal:2',
+        'max_selling_price' => 'decimal:2',
         'approved_at' => 'datetime',
     ];
 
@@ -92,18 +99,29 @@ class StockAdjustment extends Model
             // Apply stock adjustment using InventoryService
             $inventoryService = app(InventoryService::class);
 
+            // Prepare details with pricing information
+            $details = [
+                'reference_type' => 'adjustment',
+                'reference_id' => $this->id,
+                'notes' => 'Adjustment approved: ' . $this->reason . ' - ' . ($this->notes ?? ''),
+                'batch_number' => $this->batch_number,
+            ];
+
+            // Add pricing information if available
+            if ($this->unit_cost !== null) {
+                $details['unit_cost'] = $this->unit_cost;
+            }
+            if ($this->min_selling_price !== null) {
+                $details['min_selling_price'] = $this->min_selling_price;
+            }
+            if ($this->max_selling_price !== null) {
+                $details['max_selling_price'] = $this->max_selling_price;
+            }
+
             if ($this->adjustment_type === 'increase') {
-                $inventoryService->addStock($this->product, $this->quantity, [
-                    'reference_type' => 'adjustment',
-                    'reference_id' => $this->id,
-                    'notes' => 'Adjustment approved: ' . $this->reason . ' - ' . ($this->notes ?? ''),
-                ]);
+                $inventoryService->addStock($this->product, $this->quantity, $details);
             } else {
-                $inventoryService->reduceStock($this->product, $this->quantity, [
-                    'reference_type' => 'adjustment',
-                    'reference_id' => $this->id,
-                    'notes' => 'Adjustment approved: ' . $this->reason . ' - ' . ($this->notes ?? ''),
-                ]);
+                $inventoryService->reduceStock($this->product, $this->quantity, $details);
             }
 
             return true;
