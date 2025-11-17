@@ -376,6 +376,8 @@ class InventoryService
             ->orderBy('expiry_date', 'asc')
             ->get();
     }
+
+    /**
      * Calculate total stock in for a product within a date range.
      *
      * @param Product $product
