@@ -77,7 +77,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
     });
-    
+
     // Product routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/products', ProductManagement::class)->name('products.index');
@@ -139,6 +139,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/daily-sales', DailySalesReport::class)->name('daily-sales');
         Route::get('/stock', StockReport::class)->name('stock');
     });
-    
+
+    // Returns routes (cashier, manager, admin)
+    Route::middleware(['check.role:cashier,manager,admin'])->prefix('returns')->name('returns.')->group(function () {
+        Route::get('/process', \App\Livewire\Returns\ProcessReturn::class)->name('process');
+        Route::get('/history', \App\Livewire\Returns\ReturnHistory::class)->name('history');
+    });
+
+    // Damaged Stock routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
+        Route::get('/damaged-stock', \App\Livewire\Inventory\DamagedStockManagement::class)->name('damaged-stock.index');
+    });
+
+    // Stock Adjustment routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
+        Route::get('/stock-adjustments', \App\Livewire\Inventory\StockAdjustments::class)->name('stock-adjustments.index');
+    });
 });
 

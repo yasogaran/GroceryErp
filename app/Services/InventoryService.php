@@ -203,11 +203,11 @@ class InventoryService
      *
      * @param Product $product
      * @param float $quantity
-     * @param string|null $reason
+     * @param string|array $reasonOrDetails
      * @return StockMovement
      * @throws Exception
      */
-    public function markAsDamaged(Product $product, float $quantity, ?string $reason = null): StockMovement
+    public function markAsDamaged(Product $product, float $quantity, $reasonOrDetails = null): StockMovement
     {
         if ($quantity <= 0) {
             throw new Exception('Quantity must be greater than zero.');
@@ -221,7 +221,10 @@ class InventoryService
             );
         }
 
-        return DB::transaction(function () use ($product, $quantity, $reason) {
+        // Handle both string and array input for backward compatibility
+        $details = is_array($reasonOrDetails) ? $reasonOrDetails : ['notes' => $reasonOrDetails];
+
+        return DB::transaction(function () use ($product, $quantity, $details) {
             // Decrement current stock
             $product->decrement('current_stock_quantity', $quantity);
 
@@ -233,11 +236,55 @@ class InventoryService
                 'product_id' => $product->id,
                 'movement_type' => 'damage',
                 'quantity' => -$quantity, // Negative because it's removed from current stock
-                'reference_type' => null,
+                'reference_type' => $details['reference_type'] ?? null,
+                'reference_id' => $details['reference_id'] ?? null,
+                'batch_number' => null,
+                'expiry_date' => null,
+                'notes' => $details['notes'] ?? 'Stock marked as damaged',
+                'performed_by' => Auth::id(),
+            ]);
+
+            return $movement;
+        });
+    }
+
+    /**
+     * Write-off damaged stock (remove from inventory completely).
+     *
+     * @param Product $product
+     * @param float $quantity
+     * @param string $reason
+     * @return StockMovement
+     * @throws Exception
+     */
+    public function writeOffDamaged(Product $product, float $quantity, string $reason): StockMovement
+    {
+        if ($quantity <= 0) {
+            throw new Exception('Quantity must be greater than zero.');
+        }
+
+        // Check if sufficient damaged stock available
+        if ($product->damaged_stock_quantity < $quantity) {
+            throw new Exception(
+                "Insufficient damaged stock to write-off for product '{$product->name}'. " .
+                "Available: {$product->damaged_stock_quantity}, Requested: {$quantity}"
+            );
+        }
+
+        return DB::transaction(function () use ($product, $quantity, $reason) {
+            // Decrement damaged stock
+            $product->decrement('damaged_stock_quantity', $quantity);
+
+            // Create stock movement record
+            $movement = StockMovement::create([
+                'product_id' => $product->id,
+                'movement_type' => 'write_off',
+                'quantity' => -$quantity,
+                'reference_type' => 'write_off',
                 'reference_id' => null,
                 'batch_number' => null,
                 'expiry_date' => null,
-                'notes' => $reason ?? 'Stock marked as damaged',
+                'notes' => 'Write-off damaged stock: ' . $reason,
                 'performed_by' => Auth::id(),
             ]);
 
