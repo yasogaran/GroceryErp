@@ -47,6 +47,12 @@ return [
                 'ignore_unreadable_directories' => false,
 
                 /*
+                 * The relative path to the root of the application.
+                 * This will be used to create the backup archive structure.
+                 */
+                'relative_path' => base_path(),
+
+                /*
                  * The path where the temporary files will be stored.
                  */
                 'temporary_directory' => storage_path('app/backup-temp'),
