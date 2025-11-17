@@ -156,3 +156,4 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stock-adjustments', \App\Livewire\Inventory\StockAdjustments::class)->name('stock-adjustments.index');
     });
 });
+

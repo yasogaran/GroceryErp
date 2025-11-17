@@ -16,7 +16,7 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         // Get admin user
-        $admin = User::where('email', 'admin@grocery.local')->first();
+        $admin = User::where('email', 'admin@example.com')->first();
 
         // Get some categories
         $beverages = Category::where('name', 'Beverages')->first();
