@@ -38,11 +38,6 @@ class StockMovement extends Model
         'performed_by',
         'notes',
         'unit_cost',
-        'batch_number',
-        'expiry_date',
-        'reference_type',
-        'reference_id',
-        'notes',
         'created_by'
     ];
 
@@ -50,30 +45,6 @@ class StockMovement extends Model
         'quantity' => 'decimal:2',
         'unit_cost' => 'decimal:2',
         'expiry_date' => 'date',
-    ];
-
-    /**
-     * Get the product for this stock movement
-     */
-    public function product()
-        'reference_type',
-        'reference_id',
-        'batch_number',
-        'expiry_date',
-        'notes',
-        'performed_by',
-        'created_at',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'quantity' => 'decimal:2',
-        'expiry_date' => 'date',
-        'created_at' => 'datetime',
     ];
 
     /**
