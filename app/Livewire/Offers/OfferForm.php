@@ -197,7 +197,7 @@ class OfferForm extends Component
         }
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $products = Product::query()

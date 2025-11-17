@@ -18,7 +18,7 @@ class DailySalesReport extends Component
         $this->reportDate = now()->format('Y-m-d');
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $sales = Sale::with(['items.product', 'customer', 'cashier'])

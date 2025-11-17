@@ -108,7 +108,7 @@ class CategoryManagement extends Component
     /**
      * Render the component.
      */
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $categories = Category::query()

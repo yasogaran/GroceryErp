@@ -138,7 +138,7 @@ class StockAdjustments extends Component
         }
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = StockAdjustment::with(['product', 'creator', 'approver']);

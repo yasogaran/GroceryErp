@@ -224,7 +224,7 @@ class GRNForm extends Component
         return redirect()->route('grn.index');
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $suppliers = Supplier::active()->orderBy('name')->get();

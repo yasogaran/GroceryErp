@@ -72,7 +72,7 @@ class RecordPayment extends Component
         }
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $suppliers = Supplier::active()

@@ -48,7 +48,7 @@ class CreateUser extends Component
         $this->reset();
     }
     
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         return view('livewire.users.create-user', [

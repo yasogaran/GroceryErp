@@ -52,7 +52,7 @@ class GRNApproval extends Component
         $this->showApprovalModal = false;
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         return view('livewire.grn.grn-approval');

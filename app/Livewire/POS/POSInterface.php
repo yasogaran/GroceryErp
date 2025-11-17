@@ -374,7 +374,7 @@ class POSInterface extends Component
         $this->heldBills = session('held_bills', []);
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $customers = Customer::active()

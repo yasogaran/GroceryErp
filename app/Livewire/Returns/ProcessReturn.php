@@ -207,7 +207,7 @@ class ProcessReturn extends Component
         $this->step = 2;
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $bankAccounts = Account::where('account_type', 'asset')

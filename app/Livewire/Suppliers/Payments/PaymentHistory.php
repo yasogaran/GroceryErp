@@ -39,7 +39,7 @@ class PaymentHistory extends Component
         $this->resetPage();
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = SupplierPayment::query()->with(['supplier', 'creator']);

@@ -150,7 +150,7 @@ class DamagedStockManagement extends Component
         }
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = Product::with('category');

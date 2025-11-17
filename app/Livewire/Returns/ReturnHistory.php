@@ -58,7 +58,7 @@ class ReturnHistory extends Component
         $this->resetPage();
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = SaleReturn::with(['originalSale', 'customer', 'items.product', 'creator']);
