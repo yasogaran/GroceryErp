@@ -4,6 +4,7 @@ namespace App\Livewire\Suppliers\Payments;
 
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -38,6 +39,7 @@ class PaymentHistory extends Component
         $this->resetPage();
     }
 
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = SupplierPayment::query()->with(['supplier', 'creator']);
@@ -67,6 +69,6 @@ class PaymentHistory extends Component
         return view('livewire.suppliers.payments.payment-history', [
             'payments' => $payments,
             'suppliers' => $suppliers,
-        ])->layout('layouts.app');
+        ]);
     }
 }

@@ -41,9 +41,9 @@ class PrintService
     {
         $content = [];
         $content[] = "========================================";
-        $content[] = setting('shop_name', 'Grocery Shop');
-        $content[] = setting('shop_address', '');
-        $content[] = "Tel: " . setting('shop_phone', '');
+        $content[] = settings('shop_name', 'Grocery Shop');
+        $content[] = settings('shop_address', '');
+        $content[] = "Tel: " . settings('shop_phone', '');
         $content[] = "========================================";
         $content[] = "Invoice: " . $sale->invoice_number;
         $content[] = "Date: " . $sale->sale_date->format('Y-m-d H:i:s');
@@ -93,7 +93,7 @@ class PrintService
         $content[] = "Amount Paid: Rs." . number_format($payment->amount, 2);
 
         $content[] = "========================================";
-        $content[] = setting('receipt_footer', 'Thank you for shopping with us!');
+        $content[] = settings('receipt_footer', 'Thank you for shopping with us!');
         $content[] = "Please visit again";
         $content[] = "========================================";
 

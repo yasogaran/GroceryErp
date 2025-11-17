@@ -168,7 +168,7 @@ class ActivityLogs extends Component
         return $logs;
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $logs = $this->getActivityLogs();

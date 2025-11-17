@@ -15,7 +15,7 @@ class InventoryService
      *
      * @param Product $product
      * @param float $quantity
-     * @param array $details ['reference_type' => '', 'reference_id' => '', 'batch_number' => '', 'expiry_date' => '', 'notes' => '']
+     * @param array $details ['reference_type' => '', 'reference_id' => '', 'batch_number' => '', 'expiry_date' => '', 'unit_cost' => '', 'min_selling_price' => '', 'max_selling_price' => '', 'notes' => '']
      * @return StockMovement
      * @throws Exception
      */
@@ -29,6 +29,20 @@ class InventoryService
             // Increment product stock
             $product->increment('current_stock_quantity', $quantity);
 
+            // Update product selling prices if provided
+            if (isset($details['min_selling_price']) || isset($details['max_selling_price'])) {
+                $updateData = [];
+                if (isset($details['min_selling_price'])) {
+                    $updateData['min_selling_price'] = $details['min_selling_price'];
+                }
+                if (isset($details['max_selling_price'])) {
+                    $updateData['max_selling_price'] = $details['max_selling_price'];
+                }
+                if (!empty($updateData)) {
+                    $product->update($updateData);
+                }
+            }
+
             // Create stock movement record
             $movement = StockMovement::create([
                 'product_id' => $product->id,
@@ -39,9 +53,14 @@ class InventoryService
                 'batch_number' => $details['batch_number'] ?? null,
                 'expiry_date' => $details['expiry_date'] ?? null,
                 'manufacturing_date' => $details['manufacturing_date'] ?? null,
+                'unit_cost' => $details['unit_cost'] ?? null,
+                'min_selling_price' => $details['min_selling_price'] ?? null,
+                'max_selling_price' => $details['max_selling_price'] ?? null,
                 'performed_by' => auth()->id(),
                 'notes' => $details['notes'] ?? null,
             ]);
+
+            return $movement;
         });
     }
 
@@ -75,39 +94,6 @@ class InventoryService
                 'batch_number' => $details['batch_number'] ?? null,
                 'performed_by' => auth()->id(),
                 'notes' => $details['notes'] ?? null,
-            ]);
-        });
-    }
-
-    /**
-     * Adjust stock (can be positive or negative).
-     *
-     * @param Product $product
-     * @param float $quantity Positive for increase, negative for decrease
-     * @param string $reason
-     * @return StockMovement
-     */
-    public function adjustStock(Product $product, float $quantity, string $reason = ''): StockMovement
-    {
-        return DB::transaction(function () use ($product, $quantity, $reason) {
-            $oldStock = $product->current_stock_quantity;
-            $newStock = $oldStock + $quantity;
-
-            if ($newStock < 0) {
-                throw new \Exception("Stock adjustment would result in negative stock");
-            }
-
-            // Update product stock
-            $product->update(['current_stock_quantity' => $newStock]);
-
-            // Create stock movement record
-            return StockMovement::create([
-                'product_id' => $product->id,
-                'movement_type' => 'adjustment',
-                'quantity' => abs($quantity),
-                'reference_type' => 'adjustment',
-                'performed_by' => auth()->id(),
-                'notes' => "Stock adjusted from {$oldStock} to {$newStock}. Reason: {$reason}",
             ]);
         });
     }
@@ -376,6 +362,8 @@ class InventoryService
             ->orderBy('expiry_date', 'asc')
             ->get();
     }
+
+    /**
      * Calculate total stock in for a product within a date range.
      *
      * @param Product $product

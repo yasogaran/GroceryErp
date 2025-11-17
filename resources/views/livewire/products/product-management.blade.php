@@ -152,8 +152,8 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($product->has_packaging && $product->packaging->isNotEmpty())
-                                        @php $pkg = $product->packaging->first(); @endphp
+                                    @if($product->has_packaging && $product->packaging)
+                                        @php $pkg = $product->packaging; @endphp
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                             {{ $pkg->packaging_name }} ({{ $pkg->pieces_per_package }} pcs)
                                         </span>

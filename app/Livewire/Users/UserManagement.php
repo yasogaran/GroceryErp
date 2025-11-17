@@ -84,7 +84,7 @@ class UserManagement extends Component
         $this->selectedUserId = null;
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $users = User::query()

@@ -58,7 +58,7 @@ class OfferManagement extends Component
         $this->resetPage();
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = Offer::with('creator', 'products', 'categories');

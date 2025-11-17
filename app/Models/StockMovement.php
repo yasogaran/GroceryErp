@@ -38,42 +38,17 @@ class StockMovement extends Model
         'performed_by',
         'notes',
         'unit_cost',
-        'batch_number',
-        'expiry_date',
-        'reference_type',
-        'reference_id',
-        'notes',
+        'min_selling_price',
+        'max_selling_price',
         'created_by'
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
         'unit_cost' => 'decimal:2',
+        'min_selling_price' => 'decimal:2',
+        'max_selling_price' => 'decimal:2',
         'expiry_date' => 'date',
-    ];
-
-    /**
-     * Get the product for this stock movement
-     */
-    public function product()
-        'reference_type',
-        'reference_id',
-        'batch_number',
-        'expiry_date',
-        'notes',
-        'performed_by',
-        'created_at',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'quantity' => 'decimal:2',
-        'expiry_date' => 'date',
-        'created_at' => 'datetime',
     ];
 
     /**
@@ -157,19 +132,13 @@ class StockMovement extends Model
                $this->expiry_date->isFuture() &&
                $this->expiry_date->lte(now()->addDays($days));
     }
-  /*
+
+    /**
      * Get the user who created this stock movement
      */
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-  /*
-     * Get the user who performed this stock movement.
-     */
-    public function performedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'performed_by');
     }
 
     /**
@@ -194,15 +163,6 @@ class StockMovement extends Model
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('created_at', [$startDate, $endDate]);
-    }
-
-    /**
-     * Scope a query to only include movements with a specific reference.
-     */
-    public function scopeByReference($query, string $referenceType, int $referenceId)
-    {
-        return $query->where('reference_type', $referenceType)
-                     ->where('reference_id', $referenceId);
     }
 
     /**

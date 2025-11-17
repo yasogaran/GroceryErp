@@ -143,6 +143,9 @@ class GRN extends Model
                     'batch_number' => $item->batch_number,
                     'expiry_date' => $item->expiry_date,
                     'manufacturing_date' => $item->manufacturing_date,
+                    'unit_cost' => $item->unit_price,
+                    'min_selling_price' => $item->min_selling_price,
+                    'max_selling_price' => $item->max_selling_price,
                     'notes' => "Stock received via {$this->grn_number}",
                 ]);
             }

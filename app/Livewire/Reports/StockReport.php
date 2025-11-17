@@ -14,14 +14,14 @@ class StockReport extends Component
     public $categoryFilter = null;
     public $searchTerm = '';
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $query = Product::with('category');
 
         // Low stock filter
         if ($this->lowStockOnly) {
-            $threshold = setting('low_stock_threshold', 10);
+            $threshold = settings('low_stock_threshold', 10);
             $query->where('current_stock_quantity', '<=', $threshold);
         }
 
@@ -44,7 +44,7 @@ class StockReport extends Component
         $summary = [
             'total_products' => Product::count(),
             'out_of_stock' => Product::where('current_stock_quantity', 0)->count(),
-            'low_stock' => Product::where('current_stock_quantity', '<=', setting('low_stock_threshold', 10))
+            'low_stock' => Product::where('current_stock_quantity', '<=', settings('low_stock_threshold', 10))
                 ->where('current_stock_quantity', '>', 0)
                 ->count(),
             'total_value' => Product::sum(DB::raw('current_stock_quantity * max_selling_price')),

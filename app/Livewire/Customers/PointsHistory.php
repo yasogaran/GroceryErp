@@ -22,7 +22,7 @@ class PointsHistory extends Component
         $this->customer = Customer::findOrFail($customerId);
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $transactions = PointTransaction::where('customer_id', $this->customerId)

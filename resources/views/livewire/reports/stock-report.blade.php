@@ -76,7 +76,7 @@
                         </td>
                         <td class="py-3 px-4">{{ $product->category?->name ?? 'N/A' }}</td>
                         <td class="py-3 px-4 text-right">
-                            <span class="@if($product->current_stock_quantity == 0) text-red-600 font-bold @elseif($product->current_stock_quantity <= setting('low_stock_threshold', 10)) text-yellow-600 font-medium @endif">
+                            <span class="@if($product->current_stock_quantity == 0) text-red-600 font-bold @elseif($product->current_stock_quantity <= settings('low_stock_threshold', 10)) text-yellow-600 font-medium @endif">
                                 {{ number_format($product->current_stock_quantity, 0) }}
                             </span>
                         </td>

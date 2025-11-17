@@ -102,7 +102,7 @@ class SettingsManagement extends Component
         session()->flash('success', 'Logo removed successfully.');
     }
 
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $groupedSettings = Setting::getAllGrouped();

@@ -38,7 +38,7 @@
                 </div>
 
                 <!-- Navigation -->
-                @include('layouts.sidebar-navigation')
+                @include('components.layouts.sidebar-navigation')
             </aside>
 
             <!-- Main Content -->

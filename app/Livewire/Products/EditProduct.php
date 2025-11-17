@@ -86,8 +86,8 @@ class EditProduct extends Component
         $this->has_packaging = $product->has_packaging;
 
         // Load packaging if exists
-        if ($product->has_packaging && $product->packaging->isNotEmpty()) {
-            $packaging = $product->packaging->first();
+        if ($product->has_packaging && $product->packaging) {
+            $packaging = $product->packaging;
             $this->packaging_id = $packaging->id;
             $this->packaging_name = $packaging->packaging_name;
             $this->pieces_per_package = $packaging->pieces_per_package;

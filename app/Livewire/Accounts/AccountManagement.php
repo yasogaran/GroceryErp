@@ -111,7 +111,7 @@ class AccountManagement extends Component
     /**
      * Render the component.
      */
-    #[Layout('layouts.app')]
+    #[Layout('components.layouts.app')]
     public function render()
     {
         $accounts = Account::query()

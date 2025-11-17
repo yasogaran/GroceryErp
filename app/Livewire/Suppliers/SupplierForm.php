@@ -3,6 +3,7 @@
 namespace App\Livewire\Suppliers;
 
 use App\Models\Supplier;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class SupplierForm extends Component
@@ -80,8 +81,9 @@ class SupplierForm extends Component
         return redirect()->route('suppliers.index');
     }
 
+    #[Layout('components.layouts.app')]
     public function render()
     {
-        return view('livewire.suppliers.supplier-form')->layout('layouts.app');
+        return view('livewire.suppliers.supplier-form');
     }
 }
