@@ -29,6 +29,7 @@ use App\Livewire\Offers\OfferManagement;
 use App\Livewire\Offers\OfferForm;
 use App\Livewire\Customers\PointsHistory;
 use App\Livewire\Backups\BackupManagement;
+use App\Livewire\Barcodes\LabelPrinting;
 use Illuminate\Support\Facades\Auth;
 
 // Public routes
@@ -171,6 +172,11 @@ Route::middleware(['auth'])->group(function () {
     // Stock Adjustment routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/stock-adjustments', \App\Livewire\Inventory\StockAdjustments::class)->name('stock-adjustments.index');
+    });
+
+    // Barcode routes (store_keeper, manager, admin)
+    Route::middleware(['check.role:store_keeper,manager,admin'])->prefix('barcodes')->name('barcodes.')->group(function () {
+        Route::get('/labels', LabelPrinting::class)->name('labels');
     });
 });
 
