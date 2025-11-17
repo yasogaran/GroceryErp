@@ -62,12 +62,11 @@ return new class extends Migration
         $this->addIndexIfNotExists('products', 'reorder_level');
 
         // Stock movements table indexes
-        $this->addIndexIfNotExists('stock_movements', 'product_id');
-        $this->addIndexIfNotExists('stock_movements', 'batch_id');
-        $this->addIndexIfNotExists('stock_movements', 'movement_type');
-        $this->addIndexIfNotExists('stock_movements', 'movement_date');
+        // Note: product_id, movement_type, created_at already have indexes from table creation
+        // Only add composite indexes that don't exist
         $this->addIndexIfNotExists('stock_movements', ['product_id', 'movement_type']);
-        $this->addIndexIfNotExists('stock_movements', ['product_id', 'movement_date']);
+        $this->addIndexIfNotExists('stock_movements', 'batch_number'); // For batch tracking
+        $this->addIndexIfNotExists('stock_movements', 'expiry_date'); // For expiry reports
 
         // Journal entry lines table indexes
         $this->addIndexIfNotExists('journal_entry_lines', 'journal_entry_id');
@@ -103,10 +102,9 @@ return new class extends Migration
         $this->addIndexIfNotExists('customers', 'loyalty_points');
 
         // Shifts table indexes
-        $this->addIndexIfNotExists('shifts', 'user_id');
-        $this->addIndexIfNotExists('shifts', 'shift_date');
-        $this->addIndexIfNotExists('shifts', 'status');
-        $this->addIndexIfNotExists('shifts', ['user_id', 'shift_date']);
+        // Note: cashier_id, shift_start, is_verified already have indexes from table creation
+        // Add composite index for shift history queries
+        $this->addIndexIfNotExists('shifts', ['cashier_id', 'shift_start']);
 
         // Sale returns table indexes
         $this->addIndexIfNotExists('sale_returns', 'sale_id');
@@ -174,12 +172,9 @@ return new class extends Migration
         $this->dropIndexIfExists('products', 'reorder_level');
 
         // Stock movements table indexes
-        $this->dropIndexIfExists('stock_movements', 'product_id');
-        $this->dropIndexIfExists('stock_movements', 'batch_id');
-        $this->dropIndexIfExists('stock_movements', 'movement_type');
-        $this->dropIndexIfExists('stock_movements', 'movement_date');
         $this->dropIndexIfExists('stock_movements', ['product_id', 'movement_type']);
-        $this->dropIndexIfExists('stock_movements', ['product_id', 'movement_date']);
+        $this->dropIndexIfExists('stock_movements', 'batch_number');
+        $this->dropIndexIfExists('stock_movements', 'expiry_date');
 
         // Journal entry lines table indexes
         $this->dropIndexIfExists('journal_entry_lines', 'journal_entry_id');
@@ -215,10 +210,7 @@ return new class extends Migration
         $this->dropIndexIfExists('customers', 'loyalty_points');
 
         // Shifts table indexes
-        $this->dropIndexIfExists('shifts', 'user_id');
-        $this->dropIndexIfExists('shifts', 'shift_date');
-        $this->dropIndexIfExists('shifts', 'status');
-        $this->dropIndexIfExists('shifts', ['user_id', 'shift_date']);
+        $this->dropIndexIfExists('shifts', ['cashier_id', 'shift_start']);
 
         // Sale returns table indexes
         $this->dropIndexIfExists('sale_returns', 'sale_id');
