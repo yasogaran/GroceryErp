@@ -50,6 +50,7 @@ class StockMovement extends Model
         'max_selling_price' => 'decimal:2',
         'manufacturing_date' => 'date',
         'expiry_date' => 'date',
+        'created_at' => 'datetime',
     ];
 
     /**
