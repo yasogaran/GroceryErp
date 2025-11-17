@@ -3,136 +3,149 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /**
+     * Check if an index exists on a table
+     */
+    private function indexExists(string $table, string $indexName): bool
+    {
+        $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$indexName]);
+        return !empty($indexes);
+    }
+
+    /**
+     * Safely add index if it doesn't exist
+     */
+    private function addIndexIfNotExists(string $table, $columns, ?string $customName = null): void
+    {
+        // Generate index name
+        if ($customName) {
+            $indexName = $customName;
+        } else {
+            $columnStr = is_array($columns) ? implode('_', $columns) : $columns;
+            $indexName = "{$table}_{$columnStr}_index";
+        }
+
+        if (!$this->indexExists($table, $indexName)) {
+            Schema::table($table, function (Blueprint $blueprint) use ($columns) {
+                $blueprint->index($columns);
+            });
+        }
+    }
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         // Sales table indexes
-        Schema::table('sales', function (Blueprint $table) {
-            $table->index('sale_date');
-            $table->index('shift_id');
-            $table->index('customer_id');
-            $table->index(['sale_date', 'shift_id']); // Composite index for daily reports
-            $table->index('created_at');
-        });
+        $this->addIndexIfNotExists('sales', 'sale_date');
+        $this->addIndexIfNotExists('sales', 'shift_id');
+        $this->addIndexIfNotExists('sales', 'customer_id');
+        $this->addIndexIfNotExists('sales', ['sale_date', 'shift_id']);
+        $this->addIndexIfNotExists('sales', 'created_at');
 
         // Sale items table indexes
-        Schema::table('sale_items', function (Blueprint $table) {
-            $table->index('sale_id');
-            $table->index('product_id');
-            $table->index(['sale_id', 'product_id']); // Composite index
-        });
+        $this->addIndexIfNotExists('sale_items', 'sale_id');
+        $this->addIndexIfNotExists('sale_items', 'product_id');
+        $this->addIndexIfNotExists('sale_items', ['sale_id', 'product_id']);
 
         // Products table indexes
-        Schema::table('products', function (Blueprint $table) {
-            $table->index('category_id');
-            $table->index('sku');
-            $table->index('barcode');
-            $table->index('is_active');
-            $table->index(['category_id', 'is_active']); // Composite index for filtering
-            $table->index('reorder_level'); // For low stock queries
-        });
+        $this->addIndexIfNotExists('products', 'category_id');
+        $this->addIndexIfNotExists('products', 'sku');
+        $this->addIndexIfNotExists('products', 'barcode');
+        $this->addIndexIfNotExists('products', 'is_active');
+        $this->addIndexIfNotExists('products', ['category_id', 'is_active']);
+        $this->addIndexIfNotExists('products', 'reorder_level');
 
         // Stock movements table indexes
-        Schema::table('stock_movements', function (Blueprint $table) {
-            $table->index('product_id');
-            $table->index('batch_id');
-            $table->index('movement_type');
-            $table->index('movement_date');
-            $table->index(['product_id', 'movement_type']); // Composite index
-            $table->index(['product_id', 'movement_date']); // For stock reports
-        });
+        $this->addIndexIfNotExists('stock_movements', 'product_id');
+        $this->addIndexIfNotExists('stock_movements', 'batch_id');
+        $this->addIndexIfNotExists('stock_movements', 'movement_type');
+        $this->addIndexIfNotExists('stock_movements', 'movement_date');
+        $this->addIndexIfNotExists('stock_movements', ['product_id', 'movement_type']);
+        $this->addIndexIfNotExists('stock_movements', ['product_id', 'movement_date']);
 
-        // Journal entry lines table indexes (transactions)
-        Schema::table('journal_entry_lines', function (Blueprint $table) {
-            $table->index('journal_entry_id');
-            $table->index('account_id');
-            $table->index(['journal_entry_id', 'account_id']); // Composite index
-        });
+        // Journal entry lines table indexes
+        $this->addIndexIfNotExists('journal_entry_lines', 'journal_entry_id');
+        $this->addIndexIfNotExists('journal_entry_lines', 'account_id');
+        $this->addIndexIfNotExists('journal_entry_lines', ['journal_entry_id', 'account_id']);
 
         // Journal entries table indexes
-        Schema::table('journal_entries', function (Blueprint $table) {
-            $table->index('entry_date');
-            $table->index('entry_type');
-            $table->index('status');
-            $table->index(['entry_date', 'status']); // For reports
-        });
+        $this->addIndexIfNotExists('journal_entries', 'entry_date');
+        $this->addIndexIfNotExists('journal_entries', 'entry_type');
+        $this->addIndexIfNotExists('journal_entries', 'status');
+        $this->addIndexIfNotExists('journal_entries', ['entry_date', 'status']);
 
         // Accounts table indexes
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->index('account_type');
-            $table->index('parent_account_id');
-            $table->index('is_active');
-            $table->index(['account_type', 'is_active']); // Composite index
-        });
+        $this->addIndexIfNotExists('accounts', 'account_type');
+        $this->addIndexIfNotExists('accounts', 'parent_account_id');
+        $this->addIndexIfNotExists('accounts', 'is_active');
+        $this->addIndexIfNotExists('accounts', ['account_type', 'is_active']);
 
         // GRNs table indexes
-        Schema::table('grns', function (Blueprint $table) {
-            $table->index('supplier_id');
-            $table->index('grn_date');
-            $table->index('status');
-            $table->index(['supplier_id', 'grn_date']); // For supplier reports
-        });
+        $this->addIndexIfNotExists('grns', 'supplier_id');
+        $this->addIndexIfNotExists('grns', 'grn_date');
+        $this->addIndexIfNotExists('grns', 'status');
+        $this->addIndexIfNotExists('grns', ['supplier_id', 'grn_date']);
 
         // GRN items table indexes
-        Schema::table('grn_items', function (Blueprint $table) {
-            $table->index('grn_id');
-            $table->index('product_id');
-            $table->index(['grn_id', 'product_id']); // Composite index
-        });
+        $this->addIndexIfNotExists('grn_items', 'grn_id');
+        $this->addIndexIfNotExists('grn_items', 'product_id');
+        $this->addIndexIfNotExists('grn_items', ['grn_id', 'product_id']);
 
         // Customers table indexes
-        Schema::table('customers', function (Blueprint $table) {
-            $table->index('phone');
-            $table->index('email');
-            $table->index('loyalty_points');
-        });
+        $this->addIndexIfNotExists('customers', 'phone');
+        $this->addIndexIfNotExists('customers', 'email');
+        $this->addIndexIfNotExists('customers', 'loyalty_points');
 
         // Shifts table indexes
-        Schema::table('shifts', function (Blueprint $table) {
-            $table->index('user_id');
-            $table->index('shift_date');
-            $table->index('status');
-            $table->index(['user_id', 'shift_date']); // For user shift history
-        });
+        $this->addIndexIfNotExists('shifts', 'user_id');
+        $this->addIndexIfNotExists('shifts', 'shift_date');
+        $this->addIndexIfNotExists('shifts', 'status');
+        $this->addIndexIfNotExists('shifts', ['user_id', 'shift_date']);
 
         // Sale returns table indexes
-        Schema::table('sale_returns', function (Blueprint $table) {
-            $table->index('sale_id');
-            $table->index('return_date');
-            $table->index(['sale_id', 'return_date']); // Composite index
-        });
+        $this->addIndexIfNotExists('sale_returns', 'sale_id');
+        $this->addIndexIfNotExists('sale_returns', 'return_date');
+        $this->addIndexIfNotExists('sale_returns', ['sale_id', 'return_date']);
 
         // Suppliers table indexes
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->index('email');
-            $table->index('phone');
-            $table->index('is_active');
-        });
+        $this->addIndexIfNotExists('suppliers', 'email');
+        $this->addIndexIfNotExists('suppliers', 'phone');
+        $this->addIndexIfNotExists('suppliers', 'is_active');
 
         // Offers table indexes
-        Schema::table('offers', function (Blueprint $table) {
-            $table->index('start_date');
-            $table->index('end_date');
-            $table->index('is_active');
-            $table->index(['start_date', 'end_date', 'is_active']); // For active offers query
-        });
+        $this->addIndexIfNotExists('offers', 'start_date');
+        $this->addIndexIfNotExists('offers', 'end_date');
+        $this->addIndexIfNotExists('offers', 'is_active');
+        $this->addIndexIfNotExists('offers', ['start_date', 'end_date', 'is_active']);
 
         // Categories table indexes
-        Schema::table('categories', function (Blueprint $table) {
-            $table->index('parent_id');
-            $table->index('is_active');
-        });
+        $this->addIndexIfNotExists('categories', 'parent_id');
+        $this->addIndexIfNotExists('categories', 'is_active');
 
         // Settings table indexes
-        Schema::table('settings', function (Blueprint $table) {
-            $table->index('key');
-            $table->index('group_name');
-        });
+        $this->addIndexIfNotExists('settings', 'key');
+        $this->addIndexIfNotExists('settings', 'group_name');
+    }
+
+    /**
+     * Safely drop index if it exists
+     */
+    private function dropIndexIfExists(string $table, $columns): void
+    {
+        $columnStr = is_array($columns) ? implode('_', $columns) : $columns;
+        $indexName = "{$table}_{$columnStr}_index";
+
+        if ($this->indexExists($table, $indexName)) {
+            Schema::table($table, function (Blueprint $blueprint) use ($columns) {
+                $blueprint->dropIndex(is_array($columns) ? $columns : [$columns]);
+            });
+        }
     }
 
     /**
@@ -141,126 +154,94 @@ return new class extends Migration
     public function down(): void
     {
         // Sales table indexes
-        Schema::table('sales', function (Blueprint $table) {
-            $table->dropIndex(['sale_date']);
-            $table->dropIndex(['shift_id']);
-            $table->dropIndex(['customer_id']);
-            $table->dropIndex(['sale_date', 'shift_id']);
-            $table->dropIndex(['created_at']);
-        });
+        $this->dropIndexIfExists('sales', 'sale_date');
+        $this->dropIndexIfExists('sales', 'shift_id');
+        $this->dropIndexIfExists('sales', 'customer_id');
+        $this->dropIndexIfExists('sales', ['sale_date', 'shift_id']);
+        $this->dropIndexIfExists('sales', 'created_at');
 
         // Sale items table indexes
-        Schema::table('sale_items', function (Blueprint $table) {
-            $table->dropIndex(['sale_id']);
-            $table->dropIndex(['product_id']);
-            $table->dropIndex(['sale_id', 'product_id']);
-        });
+        $this->dropIndexIfExists('sale_items', 'sale_id');
+        $this->dropIndexIfExists('sale_items', 'product_id');
+        $this->dropIndexIfExists('sale_items', ['sale_id', 'product_id']);
 
         // Products table indexes
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropIndex(['category_id']);
-            $table->dropIndex(['sku']);
-            $table->dropIndex(['barcode']);
-            $table->dropIndex(['is_active']);
-            $table->dropIndex(['category_id', 'is_active']);
-            $table->dropIndex(['reorder_level']);
-        });
+        $this->dropIndexIfExists('products', 'category_id');
+        $this->dropIndexIfExists('products', 'sku');
+        $this->dropIndexIfExists('products', 'barcode');
+        $this->dropIndexIfExists('products', 'is_active');
+        $this->dropIndexIfExists('products', ['category_id', 'is_active']);
+        $this->dropIndexIfExists('products', 'reorder_level');
 
         // Stock movements table indexes
-        Schema::table('stock_movements', function (Blueprint $table) {
-            $table->dropIndex(['product_id']);
-            $table->dropIndex(['batch_id']);
-            $table->dropIndex(['movement_type']);
-            $table->dropIndex(['movement_date']);
-            $table->dropIndex(['product_id', 'movement_type']);
-            $table->dropIndex(['product_id', 'movement_date']);
-        });
+        $this->dropIndexIfExists('stock_movements', 'product_id');
+        $this->dropIndexIfExists('stock_movements', 'batch_id');
+        $this->dropIndexIfExists('stock_movements', 'movement_type');
+        $this->dropIndexIfExists('stock_movements', 'movement_date');
+        $this->dropIndexIfExists('stock_movements', ['product_id', 'movement_type']);
+        $this->dropIndexIfExists('stock_movements', ['product_id', 'movement_date']);
 
         // Journal entry lines table indexes
-        Schema::table('journal_entry_lines', function (Blueprint $table) {
-            $table->dropIndex(['journal_entry_id']);
-            $table->dropIndex(['account_id']);
-            $table->dropIndex(['journal_entry_id', 'account_id']);
-        });
+        $this->dropIndexIfExists('journal_entry_lines', 'journal_entry_id');
+        $this->dropIndexIfExists('journal_entry_lines', 'account_id');
+        $this->dropIndexIfExists('journal_entry_lines', ['journal_entry_id', 'account_id']);
 
         // Journal entries table indexes
-        Schema::table('journal_entries', function (Blueprint $table) {
-            $table->dropIndex(['entry_date']);
-            $table->dropIndex(['entry_type']);
-            $table->dropIndex(['status']);
-            $table->dropIndex(['entry_date', 'status']);
-        });
+        $this->dropIndexIfExists('journal_entries', 'entry_date');
+        $this->dropIndexIfExists('journal_entries', 'entry_type');
+        $this->dropIndexIfExists('journal_entries', 'status');
+        $this->dropIndexIfExists('journal_entries', ['entry_date', 'status']);
 
         // Accounts table indexes
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->dropIndex(['account_type']);
-            $table->dropIndex(['parent_account_id']);
-            $table->dropIndex(['is_active']);
-            $table->dropIndex(['account_type', 'is_active']);
-        });
+        $this->dropIndexIfExists('accounts', 'account_type');
+        $this->dropIndexIfExists('accounts', 'parent_account_id');
+        $this->dropIndexIfExists('accounts', 'is_active');
+        $this->dropIndexIfExists('accounts', ['account_type', 'is_active']);
 
         // GRNs table indexes
-        Schema::table('grns', function (Blueprint $table) {
-            $table->dropIndex(['supplier_id']);
-            $table->dropIndex(['grn_date']);
-            $table->dropIndex(['status']);
-            $table->dropIndex(['supplier_id', 'grn_date']);
-        });
+        $this->dropIndexIfExists('grns', 'supplier_id');
+        $this->dropIndexIfExists('grns', 'grn_date');
+        $this->dropIndexIfExists('grns', 'status');
+        $this->dropIndexIfExists('grns', ['supplier_id', 'grn_date']);
 
         // GRN items table indexes
-        Schema::table('grn_items', function (Blueprint $table) {
-            $table->dropIndex(['grn_id']);
-            $table->dropIndex(['product_id']);
-            $table->dropIndex(['grn_id', 'product_id']);
-        });
+        $this->dropIndexIfExists('grn_items', 'grn_id');
+        $this->dropIndexIfExists('grn_items', 'product_id');
+        $this->dropIndexIfExists('grn_items', ['grn_id', 'product_id']);
 
         // Customers table indexes
-        Schema::table('customers', function (Blueprint $table) {
-            $table->dropIndex(['phone']);
-            $table->dropIndex(['email']);
-            $table->dropIndex(['loyalty_points']);
-        });
+        $this->dropIndexIfExists('customers', 'phone');
+        $this->dropIndexIfExists('customers', 'email');
+        $this->dropIndexIfExists('customers', 'loyalty_points');
 
         // Shifts table indexes
-        Schema::table('shifts', function (Blueprint $table) {
-            $table->dropIndex(['user_id']);
-            $table->dropIndex(['shift_date']);
-            $table->dropIndex(['status']);
-            $table->dropIndex(['user_id', 'shift_date']);
-        });
+        $this->dropIndexIfExists('shifts', 'user_id');
+        $this->dropIndexIfExists('shifts', 'shift_date');
+        $this->dropIndexIfExists('shifts', 'status');
+        $this->dropIndexIfExists('shifts', ['user_id', 'shift_date']);
 
         // Sale returns table indexes
-        Schema::table('sale_returns', function (Blueprint $table) {
-            $table->dropIndex(['sale_id']);
-            $table->dropIndex(['return_date']);
-            $table->dropIndex(['sale_id', 'return_date']);
-        });
+        $this->dropIndexIfExists('sale_returns', 'sale_id');
+        $this->dropIndexIfExists('sale_returns', 'return_date');
+        $this->dropIndexIfExists('sale_returns', ['sale_id', 'return_date']);
 
         // Suppliers table indexes
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->dropIndex(['email']);
-            $table->dropIndex(['phone']);
-            $table->dropIndex(['is_active']);
-        });
+        $this->dropIndexIfExists('suppliers', 'email');
+        $this->dropIndexIfExists('suppliers', 'phone');
+        $this->dropIndexIfExists('suppliers', 'is_active');
 
         // Offers table indexes
-        Schema::table('offers', function (Blueprint $table) {
-            $table->dropIndex(['start_date']);
-            $table->dropIndex(['end_date']);
-            $table->dropIndex(['is_active']);
-            $table->dropIndex(['start_date', 'end_date', 'is_active']);
-        });
+        $this->dropIndexIfExists('offers', 'start_date');
+        $this->dropIndexIfExists('offers', 'end_date');
+        $this->dropIndexIfExists('offers', 'is_active');
+        $this->dropIndexIfExists('offers', ['start_date', 'end_date', 'is_active']);
 
         // Categories table indexes
-        Schema::table('categories', function (Blueprint $table) {
-            $table->dropIndex(['parent_id']);
-            $table->dropIndex(['is_active']);
-        });
+        $this->dropIndexIfExists('categories', 'parent_id');
+        $this->dropIndexIfExists('categories', 'is_active');
 
         // Settings table indexes
-        Schema::table('settings', function (Blueprint $table) {
-            $table->dropIndex(['key']);
-            $table->dropIndex(['group_name']);
-        });
+        $this->dropIndexIfExists('settings', 'key');
+        $this->dropIndexIfExists('settings', 'group_name');
     }
 };
