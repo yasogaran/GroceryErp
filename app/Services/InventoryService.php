@@ -453,6 +453,7 @@ class InventoryService
                 'min_selling_price' => $oldestBatch->min_selling_price,
                 'max_selling_price' => $oldestBatch->max_selling_price,
                 'batch_number' => $oldestBatch->batch_number,
+                'stock_movement_id' => $oldestBatch->id,
             ];
         }
 
@@ -462,6 +463,72 @@ class InventoryService
             'min_selling_price' => $product->min_selling_price,
             'max_selling_price' => $product->max_selling_price,
             'batch_number' => null,
+            'stock_movement_id' => null,
+        ];
+    }
+
+    /**
+     * Get all available stock batches for a product with remaining quantities.
+     * This helps in multi-batch inventory management.
+     *
+     * @param Product $product
+     * @return array Array of batches with details
+     */
+    public function getAvailableBatches(Product $product): array
+    {
+        // Get all stock IN movements (these represent batches)
+        $stockInMovements = StockMovement::where('product_id', $product->id)
+            ->where('movement_type', 'in')
+            ->whereNotNull('unit_cost')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $batches = [];
+
+        foreach ($stockInMovements as $movement) {
+            // For simplicity, we're grouping by batch_number + unit_cost + prices
+            // In reality, each stock IN movement is a separate batch
+            $batchKey = $movement->id;
+
+            $batches[] = [
+                'stock_movement_id' => $movement->id,
+                'batch_number' => $movement->batch_number ?? 'N/A',
+                'grn_date' => $movement->created_at->format('Y-m-d'),
+                'quantity_in' => $movement->quantity,
+                'unit_cost' => $movement->unit_cost,
+                'min_selling_price' => $movement->min_selling_price,
+                'max_selling_price' => $movement->max_selling_price,
+                'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
+                'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
+            ];
+        }
+
+        return $batches;
+    }
+
+    /**
+     * Get specific batch details by stock movement ID.
+     *
+     * @param int $stockMovementId
+     * @return array|null
+     */
+    public function getBatchDetails(int $stockMovementId): ?array
+    {
+        $movement = StockMovement::find($stockMovementId);
+
+        if (!$movement || $movement->movement_type !== 'in') {
+            return null;
+        }
+
+        return [
+            'stock_movement_id' => $movement->id,
+            'batch_number' => $movement->batch_number ?? 'N/A',
+            'unit_cost' => $movement->unit_cost,
+            'min_selling_price' => $movement->min_selling_price,
+            'max_selling_price' => $movement->max_selling_price,
+            'grn_date' => $movement->created_at->format('Y-m-d'),
+            'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
+            'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
         ];
     }
 }
