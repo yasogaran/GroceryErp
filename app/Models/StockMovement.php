@@ -128,19 +128,13 @@ class StockMovement extends Model
                $this->expiry_date->isFuture() &&
                $this->expiry_date->lte(now()->addDays($days));
     }
-  /*
+
+    /**
      * Get the user who created this stock movement
      */
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-  /*
-     * Get the user who performed this stock movement.
-     */
-    public function performedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'performed_by');
     }
 
     /**
@@ -165,15 +159,6 @@ class StockMovement extends Model
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('created_at', [$startDate, $endDate]);
-    }
-
-    /**
-     * Scope a query to only include movements with a specific reference.
-     */
-    public function scopeByReference($query, string $referenceType, int $referenceId)
-    {
-        return $query->where('reference_type', $referenceType)
-                     ->where('reference_id', $referenceId);
     }
 
     /**
