@@ -80,39 +80,6 @@ class InventoryService
     }
 
     /**
-     * Adjust stock (can be positive or negative).
-     *
-     * @param Product $product
-     * @param float $quantity Positive for increase, negative for decrease
-     * @param string $reason
-     * @return StockMovement
-     */
-    public function adjustStock(Product $product, float $quantity, string $reason = ''): StockMovement
-    {
-        return DB::transaction(function () use ($product, $quantity, $reason) {
-            $oldStock = $product->current_stock_quantity;
-            $newStock = $oldStock + $quantity;
-
-            if ($newStock < 0) {
-                throw new \Exception("Stock adjustment would result in negative stock");
-            }
-
-            // Update product stock
-            $product->update(['current_stock_quantity' => $newStock]);
-
-            // Create stock movement record
-            return StockMovement::create([
-                'product_id' => $product->id,
-                'movement_type' => 'adjustment',
-                'quantity' => abs($quantity),
-                'reference_type' => 'adjustment',
-                'performed_by' => auth()->id(),
-                'notes' => "Stock adjusted from {$oldStock} to {$newStock}. Reason: {$reason}",
-            ]);
-        });
-    }
-
-    /**
      * Transfer stock to damaged stock.
      *
      * @param Product $product
