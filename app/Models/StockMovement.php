@@ -69,6 +69,14 @@ class StockMovement extends Model
     }
 
     /**
+     * Get the user who performed the movement (alias for performer).
+     */
+    public function performedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    /**
      * Scope a query to only include stock-in movements.
      */
     public function scopeStockIn($query)
