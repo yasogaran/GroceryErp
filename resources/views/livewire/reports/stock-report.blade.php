@@ -20,7 +20,7 @@
 
         <div class="bg-green-50 border border-green-200 rounded-lg p-6">
             <p class="text-sm text-gray-600 mb-2">Total Stock Value</p>
-            <p class="text-3xl font-bold text-green-600">Rs. {{ number_format($summary['total_value'], 2) }}</p>
+            <p class="text-3xl font-bold text-green-600">{{ format_currency($summary['total_value']) }}</p>
         </div>
     </div>
 
@@ -80,9 +80,9 @@
                                 {{ number_format($product->current_stock_quantity, 0) }}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-right">Rs. {{ number_format($product->max_selling_price, 2) }}</td>
+                        <td class="py-3 px-4 text-right">{{ format_currency($product->max_selling_price) }}</td>
                         <td class="py-3 px-4 text-right font-medium">
-                            Rs. {{ number_format($product->current_stock_quantity * $product->max_selling_price, 2) }}
+                            {{ format_currency($product->current_stock_quantity * $product->max_selling_price) }}
                         </td>
                     </tr>
                 @empty

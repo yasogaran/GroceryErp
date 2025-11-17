@@ -274,10 +274,10 @@
                                         <td class="px-6 py-4 text-sm text-gray-900">{{ $item['product_name'] }}</td>
                                         <td class="px-6 py-4 text-sm text-right text-gray-900">{{ $item['received_boxes'] }}</td>
                                         <td class="px-6 py-4 text-sm text-right text-gray-900">{{ number_format($item['received_pieces'], 2) }}</td>
-                                        <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($item['unit_price'], 2) }}</td>
-                                        <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($item['min_selling_price'] ?? 0, 2) }}</td>
-                                        <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($item['max_selling_price'] ?? 0, 2) }}</td>
-                                        <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">₹{{ number_format($item['total_amount'], 2) }}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-gray-900">{{ format_currency($item['unit_price']) }}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-gray-900">{{ format_currency($item['min_selling_price'] ?? 0) }}</td>
+                                        <td class="px-6 py-4 text-sm text-right text-gray-900">{{ format_currency($item['max_selling_price'] ?? 0) }}</td>
+                                        <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">{{ format_currency($item['total_amount']) }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-500">
                                             @if($item['batch_number'])
                                                 <div>Batch: {{ $item['batch_number'] }}</div>
@@ -299,7 +299,7 @@
                                 @endforeach
                                 <tr class="bg-gray-50 font-semibold">
                                     <td colspan="6" class="px-6 py-4 text-right text-sm text-gray-900">Grand Total:</td>
-                                    <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format(array_sum(array_column($items, 'total_amount')), 2) }}</td>
+                                    <td class="px-6 py-4 text-sm text-right text-gray-900">{{ format_currency(array_sum(array_column($items, 'total_amount'))) }}</td>
                                     <td colspan="2"></td>
                                 </tr>
                             </tbody>

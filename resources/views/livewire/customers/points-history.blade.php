@@ -20,7 +20,7 @@
         </div>
         <div class="bg-purple-50 rounded-lg p-6">
             <p class="text-sm text-gray-600 mb-1">Total Purchases</p>
-            <p class="text-2xl font-bold text-purple-600">Rs. {{ number_format($customer->total_purchases, 2) }}</p>
+            <p class="text-2xl font-bold text-purple-600">{{ format_currency($customer->total_purchases) }}</p>
         </div>
     </div>
 

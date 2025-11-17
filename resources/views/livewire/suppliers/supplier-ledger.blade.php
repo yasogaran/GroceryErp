@@ -34,7 +34,7 @@
                 <div>
                     <h3 class="text-sm font-medium text-gray-500">Outstanding Balance</h3>
                     <p class="mt-1 text-lg font-semibold {{ $supplier->outstanding_balance > 0 ? 'text-red-600' : 'text-green-600' }}">
-                        ₹{{ number_format($supplier->outstanding_balance, 2) }}
+                        {{ format_currency($supplier->outstanding_balance) }}
                     </p>
                 </div>
             </div>
@@ -109,14 +109,14 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right {{ $transaction['debit'] > 0 ? 'text-red-600 font-medium' : 'text-gray-500' }}">
                                     @if($transaction['debit'] > 0)
-                                        ₹{{ number_format($transaction['debit'], 2) }}
+                                        {{ format_currency($transaction['debit']) }}
                                     @else
                                         -
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right {{ $transaction['credit'] > 0 ? 'text-green-600 font-medium' : 'text-gray-500' }}">
                                     @if($transaction['credit'] > 0)
-                                        ₹{{ number_format($transaction['credit'], 2) }}
+                                        {{ format_currency($transaction['credit']) }}
                                     @else
                                         -
                                     @endif
@@ -136,18 +136,18 @@
                                     Total:
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600">
-                                    ₹{{ number_format($totalDebit, 2) }}
+                                    {{ format_currency($totalDebit) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">
-                                    ₹{{ number_format($totalCredit, 2) }}
+                                    {{ format_currency($totalCredit) }}
                                 </td>
                             </tr>
-                            <tr class="bg-gray-100 font-bold">
+            <tr class="bg-gray-100 font-bold">
                                 <td colspan="4" class="px-6 py-4 text-right text-sm text-gray-900">
                                     Outstanding Balance:
                                 </td>
                                 <td colspan="2" class="px-6 py-4 whitespace-nowrap text-sm text-right {{ ($totalDebit - $totalCredit) > 0 ? 'text-red-700' : 'text-green-700' }}">
-                                    ₹{{ number_format($totalDebit - $totalCredit, 2) }}
+                                    {{ format_currency($totalDebit - $totalCredit) }}
                                 </td>
                             </tr>
                         @endif

@@ -41,14 +41,14 @@
                                     {{ ucfirst($balance['account']->account_type) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($balance['debit'], 2) }}</td>
-                            <td class="px-6 py-4 text-sm text-right text-gray-900">₹{{ number_format($balance['credit'], 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-gray-900">{{ format_currency($balance['debit']) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-gray-900">{{ format_currency($balance['credit']) }}</td>
                         </tr>
                     @endforeach
                     <tr class="bg-gray-100 font-bold">
                         <td colspan="3" class="px-6 py-4 text-sm text-right">TOTAL</td>
-                        <td class="px-6 py-4 text-sm text-right">₹{{ number_format($reportData['total_debit'], 2) }}</td>
-                        <td class="px-6 py-4 text-sm text-right">₹{{ number_format($reportData['total_credit'], 2) }}</td>
+                        <td class="px-6 py-4 text-sm text-right">{{ format_currency($reportData['total_debit']) }}</td>
+                        <td class="px-6 py-4 text-sm text-right">{{ format_currency($reportData['total_credit']) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -57,7 +57,7 @@
                 @if($reportData['is_balanced'])
                     <p class="text-green-800 font-semibold">✓ Trial Balance is Balanced</p>
                 @else
-                    <p class="text-red-800 font-semibold">✗ Trial Balance is NOT Balanced (Difference: ₹{{ number_format(abs($reportData['difference']), 2) }})</p>
+                    <p class="text-red-800 font-semibold">✗ Trial Balance is NOT Balanced (Difference: {{ format_currency(abs($reportData['difference'])) }})</p>
                 @endif
             </div>
         </div>

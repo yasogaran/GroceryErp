@@ -152,17 +152,17 @@
                             <!-- Price -->
                             <div class="text-right">
                                 <p class="text-sm text-gray-600">
-                                    @ Rs. {{ number_format($item['unit_price'], 2) }}
+                                    @ {{ format_currency($item['unit_price']) }}
                                 </p>
 
                                 @if($item['item_discount'] > 0)
                                     <p class="text-xs text-green-600">
-                                        -Rs. {{ number_format($item['item_discount'], 2) }}
+                                        -{{ format_currency($item['item_discount']) }}
                                     </p>
                                 @endif
 
                                 <p class="text-lg font-bold text-gray-800">
-                                    Rs. {{ number_format($item['total'], 2) }}
+                                    {{ format_currency($item['total']) }}
                                 </p>
                             </div>
                         </div>
@@ -195,7 +195,7 @@
                             wire:model.change="cartDiscountType"
                             class="border border-gray-300 rounded-lg px-3 py-2"
                         >
-                            <option value="fixed">Rs.</option>
+                            <option value="fixed">{{ currency_symbol() }}</option>
                             <option value="percentage">%</option>
                         </select>
                     </div>
@@ -207,19 +207,19 @@
                 <div class="border-t border-gray-200 pt-4 space-y-2 mb-4">
                     <div class="flex justify-between text-gray-700">
                         <span>Subtotal:</span>
-                        <span>Rs. {{ number_format($subtotal, 2) }}</span>
+                        <span>{{ format_currency($subtotal) }}</span>
                     </div>
 
                     @if($totalDiscount > 0)
                         <div class="flex justify-between text-green-600">
                             <span>Discount:</span>
-                            <span>-Rs. {{ number_format($totalDiscount, 2) }}</span>
+                            <span>-{{ format_currency($totalDiscount) }}</span>
                         </div>
                     @endif
 
                     <div class="flex justify-between text-2xl font-bold text-gray-900 pt-2 border-t">
                         <span>Total:</span>
-                        <span>Rs. {{ number_format($grandTotal, 2) }}</span>
+                        <span>{{ format_currency($grandTotal) }}</span>
                     </div>
                 </div>
 
@@ -291,7 +291,7 @@
                             <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                                 <div>
                                     <p class="font-medium">{{ $bill['customer_name'] }}</p>
-                                    <p class="text-sm text-gray-600">{{ $bill['item_count'] }} items • Rs. {{ number_format($bill['total'], 2) }}</p>
+                                    <p class="text-sm text-gray-600">{{ $bill['item_count'] }} items • {{ format_currency($bill['total']) }}</p>
                                     <p class="text-xs text-gray-500">Held at {{ $bill['time'] }}</p>
                                 </div>
                                 <div class="flex space-x-2">

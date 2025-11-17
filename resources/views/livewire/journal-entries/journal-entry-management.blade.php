@@ -81,8 +81,8 @@
                                 {{ ucfirst($entry->entry_type) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-900">₹{{ number_format($entry->total_debit, 2) }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">₹{{ number_format($entry->total_credit, 2) }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ format_currency($entry->total_debit) }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ format_currency($entry->total_credit) }}</td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs rounded-full {{ $entry->getStatusBadgeClass() }}">
                                 {{ ucfirst($entry->status) }}

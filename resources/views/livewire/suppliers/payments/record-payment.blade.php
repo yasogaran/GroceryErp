@@ -30,7 +30,7 @@
                             <option value="">Select Supplier</option>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}">
-                                    {{ $supplier->name }} (Outstanding: ₹{{ number_format($supplier->outstanding_balance, 2) }})
+                                    {{ $supplier->name }} (Outstanding: {{ format_currency($supplier->outstanding_balance) }})
                                 </option>
                             @endforeach
                         </select>
@@ -43,7 +43,7 @@
                             <div class="flex justify-between items-center">
                                 <div>
                                     <h4 class="text-sm font-medium text-blue-800">Current Outstanding Balance</h4>
-                                    <p class="mt-1 text-2xl font-bold text-blue-900">₹{{ number_format($selectedSupplier->outstanding_balance, 2) }}</p>
+                                    <p class="mt-1 text-2xl font-bold text-blue-900">{{ format_currency($selectedSupplier->outstanding_balance) }}</p>
                                 </div>
                                 <div class="text-right">
                                     <h4 class="text-sm font-medium text-blue-800">Credit Terms</h4>

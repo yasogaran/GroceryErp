@@ -40,7 +40,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600">Damaged Stock Value</p>
-                    <p class="text-2xl font-bold text-gray-800">Rs. {{ number_format($summary['total_damaged_stock_value'], 2) }}</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ format_currency($summary['total_damaged_stock_value']) }}</p>
                 </div>
             </div>
         </div>
@@ -100,7 +100,7 @@
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-right font-medium">
-                                Rs. {{ number_format($product->damaged_stock_quantity * $product->max_selling_price, 2) }}
+                                {{ format_currency($product->damaged_stock_quantity * $product->max_selling_price) }}
                             </td>
                             <td class="py-3 px-4">
                                 <div class="flex items-center justify-center space-x-2">

@@ -143,7 +143,7 @@
                                     {{ $grn->items->count() }} items
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-medium">
-                                    ₹{{ number_format($grn->total_amount, 2) }}
+                                    {{ format_currency($grn->total_amount) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $grn->status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">

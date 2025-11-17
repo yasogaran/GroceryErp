@@ -10,21 +10,21 @@
                         <div class="bg-blue-50 rounded-lg p-6 mb-6 text-center">
                             <p class="text-sm text-gray-600 mb-2">Total Amount</p>
                             <p class="text-5xl font-bold text-blue-600">
-                                Rs. {{ number_format($grandTotal, 2) }}
+                                {{ format_currency($grandTotal) }}
                             </p>
                         </div>
 
                         <div class="bg-green-50 rounded-lg p-6 mb-6 text-center">
                             <p class="text-sm text-gray-600 mb-2">Total Paid</p>
                             <p class="text-4xl font-bold text-green-600">
-                                Rs. {{ number_format($totalPaid, 2) }}
+                                {{ format_currency($totalPaid) }}
                             </p>
                         </div>
 
                         <div class="bg-orange-50 rounded-lg p-6 text-center">
                             <p class="text-sm text-gray-600 mb-2">Remaining</p>
                             <p class="text-4xl font-bold text-orange-600">
-                                Rs. {{ number_format($remainingAmount, 2) }}
+                                {{ format_currency($remainingAmount) }}
                             </p>
                         </div>
 
@@ -44,7 +44,7 @@
                                                 @endif
                                             </div>
                                             <div class="flex items-center space-x-2">
-                                                <span class="font-bold">Rs. {{ number_format($payment['amount'], 2) }}</span>
+                                                <span class="font-bold">{{ format_currency($payment['amount']) }}</span>
                                                 <button
                                                     wire:click="removePayment({{ $index }})"
                                                     class="text-red-600 hover:text-red-800">
@@ -158,7 +158,7 @@
                                 <button
                                     wire:click="$set('currentAmount', {{ min($amount, $remainingAmount) }})"
                                     class="bg-gray-200 hover:bg-gray-300 py-2 rounded font-medium text-sm">
-                                    {{ $amount == $remainingAmount ? 'Rest' : 'Rs. ' . $amount }}
+                                    {{ $amount == $remainingAmount ? 'Rest' : currency_symbol() . ' ' . $amount }}
                                 </button>
                             @endforeach
                         </div>

@@ -91,7 +91,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 truncate">Total Value</dt>
-                                <dd class="text-lg font-semibold text-blue-900">Rs. {{ number_format($totalValue, 2) }}</dd>
+                                <dd class="text-lg font-semibold text-blue-900">{{ format_currency($totalValue) }}</dd>
                             </dl>
                         </div>
                     </div>
@@ -262,18 +262,18 @@
                                     <div class="flex flex-col space-y-1">
                                         <div class="text-xs">
                                             <span class="text-gray-500">Cost:</span>
-                                            <span class="text-gray-900 font-medium">Rs. {{ number_format($batch->unit_cost, 2) }}</span>
+                                            <span class="text-gray-900 font-medium">{{ format_currency($batch->unit_cost) }}</span>
                                         </div>
                                         <div class="text-xs">
                                             <span class="text-gray-500">Min:</span>
-                                            <span class="text-gray-900">Rs. {{ number_format($batch->min_selling_price, 2) }}</span>
+                                            <span class="text-gray-900">{{ format_currency($batch->min_selling_price) }}</span>
                                         </div>
                                         <div class="text-xs">
                                             <span class="text-gray-500">Max:</span>
-                                            <span class="text-gray-900">Rs. {{ number_format($batch->max_selling_price, 2) }}</span>
+                                            <span class="text-gray-900">{{ format_currency($batch->max_selling_price) }}</span>
                                         </div>
                                         <div class="text-xs text-gray-500">
-                                            Value: Rs. {{ number_format($batch->remaining_quantity * $batch->unit_cost, 2) }}
+                                            Value: {{ format_currency($batch->remaining_quantity * $batch->unit_cost) }}
                                         </div>
                                     </div>
                                 </td>

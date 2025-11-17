@@ -170,13 +170,13 @@
                                             <p>Code: {{ $label['barcode'] }}</p>
                                         @endif
                                         @if(isset($label['price']))
-                                            <p class="font-semibold text-lg mt-1">Rs. {{ number_format($label['price'], 2) }}</p>
+                                            <p class="font-semibold text-lg mt-1">{{ format_currency($label['price']) }}</p>
                                         @endif
                                         @if(isset($label['units_per_package']))
                                             <p>{{ $label['units_per_package'] }} units/box</p>
                                         @endif
                                         @if(isset($label['package_price']))
-                                            <p class="font-semibold text-lg mt-1">Box: Rs. {{ number_format($label['package_price'], 2) }}</p>
+                                            <p class="font-semibold text-lg mt-1">Box: {{ format_currency($label['package_price']) }}</p>
                                         @endif
                                     </div>
                                 </div>

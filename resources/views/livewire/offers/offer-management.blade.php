@@ -76,7 +76,7 @@
                                 Buy {{ $offer->buy_quantity }} Get {{ $offer->get_quantity }} Free
                             @else
                                 Min {{ $offer->min_quantity }} items:
-                                {{ $offer->discount_type === 'percentage' ? $offer->discount_value . '%' : 'Rs. ' . $offer->discount_value }} off
+                                {{ $offer->discount_type === 'percentage' ? $offer->discount_value . '%' : '{{ currency_symbol() }} ' . $offer->discount_value }} off
                             @endif
                         </td>
                         <td class="px-6 py-4 text-sm">

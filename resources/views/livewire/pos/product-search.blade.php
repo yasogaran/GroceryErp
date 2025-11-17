@@ -83,7 +83,7 @@
                         </div>
 
                         <!-- Price -->
-                        <p class="text-lg font-bold text-green-600 mb-2">Rs. {{ number_format($batch['max_selling_price'], 2) }}</p>
+                        <p class="text-lg font-bold text-green-600 mb-2">{{ format_currency($batch['max_selling_price']) }}</p>
 
                         <!-- Add Buttons -->
                         <div class="flex gap-2">
@@ -123,7 +123,7 @@
                     <!-- Product Info -->
                     <h4 class="font-medium text-sm mb-1 line-clamp-2">{{ $product->name }}</h4>
                     <p class="text-xs text-gray-500 mb-2">{{ $product->category->name ?? 'N/A' }}</p>
-                    <p class="text-lg font-bold text-blue-600 mb-2">Rs. {{ number_format($product->max_selling_price, 2) }}</p>
+                    <p class="text-lg font-bold text-blue-600 mb-2">{{ format_currency($product->max_selling_price) }}</p>
 
                     <!-- Stock Info -->
                     <p class="text-xs text-gray-600 mb-3">

@@ -53,9 +53,9 @@
                                 <td class="px-6 py-4 text-sm text-gray-900">{{ $transaction['date']->format('Y-m-d') }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-900">{{ $transaction['entry_number'] }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-700">{{ $transaction['description'] }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ $transaction['debit'] > 0 ? '₹' . number_format($transaction['debit'], 2) : '-' }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ $transaction['credit'] > 0 ? '₹' . number_format($transaction['credit'], 2) : '-' }}</td>
-                                <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">₹{{ number_format($transaction['balance'], 2) }}</td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ $transaction['debit'] > 0 ? format_currency($transaction['debit']) : '-' }}</td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ $transaction['credit'] > 0 ? format_currency($transaction['credit']) : '-' }}</td>
+                                <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">{{ format_currency($transaction['balance']) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -70,7 +70,7 @@
                 <div class="flex justify-end">
                     <div class="text-right">
                         <p class="text-sm text-gray-500">Closing Balance</p>
-                        <p class="text-lg font-bold text-gray-900">₹{{ number_format($reportData['closing_balance'], 2) }}</p>
+                        <p class="text-lg font-bold text-gray-900">{{ format_currency($reportData['closing_balance']) }}</p>
                     </div>
                 </div>
             </div>

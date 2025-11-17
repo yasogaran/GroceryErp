@@ -192,7 +192,7 @@
                                     <label for="currency_symbol" class="block text-sm font-medium text-gray-700 mb-2">Currency Symbol *</label>
                                     <input type="text" id="currency_symbol" wire:model="settings.currency_symbol"
                                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <p class="text-sm text-gray-500 mt-1">Currency symbol to display (e.g., Rs., $, €)</p>
+                                    <p class="text-sm text-gray-500 mt-1">Currency symbol to display (e.g., {{ currency_symbol() }}, $, €)</p>
                                     @error('settings.currency_symbol') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                 </div>
 

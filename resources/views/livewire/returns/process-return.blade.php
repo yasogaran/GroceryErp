@@ -137,7 +137,7 @@
                                     >
                                 </td>
                                 <td class="py-3 px-4 text-right font-medium">
-                                    Rs. {{ number_format($item['refund_amount'], 2) }}
+                                    {{ format_currency($item['refund_amount']) }}
                                 </td>
                             </tr>
                         @endforeach
@@ -146,7 +146,7 @@
                         <tr>
                             <td colspan="7" class="py-3 px-4 text-right font-bold">Total Refund:</td>
                             <td class="py-3 px-4 text-right font-bold text-lg text-blue-600">
-                                Rs. {{ number_format($totalRefund, 2) }}
+                                {{ format_currency($totalRefund) }}
                             </td>
                         </tr>
                     </tfoot>
@@ -176,7 +176,7 @@
             <!-- Refund Summary -->
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 text-center">
                 <p class="text-sm text-gray-600 mb-2">Total Refund Amount</p>
-                <p class="text-4xl font-bold text-blue-600">Rs. {{ number_format($totalRefund, 2) }}</p>
+                <p class="text-4xl font-bold text-blue-600">{{ format_currency($totalRefund) }}</p>
             </div>
 
             <!-- Refund Mode -->
@@ -253,7 +253,7 @@
                                     <span class="text-red-600 font-medium">(Damaged)</span>
                                 @endif
                             </span>
-                            <span class="font-medium">Rs. {{ number_format($item['refund_amount'], 2) }}</span>
+                            <span class="font-medium">{{ format_currency($item['refund_amount']) }}</span>
                         </li>
                     @endforeach
                 </ul>

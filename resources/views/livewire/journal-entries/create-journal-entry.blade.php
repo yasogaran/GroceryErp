@@ -94,16 +94,16 @@
             <div class="grid grid-cols-3 gap-4 text-center">
                 <div>
                     <div class="text-sm font-medium text-gray-500">Total Debit</div>
-                    <div class="text-lg font-bold text-gray-900">₹{{ number_format($totalDebit, 2) }}</div>
+                    <div class="text-lg font-bold text-gray-900">{{ format_currency($totalDebit) }}</div>
                 </div>
                 <div>
                     <div class="text-sm font-medium text-gray-500">Total Credit</div>
-                    <div class="text-lg font-bold text-gray-900">₹{{ number_format($totalCredit, 2) }}</div>
+                    <div class="text-lg font-bold text-gray-900">{{ format_currency($totalCredit) }}</div>
                 </div>
                 <div>
                     <div class="text-sm font-medium text-gray-500">Difference</div>
                     <div class="text-lg font-bold {{ $this->isBalanced() ? 'text-green-600' : 'text-red-600' }}">
-                        ₹{{ number_format(abs($totalDebit - $totalCredit), 2) }}
+                        {{ format_currency(abs($totalDebit - $totalCredit)) }}
                     </div>
                 </div>
             </div>

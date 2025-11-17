@@ -140,7 +140,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">${{ number_format($product->min_selling_price, 2) }} - ${{ number_format($product->max_selling_price, 2) }}</div>
+                                    <div class="text-sm text-gray-900">{{ format_currency($product->min_selling_price) }} - {{ format_currency($product->max_selling_price) }}</div>
                                     <div class="text-xs text-gray-500">per {{ $product->base_unit }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">

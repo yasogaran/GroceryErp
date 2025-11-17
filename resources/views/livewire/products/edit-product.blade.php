@@ -170,10 +170,10 @@
             <div class="space-y-4">
                 <!-- Min Selling Price -->
                 <div>
-                    <label for="min_selling_price" class="block text-sm font-medium text-gray-700">Minimum Selling Price <span class="text-red-500">*</span></label>
+                    <label for="min_selling_price" class="block text-sm font-medium text-gray-700">Minimum Selling Price ({{ currency_symbol() }}) <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative rounded-md shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">$</span>
+                            <span class="text-gray-500 sm:text-sm">{{ currency_symbol() }}</span>
                         </div>
                         <input
                             wire:model="min_selling_price"
@@ -189,10 +189,10 @@
 
                 <!-- Max Selling Price (MRP) -->
                 <div>
-                    <label for="max_selling_price" class="block text-sm font-medium text-gray-700">Maximum Selling Price (MRP) <span class="text-red-500">*</span></label>
+                    <label for="max_selling_price" class="block text-sm font-medium text-gray-700">Maximum Selling Price ({{ currency_symbol() }}) <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative rounded-md shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">$</span>
+                            <span class="text-gray-500 sm:text-sm">{{ currency_symbol() }}</span>
                         </div>
                         <input
                             wire:model="max_selling_price"
@@ -298,7 +298,7 @@
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                             >
                                 <option value="percentage">Percentage (%)</option>
-                                <option value="fixed">Fixed Amount ($)</option>
+                                <option value="fixed">Fixed Amount ({{ currency_symbol() }})</option>
                             </select>
                             @error('discount_type') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
@@ -316,7 +316,7 @@
                                     placeholder="0.00"
                                 >
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 sm:text-sm">{{ $discount_type === 'percentage' ? '%' : '$' }}</span>
+                                    <span class="text-gray-500 sm:text-sm">{{ $discount_type === 'percentage' ? '%' : currency_symbol() }}</span>
                                 </div>
                             </div>
                             @error('discount_value') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror

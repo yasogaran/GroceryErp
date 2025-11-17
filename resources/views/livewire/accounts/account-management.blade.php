@@ -144,7 +144,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
                                     <div class="text-sm font-medium {{ $account->balance >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                        ${{ number_format($account->balance, 2) }}
+                                        {{ format_currency($account->balance) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">

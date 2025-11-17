@@ -13,7 +13,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <p class="text-sm text-gray-600 mb-2">Total Sales</p>
-            <p class="text-3xl font-bold text-blue-600">Rs. {{ number_format($summary['total_sales'], 2) }}</p>
+            <p class="text-3xl font-bold text-blue-600">{{ format_currency($summary['total_sales']) }}</p>
         </div>
 
         <div class="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -23,12 +23,12 @@
 
         <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
             <p class="text-sm text-gray-600 mb-2">Cash Sales</p>
-            <p class="text-3xl font-bold text-purple-600">Rs. {{ number_format($summary['cash_sales'], 2) }}</p>
+            <p class="text-3xl font-bold text-purple-600">{{ format_currency($summary['cash_sales']) }}</p>
         </div>
 
         <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
             <p class="text-sm text-gray-600 mb-2">Avg Transaction</p>
-            <p class="text-3xl font-bold text-orange-600">Rs. {{ number_format($summary['avg_transaction'], 2) }}</p>
+            <p class="text-3xl font-bold text-orange-600">{{ format_currency($summary['avg_transaction']) }}</p>
         </div>
     </div>
 
@@ -51,7 +51,7 @@
                             <td class="py-3 px-4">{{ $index + 1 }}</td>
                             <td class="py-3 px-4">{{ $item->product->name }}</td>
                             <td class="py-3 px-4 text-right">{{ number_format($item->total_qty, 0) }}</td>
-                            <td class="py-3 px-4 text-right font-medium">Rs. {{ number_format($item->total_value, 2) }}</td>
+                            <td class="py-3 px-4 text-right font-medium">{{ format_currency($item->total_value) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -80,7 +80,7 @@
                             <td class="py-3 px-4">{{ $sale->sale_date->format('H:i:s') }}</td>
                             <td class="py-3 px-4">{{ $sale->customer?->name ?? 'Walk-in' }}</td>
                             <td class="py-3 px-4">{{ $sale->cashier->name }}</td>
-                            <td class="py-3 px-4 text-right font-medium">Rs. {{ number_format($sale->total_amount, 2) }}</td>
+                            <td class="py-3 px-4 text-right font-medium">{{ format_currency($sale->total_amount) }}</td>
                         </tr>
                     @empty
                         <tr>

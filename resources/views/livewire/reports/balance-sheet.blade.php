@@ -26,12 +26,12 @@
                     @foreach($reportData['asset_accounts'] as $account)
                         <div class="flex justify-between py-2">
                             <span class="text-sm text-gray-700">{{ $account['account']->account_name }}</span>
-                            <span class="text-sm font-medium text-gray-900">₹{{ number_format($account['debit'] - $account['credit'], 2) }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ format_currency($account['debit'] - $account['credit']) }}</span>
                         </div>
                     @endforeach
                     <div class="flex justify-between py-3 mt-3 border-t-2 border-green-300 font-bold">
                         <span>Total Assets</span>
-                        <span class="text-green-600">₹{{ number_format($reportData['total_assets'], 2) }}</span>
+                        <span class="text-green-600">{{ format_currency($reportData['total_assets']) }}</span>
                     </div>
                 </div>
             </div>
@@ -46,33 +46,33 @@
                     @foreach($reportData['liability_accounts'] as $account)
                         <div class="flex justify-between py-2">
                             <span class="text-sm text-gray-700 pl-4">{{ $account['account']->account_name }}</span>
-                            <span class="text-sm font-medium text-gray-900">₹{{ number_format($account['credit'] - $account['debit'], 2) }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ format_currency($account['credit'] - $account['debit']) }}</span>
                         </div>
                     @endforeach
                     <div class="flex justify-between py-2 mt-2 border-t">
                         <span class="text-sm font-semibold">Total Liabilities</span>
-                        <span class="text-sm font-semibold">₹{{ number_format($reportData['total_liabilities'], 2) }}</span>
+                        <span class="text-sm font-semibold">{{ format_currency($reportData['total_liabilities']) }}</span>
                     </div>
 
                     <h3 class="text-sm font-bold text-gray-700 mt-4 mb-2">Equity:</h3>
                     @foreach($reportData['equity_accounts'] as $account)
                         <div class="flex justify-between py-2">
                             <span class="text-sm text-gray-700 pl-4">{{ $account['account']->account_name }}</span>
-                            <span class="text-sm font-medium text-gray-900">₹{{ number_format($account['credit'] - $account['debit'], 2) }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ format_currency($account['credit'] - $account['debit']) }}</span>
                         </div>
                     @endforeach
                     <div class="flex justify-between py-2">
                         <span class="text-sm text-gray-700 pl-4">Current Year P/L</span>
-                        <span class="text-sm font-medium text-gray-900">₹{{ number_format($reportData['current_year_pl'], 2) }}</span>
+                        <span class="text-sm font-medium text-gray-900">{{ format_currency($reportData['current_year_pl']) }}</span>
                     </div>
                     <div class="flex justify-between py-2 mt-2 border-t">
                         <span class="text-sm font-semibold">Total Equity</span>
-                        <span class="text-sm font-semibold">₹{{ number_format($reportData['total_equity'], 2) }}</span>
+                        <span class="text-sm font-semibold">{{ format_currency($reportData['total_equity']) }}</span>
                     </div>
 
                     <div class="flex justify-between py-3 mt-3 border-t-2 border-red-300 font-bold">
                         <span>Total Liabilities & Equity</span>
-                        <span class="text-red-600">₹{{ number_format($reportData['total_liabilities_and_equity'], 2) }}</span>
+                        <span class="text-red-600">{{ format_currency($reportData['total_liabilities_and_equity']) }}</span>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@
             @if($reportData['is_balanced'])
                 <p class="text-green-800 font-semibold">✓ Balance Sheet is Balanced</p>
             @else
-                <p class="text-red-800 font-semibold">✗ Balance Sheet is NOT Balanced (Difference: ₹{{ number_format(abs($reportData['difference']), 2) }})</p>
+                <p class="text-red-800 font-semibold">✗ Balance Sheet is NOT Balanced (Difference: {{ format_currency(abs($reportData['difference'])) }})</p>
             @endif
         </div>
     @endif

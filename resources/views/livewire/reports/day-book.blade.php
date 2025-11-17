@@ -45,8 +45,8 @@
                             @foreach($entry->lines as $line)
                                 <tr>
                                     <td class="py-1 text-gray-700">{{ $line->account->account_code }} - {{ $line->account->account_name }}</td>
-                                    <td class="py-1 text-right text-gray-900">{{ $line->debit > 0 ? '₹' . number_format($line->debit, 2) : '-' }}</td>
-                                    <td class="py-1 text-right text-gray-900">{{ $line->credit > 0 ? '₹' . number_format($line->credit, 2) : '-' }}</td>
+                                    <td class="py-1 text-right text-gray-900">{{ $line->debit > 0 ? format_currency($line->debit) : '-' }}</td>
+                                    <td class="py-1 text-right text-gray-900">{{ $line->credit > 0 ? format_currency($line->credit) : '-' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -63,11 +63,11 @@
                     <div class="flex justify-end space-x-8">
                         <div class="text-right">
                             <p class="text-sm text-gray-500">Total Debit</p>
-                            <p class="text-lg font-bold text-gray-900">₹{{ number_format($reportData['total_debit'], 2) }}</p>
+                            <p class="text-lg font-bold text-gray-900">{{ format_currency($reportData['total_debit']) }}</p>
                         </div>
                         <div class="text-right">
                             <p class="text-sm text-gray-500">Total Credit</p>
-                            <p class="text-lg font-bold text-gray-900">₹{{ number_format($reportData['total_credit'], 2) }}</p>
+                            <p class="text-lg font-bold text-gray-900">{{ format_currency($reportData['total_credit']) }}</p>
                         </div>
                     </div>
                 </div>

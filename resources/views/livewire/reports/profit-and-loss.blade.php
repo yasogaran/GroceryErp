@@ -30,12 +30,12 @@
                     @foreach($reportData['income_accounts'] as $account)
                         <div class="flex justify-between py-2">
                             <span class="text-sm text-gray-700">{{ $account['account']->account_name }}</span>
-                            <span class="text-sm font-medium text-gray-900">₹{{ number_format($account['credit'] - $account['debit'], 2) }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ format_currency($account['credit'] - $account['debit']) }}</span>
                         </div>
                     @endforeach
                     <div class="flex justify-between py-3 mt-3 border-t-2 border-blue-300 font-bold">
                         <span>Total Income</span>
-                        <span class="text-blue-600">₹{{ number_format($reportData['total_income'], 2) }}</span>
+                        <span class="text-blue-600">{{ format_currency($reportData['total_income']) }}</span>
                     </div>
                 </div>
             </div>
@@ -49,12 +49,12 @@
                     @foreach($reportData['expense_accounts'] as $account)
                         <div class="flex justify-between py-2">
                             <span class="text-sm text-gray-700">{{ $account['account']->account_name }}</span>
-                            <span class="text-sm font-medium text-gray-900">₹{{ number_format($account['debit'] - $account['credit'], 2) }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ format_currency($account['debit'] - $account['credit']) }}</span>
                         </div>
                     @endforeach
                     <div class="flex justify-between py-3 mt-3 border-t-2 border-orange-300 font-bold">
                         <span>Total Expenses</span>
-                        <span class="text-orange-600">₹{{ number_format($reportData['total_expenses'], 2) }}</span>
+                        <span class="text-orange-600">{{ format_currency($reportData['total_expenses']) }}</span>
                     </div>
                 </div>
             </div>
@@ -65,7 +65,7 @@
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800">Net {{ $reportData['is_profit'] ? 'Profit' : 'Loss' }}</h2>
                 <span class="text-2xl font-bold {{ $reportData['is_profit'] ? 'text-green-600' : 'text-red-600' }}">
-                    ₹{{ number_format(abs($reportData['net_profit']), 2) }}
+                    {{ format_currency(abs($reportData['net_profit'])) }}
                 </span>
             </div>
         </div>

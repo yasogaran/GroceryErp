@@ -27,7 +27,7 @@
 
                     <div class="bg-green-50 p-4 rounded-lg">
                         <p class="text-sm text-gray-600">Opening Cash</p>
-                        <p class="text-lg font-semibold text-gray-900">Rs. {{ number_format($shift->opening_cash, 2) }}</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ format_currency($shift->opening_cash) }}</p>
                     </div>
                 </div>
 
@@ -39,18 +39,18 @@
 
                     <div class="bg-yellow-50 p-4 rounded-lg text-center">
                         <p class="text-sm text-gray-600">Total Cash Sales</p>
-                        <p class="text-2xl font-bold text-gray-900">Rs. {{ number_format($shift->total_cash_sales, 2) }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ format_currency($shift->total_cash_sales) }}</p>
                     </div>
 
                     <div class="bg-indigo-50 p-4 rounded-lg text-center">
                         <p class="text-sm text-gray-600">Total Bank Sales</p>
-                        <p class="text-2xl font-bold text-gray-900">Rs. {{ number_format($shift->total_bank_sales, 2) }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ format_currency($shift->total_bank_sales) }}</p>
                     </div>
                 </div>
 
                 <div class="bg-blue-100 p-4 rounded-lg border-2 border-blue-300">
                     <p class="text-sm text-gray-700 font-medium">Expected Cash in Drawer</p>
-                    <p class="text-3xl font-bold text-blue-900">Rs. {{ number_format($expectedCash, 2) }}</p>
+                    <p class="text-3xl font-bold text-blue-900">{{ format_currency($expectedCash) }}</p>
                     <p class="text-xs text-gray-600 mt-1">Opening Cash + Cash Sales</p>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                             Variance
                         </p>
                         <p class="text-2xl font-bold {{ $calculatedVariance < 0 ? 'text-red-900' : ($calculatedVariance > 0 ? 'text-green-900' : 'text-gray-900') }}">
-                            {{ $calculatedVariance >= 0 ? '+' : '' }}Rs. {{ number_format($calculatedVariance, 2) }}
+                            {{ $calculatedVariance >= 0 ? '+' : '' }}{{ format_currency($calculatedVariance) }}
                         </p>
                         <p class="text-xs mt-1 {{ $calculatedVariance < 0 ? 'text-red-600' : ($calculatedVariance > 0 ? 'text-green-600' : 'text-gray-600') }}">
                             @if($calculatedVariance < 0)

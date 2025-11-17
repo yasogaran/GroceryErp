@@ -31,7 +31,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600">Total Refunded</p>
-                    <p class="text-2xl font-bold text-gray-800">Rs. {{ number_format($summary['total_refund_amount'], 2) }}</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ format_currency($summary['total_refund_amount']) }}</p>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600">Cash Refunds</p>
-                    <p class="text-xl font-bold text-gray-800">Rs. {{ number_format($summary['cash_refunds'], 2) }}</p>
+                    <p class="text-xl font-bold text-gray-800">{{ format_currency($summary['cash_refunds']) }}</p>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-600">Bank Refunds</p>
-                    <p class="text-xl font-bold text-gray-800">Rs. {{ number_format($summary['bank_refunds'], 2) }}</p>
+                    <p class="text-xl font-bold text-gray-800">{{ format_currency($summary['bank_refunds']) }}</p>
                 </div>
             </div>
         </div>
@@ -119,7 +119,7 @@
                             <td class="py-3 px-4">{{ $return->originalSale->invoice_number }}</td>
                             <td class="py-3 px-4">{{ $return->customer?->name ?? 'Walk-in' }}</td>
                             <td class="py-3 px-4">{{ $return->return_date->format('Y-m-d H:i') }}</td>
-                            <td class="py-3 px-4 text-right font-medium">Rs. {{ number_format($return->total_refund_amount, 2) }}</td>
+                            <td class="py-3 px-4 text-right font-medium">{{ format_currency($return->total_refund_amount) }}</td>
                             <td class="py-3 px-4 text-center">
                                 @if($return->refund_mode === 'cash')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -232,7 +232,7 @@
                                             <span class="text-green-600 font-medium">Good</span>
                                         @endif
                                     </td>
-                                    <td class="py-2 px-3 text-right">Rs. {{ number_format($item->refund_amount, 2) }}</td>
+                                    <td class="py-2 px-3 text-right">{{ format_currency($item->refund_amount) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -240,7 +240,7 @@
                             <tr>
                                 <td colspan="3" class="py-2 px-3 text-right font-semibold">Total Refund:</td>
                                 <td class="py-2 px-3 text-right font-bold text-lg">
-                                    Rs. {{ number_format($selectedReturn->total_refund_amount, 2) }}
+                                    {{ format_currency($selectedReturn->total_refund_amount) }}
                                 </td>
                             </tr>
                         </tfoot>

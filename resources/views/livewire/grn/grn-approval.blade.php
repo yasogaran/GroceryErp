@@ -65,7 +65,7 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-medium text-gray-500">Total Amount</h4>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">₹{{ number_format($grn->total_amount, 2) }}</p>
+                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ format_currency($grn->total_amount) }}</p>
                 </div>
                 <div>
                     <h4 class="text-sm font-medium text-gray-500">Created By</h4>
@@ -133,10 +133,10 @@
                                     {{ number_format($item->received_pieces, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-right text-gray-900">
-                                    ₹{{ number_format($item->unit_price, 2) }}
+                                    {{ format_currency($item->unit_price) }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">
-                                    ₹{{ number_format($item->total_amount, 2) }}
+                                    {{ format_currency($item->total_amount) }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500">
                                     @if($item->batch_number)
@@ -159,7 +159,7 @@
                                 Grand Total:
                             </td>
                             <td class="px-6 py-4 text-sm text-right text-gray-900">
-                                ₹{{ number_format($grn->total_amount, 2) }}
+                                {{ format_currency($grn->total_amount) }}
                             </td>
                             <td></td>
                         </tr>
