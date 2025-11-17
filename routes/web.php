@@ -74,6 +74,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/accounts', AccountManagement::class)->name('accounts.index');
     });
 
+    // Journal Entry routes (accountant, manager, admin)
+    Route::middleware(['check.role:accountant,manager,admin'])->prefix('journal-entries')->name('journal-entries.')->group(function () {
+        Route::get('/', \App\Livewire\JournalEntries\JournalEntryManagement::class)->name('index');
+    });
+
     // Stock Movement routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
@@ -140,6 +145,15 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['check.role:manager,admin'])->prefix('reports')->name('reports.')->group(function () {
         Route::get('/daily-sales', DailySalesReport::class)->name('daily-sales');
         Route::get('/stock', StockReport::class)->name('stock');
+    });
+
+    // Financial Report routes (accountant, manager, admin)
+    Route::middleware(['check.role:accountant,manager,admin'])->prefix('reports/financial')->name('reports.financial.')->group(function () {
+        Route::get('/trial-balance', \App\Livewire\Reports\TrialBalance::class)->name('trial-balance');
+        Route::get('/profit-and-loss', \App\Livewire\Reports\ProfitAndLoss::class)->name('profit-and-loss');
+        Route::get('/balance-sheet', \App\Livewire\Reports\BalanceSheet::class)->name('balance-sheet');
+        Route::get('/ledger', \App\Livewire\Reports\LedgerReport::class)->name('ledger');
+        Route::get('/day-book', \App\Livewire\Reports\DayBook::class)->name('day-book');
     });
 
     // Returns routes (cashier, manager, admin)
