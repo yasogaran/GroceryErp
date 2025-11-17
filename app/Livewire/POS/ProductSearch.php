@@ -5,12 +5,14 @@ namespace App\Livewire\POS;
 use Livewire\Component;
 use App\Models\Product;
 use App\Models\Category;
+use App\Services\InventoryService;
 
 class ProductSearch extends Component
 {
     public $searchTerm = '';
     public $selectedCategory = null;
     public $viewMode = 'grid'; // grid or list
+    public $showBatchSelection = true; // Toggle for batch selection mode
 
     protected $listeners = ['resetSearch' => 'resetSearch'];
 
@@ -32,7 +34,12 @@ class ProductSearch extends Component
         $this->selectedCategory = null;
     }
 
-    public function addToCart($productId, $isBoxSale = false)
+    public function toggleBatchSelection()
+    {
+        $this->showBatchSelection = !$this->showBatchSelection;
+    }
+
+    public function addToCart($productId, $isBoxSale = false, $batchId = null)
     {
         $product = Product::with('packaging')->find($productId);
 
@@ -57,8 +64,8 @@ class ProductSearch extends Component
             return;
         }
 
-        // Emit to parent (POSInterface)
-        $this->dispatch('productAdded', $productId, $isBoxSale);
+        // Emit to parent (POSInterface) with batch_id
+        $this->dispatch('productAdded', $productId, $isBoxSale, $batchId);
 
         // Clear search after adding
         $this->searchTerm = '';
@@ -93,6 +100,28 @@ class ProductSearch extends Component
 
         $products = $query->limit(20)->get();
 
+        // If batch selection is enabled, get batches for each product
+        $productBatches = [];
+        if ($this->showBatchSelection) {
+            $inventoryService = app(InventoryService::class);
+
+            foreach ($products as $product) {
+                $batches = $inventoryService->getAvailableBatches($product);
+
+                // Calculate remaining quantity for each batch
+                foreach ($batches as &$batch) {
+                    $batch['remaining_quantity'] = $this->calculateBatchRemainingQuantity($product->id, $batch['stock_movement_id']);
+                }
+
+                // Only include batches with remaining quantity
+                $batches = array_filter($batches, function($batch) {
+                    return $batch['remaining_quantity'] > 0;
+                });
+
+                $productBatches[$product->id] = $batches;
+            }
+        }
+
         // Auto-select if exact barcode match
         if (strlen($this->searchTerm) >= 6 && $products->count() === 1) {
             $exactMatch = $products->first();
@@ -111,6 +140,27 @@ class ProductSearch extends Component
         return view('livewire.pos.product-search', [
             'products' => $products,
             'categories' => $categories,
+            'productBatches' => $productBatches,
         ]);
+    }
+
+    private function calculateBatchRemainingQuantity($productId, $batchId)
+    {
+        // Get initial batch quantity
+        $batch = \App\Models\StockMovement::find($batchId);
+        if (!$batch) {
+            return 0;
+        }
+
+        $initialQty = $batch->quantity;
+
+        // Get total outgoing movements for this batch
+        $outgoingQty = \App\Models\StockMovement::where('product_id', $productId)
+            ->whereIn('movement_type', ['out', 'damage', 'write_off'])
+            ->where('reference_type', 'App\\Models\\StockMovement')
+            ->where('reference_id', $batchId)
+            ->sum('quantity');
+
+        return $initialQty - abs($outgoingQty);
     }
 }
