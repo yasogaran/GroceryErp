@@ -95,6 +95,14 @@ class Product extends Model
     }
 
     /**
+     * Scope a query to only include active products.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
      * Check if the product has stock.
      */
     public function hasStock(): bool
