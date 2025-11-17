@@ -102,12 +102,12 @@
                 </div>
                 <div>
                     <div class="text-sm font-medium text-gray-500">Difference</div>
-                    <div class="text-lg font-bold {{ $isBalanced() ? 'text-green-600' : 'text-red-600' }}">
+                    <div class="text-lg font-bold {{ $this->isBalanced() ? 'text-green-600' : 'text-red-600' }}">
                         ₹{{ number_format(abs($totalDebit - $totalCredit), 2) }}
                     </div>
                 </div>
             </div>
-            @if($isBalanced())
+            @if($this->isBalanced())
                 <div class="mt-3 text-center text-sm text-green-600 font-medium">
                     ✓ Entry is balanced
                 </div>
