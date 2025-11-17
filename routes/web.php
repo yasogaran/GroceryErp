@@ -9,6 +9,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Categories\CategoryManagement;
 use App\Livewire\Accounts\AccountManagement;
 use App\Livewire\Inventory\StockMovements;
+use App\Livewire\Inventory\StocksView;
 use App\Livewire\Products\ProductManagement;
 use App\Livewire\Suppliers\SupplierManagement;
 use App\Livewire\Suppliers\SupplierForm;
@@ -76,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
     // Stock Movement routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
+        Route::get('/stocks', StocksView::class)->name('stocks.index');
     });
 
     // Product routes (store_keeper, manager, admin)
