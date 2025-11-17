@@ -80,8 +80,8 @@ return new class extends Migration
         $this->addIndexIfNotExists('journal_entries', ['entry_date', 'status']);
 
         // Accounts table indexes
-        $this->addIndexIfNotExists('accounts', 'account_type');
-        $this->addIndexIfNotExists('accounts', 'parent_account_id');
+        // Note: account_type and parent_id already have indexes from table creation
+        // Only add indexes that don't exist
         $this->addIndexIfNotExists('accounts', 'is_active');
         $this->addIndexIfNotExists('accounts', ['account_type', 'is_active']);
 
@@ -188,8 +188,6 @@ return new class extends Migration
         $this->dropIndexIfExists('journal_entries', ['entry_date', 'status']);
 
         // Accounts table indexes
-        $this->dropIndexIfExists('accounts', 'account_type');
-        $this->dropIndexIfExists('accounts', 'parent_account_id');
         $this->dropIndexIfExists('accounts', 'is_active');
         $this->dropIndexIfExists('accounts', ['account_type', 'is_active']);
 
