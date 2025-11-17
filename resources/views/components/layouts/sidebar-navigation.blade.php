@@ -1,4 +1,4 @@
-<nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+<nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
     @php
         $menuItems = [
             [
@@ -198,15 +198,45 @@
                 $inactiveClasses = 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 border-transparent';
             @endphp
 
-            <a
-                href="{{ Route::has($item['route']) ? route($item['route']) : '#' }}"
-                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150 {{ $isActive ? $activeClasses : $inactiveClasses }}"
-            >
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}" />
-                </svg>
-                {{ $item['name'] }}
-            </a>
+            <div class="relative group">
+                <a
+                    href="{{ Route::has($item['route']) ? route($item['route']) : '#' }}"
+                    class="flex items-center text-sm font-medium rounded-lg transition-all duration-150 {{ $isActive ? $activeClasses : $inactiveClasses }}"
+                    :class="sidebarCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3'"
+                    :title="sidebarCollapsed ? '{{ $item['name'] }}' : ''"
+                >
+                    <svg
+                        class="w-5 h-5 flex-shrink-0 transition-all duration-150"
+                        :class="sidebarCollapsed ? 'mr-0' : 'mr-3'"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}" />
+                    </svg>
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 transform scale-95"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="whitespace-nowrap"
+                    >
+                        {{ $item['name'] }}
+                    </span>
+                </a>
+
+                <!-- Tooltip for collapsed state -->
+                <div
+                    x-show="sidebarCollapsed"
+                    class="absolute left-full ml-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md shadow-lg whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                    style="top: 50%; transform: translateY(-50%);"
+                >
+                    {{ $item['name'] }}
+                </div>
+            </div>
         @endif
     @endforeach
 </nav>

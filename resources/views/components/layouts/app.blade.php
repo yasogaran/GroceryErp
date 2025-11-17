@@ -15,17 +15,23 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-gray-100">
-        <div class="min-h-screen" x-data="{ sidebarOpen: false }">
+        <div class="min-h-screen" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }" x-init="$watch('sidebarCollapsed', value => localStorage.setItem('sidebarCollapsed', value))">
             <!-- Sidebar -->
             <aside
-                class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
-                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+                class="fixed inset-y-0 left-0 z-50 bg-gray-900 transform transition-all duration-300 ease-in-out"
+                :class="{
+                    'w-64': !sidebarCollapsed,
+                    'w-20': sidebarCollapsed,
+                    'translate-x-0': sidebarOpen || window.innerWidth >= 1024,
+                    '-translate-x-full lg:translate-x-0': !sidebarOpen && window.innerWidth < 1024
+                }"
                 @click.away="sidebarOpen = false"
             >
                 <!-- Logo -->
-                <div class="flex items-center justify-between h-16 px-6 bg-gray-800">
-                    <a href="{{ route('dashboard') }}" class="text-xl font-bold text-white">
-                        Grocery ERP
+                <div class="flex items-center justify-between h-16 px-4 bg-gray-800">
+                    <a href="{{ route('dashboard') }}" class="font-bold text-white transition-all duration-300" :class="sidebarCollapsed ? 'text-lg' : 'text-xl'">
+                        <span x-show="!sidebarCollapsed" x-transition>Grocery ERP</span>
+                        <span x-show="sidebarCollapsed" x-transition class="text-center block">GE</span>
                     </a>
                     <button
                         @click="sidebarOpen = false"
@@ -37,12 +43,29 @@
                     </button>
                 </div>
 
-                <!-- Navigation -->
-                @include('components.layouts.sidebar-navigation')
+                <!-- Navigation Container with Scroll -->
+                <div class="flex flex-col h-[calc(100vh-4rem)]">
+                    <!-- Navigation -->
+                    @include('components.layouts.sidebar-navigation')
+
+                    <!-- Collapse Button (Desktop Only) -->
+                    <div class="hidden lg:block px-4 py-4 border-t border-gray-800">
+                        <button
+                            @click="sidebarCollapsed = !sidebarCollapsed"
+                            class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors duration-150"
+                            :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                        >
+                            <svg class="w-5 h-5 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" x-transition class="ml-2">Collapse</span>
+                        </button>
+                    </div>
+                </div>
             </aside>
 
             <!-- Main Content -->
-            <div class="lg:pl-64">
+            <div :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'" class="transition-all duration-300">
                 <!-- Top Bar -->
                 <header class="sticky top-0 z-40 bg-white border-b border-gray-200">
                     <div class="flex items-center justify-between h-16 px-4 sm:px-6">
