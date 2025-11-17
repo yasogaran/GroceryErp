@@ -48,6 +48,7 @@ class StockMovement extends Model
         'unit_cost' => 'decimal:2',
         'min_selling_price' => 'decimal:2',
         'max_selling_price' => 'decimal:2',
+        'manufacturing_date' => 'date',
         'expiry_date' => 'date',
     ];
 
