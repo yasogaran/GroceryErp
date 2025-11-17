@@ -31,6 +31,8 @@ class Product extends Model
         'current_stock_quantity',
         'damaged_stock_quantity',
         'reorder_level',
+        'reorder_quantity',
+        'enable_low_stock_alert',
         'image_path',
         'is_active',
         'has_packaging',
