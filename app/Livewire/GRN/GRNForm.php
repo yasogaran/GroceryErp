@@ -24,6 +24,8 @@ class GRNForm extends Component
     public $received_boxes = 0;
     public $received_pieces = 0;
     public $unit_price = 0;
+    public $min_selling_price = 0;
+    public $max_selling_price = 0;
     public $batch_number = '';
     public $manufacturing_date = '';
     public $expiry_date = '';
@@ -40,6 +42,8 @@ class GRNForm extends Component
         'items.*.product_id' => 'required|exists:products,id',
         'items.*.received_pieces' => 'required|numeric|min:0.01',
         'items.*.unit_price' => 'required|numeric|min:0',
+        'items.*.min_selling_price' => 'nullable|numeric|min:0',
+        'items.*.max_selling_price' => 'nullable|numeric|min:0|gte:items.*.min_selling_price',
     ];
 
     public function mount($id = null)
@@ -73,13 +77,17 @@ class GRNForm extends Component
         // Load items
         $this->items = [];
         foreach ($grn->items as $item) {
+            // Get current product prices as default
+            $product = $item->product;
             $this->items[] = [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
-                'product_name' => $item->product->name,
+                'product_name' => $product->name,
                 'received_boxes' => $item->received_boxes,
                 'received_pieces' => $item->received_pieces,
                 'unit_price' => $item->unit_price,
+                'min_selling_price' => $product->min_selling_price ?? 0,
+                'max_selling_price' => $product->max_selling_price ?? 0,
                 'total_amount' => $item->total_amount,
                 'batch_number' => $item->batch_number,
                 'manufacturing_date' => $item->manufacturing_date?->format('Y-m-d'),
@@ -93,10 +101,15 @@ class GRNForm extends Component
     {
         if ($value) {
             $this->selectedProduct = Product::with('packaging')->find($value);
+            // Auto-fill current selling prices as default
+            $this->min_selling_price = $this->selectedProduct->min_selling_price ?? 0;
+            $this->max_selling_price = $this->selectedProduct->max_selling_price ?? 0;
             $this->calculatePieces();
         } else {
             $this->selectedProduct = null;
             $this->received_pieces = 0;
+            $this->min_selling_price = 0;
+            $this->max_selling_price = 0;
         }
     }
 
@@ -139,6 +152,8 @@ class GRNForm extends Component
             'received_boxes' => $this->received_boxes,
             'received_pieces' => $this->received_pieces,
             'unit_price' => $this->unit_price,
+            'min_selling_price' => $this->min_selling_price,
+            'max_selling_price' => $this->max_selling_price,
             'total_amount' => $total_amount,
             'batch_number' => $this->batch_number,
             'manufacturing_date' => $this->manufacturing_date,
@@ -163,6 +178,8 @@ class GRNForm extends Component
         $this->received_boxes = 0;
         $this->received_pieces = 0;
         $this->unit_price = 0;
+        $this->min_selling_price = 0;
+        $this->max_selling_price = 0;
         $this->batch_number = '';
         $this->manufacturing_date = '';
         $this->expiry_date = '';
@@ -210,6 +227,8 @@ class GRNForm extends Component
                     'received_boxes' => $item['received_boxes'],
                     'received_pieces' => $item['received_pieces'],
                     'unit_price' => $item['unit_price'],
+                    'min_selling_price' => $item['min_selling_price'] ?? null,
+                    'max_selling_price' => $item['max_selling_price'] ?? null,
                     'total_amount' => $item['total_amount'],
                     'batch_number' => $item['batch_number'],
                     'manufacturing_date' => $item['manufacturing_date'] ?: null,

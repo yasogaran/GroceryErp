@@ -15,7 +15,7 @@ class InventoryService
      *
      * @param Product $product
      * @param float $quantity
-     * @param array $details ['reference_type' => '', 'reference_id' => '', 'batch_number' => '', 'expiry_date' => '', 'notes' => '']
+     * @param array $details ['reference_type' => '', 'reference_id' => '', 'batch_number' => '', 'expiry_date' => '', 'unit_cost' => '', 'min_selling_price' => '', 'max_selling_price' => '', 'notes' => '']
      * @return StockMovement
      * @throws Exception
      */
@@ -29,6 +29,20 @@ class InventoryService
             // Increment product stock
             $product->increment('current_stock_quantity', $quantity);
 
+            // Update product selling prices if provided
+            if (isset($details['min_selling_price']) || isset($details['max_selling_price'])) {
+                $updateData = [];
+                if (isset($details['min_selling_price'])) {
+                    $updateData['min_selling_price'] = $details['min_selling_price'];
+                }
+                if (isset($details['max_selling_price'])) {
+                    $updateData['max_selling_price'] = $details['max_selling_price'];
+                }
+                if (!empty($updateData)) {
+                    $product->update($updateData);
+                }
+            }
+
             // Create stock movement record
             $movement = StockMovement::create([
                 'product_id' => $product->id,
@@ -39,9 +53,14 @@ class InventoryService
                 'batch_number' => $details['batch_number'] ?? null,
                 'expiry_date' => $details['expiry_date'] ?? null,
                 'manufacturing_date' => $details['manufacturing_date'] ?? null,
+                'unit_cost' => $details['unit_cost'] ?? null,
+                'min_selling_price' => $details['min_selling_price'] ?? null,
+                'max_selling_price' => $details['max_selling_price'] ?? null,
                 'performed_by' => auth()->id(),
                 'notes' => $details['notes'] ?? null,
             ]);
+
+            return $movement;
         });
     }
 

@@ -38,12 +38,16 @@ class StockMovement extends Model
         'performed_by',
         'notes',
         'unit_cost',
+        'min_selling_price',
+        'max_selling_price',
         'created_by'
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
         'unit_cost' => 'decimal:2',
+        'min_selling_price' => 'decimal:2',
+        'max_selling_price' => 'decimal:2',
         'expiry_date' => 'date',
     ];
 
