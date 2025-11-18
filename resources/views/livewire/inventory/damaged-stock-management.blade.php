@@ -142,11 +142,19 @@
 
     <!-- Mark as Damaged Modal -->
     @if($showMarkDamagedModal && $selectedProduct)
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" wire:click="closeMarkDamagedModal">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" wire:click.stop>
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+            <div
+                class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+                x-data
+                @click.away="$wire.closeMarkDamagedModal()"
+            >
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-gray-900">Mark Stock as Damaged</h3>
-                    <button wire:click="closeMarkDamagedModal" class="text-gray-400 hover:text-gray-600">
+                    <button
+                        wire:click="closeMarkDamagedModal"
+                        class="text-gray-400 hover:text-gray-600"
+                        type="button"
+                    >
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -169,11 +177,12 @@
                     </label>
                     <input
                         type="number"
-                        wire:model="damageQuantity"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2"
+                        wire:model.defer="damageQuantity"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         min="1"
                         max="{{ $selectedProduct->current_stock_quantity }}"
                         step="1"
+                        placeholder="Enter quantity"
                     >
                     @error('damageQuantity')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -185,9 +194,9 @@
                         Reason <span class="text-red-500">*</span>
                     </label>
                     <textarea
-                        wire:model="damageReason"
+                        wire:model.defer="damageReason"
                         rows="3"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         placeholder="Enter reason for marking as damaged..."
                     ></textarea>
                     @error('damageReason')
@@ -198,17 +207,19 @@
                 <div class="flex space-x-3">
                     <button
                         wire:click="closeMarkDamagedModal"
-                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+                        type="button"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium"
                     >
                         Cancel
                     </button>
                     <button
                         wire:click="markAsDamaged"
-                        class="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg"
+                        type="button"
+                        class="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         wire:loading.attr="disabled"
                     >
-                        <span wire:loading.remove>Confirm</span>
-                        <span wire:loading>Processing...</span>
+                        <span wire:loading.remove wire:target="markAsDamaged">Confirm</span>
+                        <span wire:loading wire:target="markAsDamaged">Processing...</span>
                     </button>
                 </div>
             </div>
@@ -217,11 +228,19 @@
 
     <!-- Write-off Modal -->
     @if($showWriteOffModal && $selectedProduct)
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" wire:click="closeWriteOffModal">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" wire:click.stop>
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+            <div
+                class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+                x-data
+                @click.away="$wire.closeWriteOffModal()"
+            >
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-gray-900">Write-off Damaged Stock</h3>
-                    <button wire:click="closeWriteOffModal" class="text-gray-400 hover:text-gray-600">
+                    <button
+                        wire:click="closeWriteOffModal"
+                        class="text-gray-400 hover:text-gray-600"
+                        type="button"
+                    >
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -250,11 +269,12 @@
                     </label>
                     <input
                         type="number"
-                        wire:model="writeOffQuantity"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2"
+                        wire:model.defer="writeOffQuantity"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         min="1"
                         max="{{ $selectedProduct->damaged_stock_quantity }}"
                         step="1"
+                        placeholder="Enter quantity"
                     >
                     @error('writeOffQuantity')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -266,9 +286,9 @@
                         Reason <span class="text-red-500">*</span>
                     </label>
                     <textarea
-                        wire:model="writeOffReason"
+                        wire:model.defer="writeOffReason"
                         rows="3"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         placeholder="Enter reason for write-off..."
                     ></textarea>
                     @error('writeOffReason')
@@ -279,17 +299,19 @@
                 <div class="flex space-x-3">
                     <button
                         wire:click="closeWriteOffModal"
-                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+                        type="button"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium"
                     >
                         Cancel
                     </button>
                     <button
                         wire:click="writeOff"
-                        class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                        type="button"
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         wire:loading.attr="disabled"
                     >
-                        <span wire:loading.remove>Confirm Write-off</span>
-                        <span wire:loading>Processing...</span>
+                        <span wire:loading.remove wire:target="writeOff">Confirm Write-off</span>
+                        <span wire:loading wire:target="writeOff">Processing...</span>
                     </button>
                 </div>
             </div>
