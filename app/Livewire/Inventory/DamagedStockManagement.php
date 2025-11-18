@@ -79,7 +79,6 @@ class DamagedStockManagement extends Component
 
         try {
             app(InventoryService::class)->markAsDamaged($product, $this->damageQuantity, [
-                'reference_type' => 'manual',
                 'notes' => $this->damageReason,
             ]);
 
