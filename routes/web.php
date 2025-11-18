@@ -137,6 +137,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pos/receipt/{saleId}', [\App\Http\Controllers\POSController::class, 'printReceipt'])->name('pos.receipt.print');
     });
 
+    // Invoice History routes (cashier, manager, admin) - no active shift required
+    Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/invoices', \App\Livewire\Invoices\InvoiceHistory::class)->name('invoices.history');
+    });
+
     // Offer routes (manager, admin)
     Route::middleware(['check.role:manager,admin'])->prefix('offers')->name('offers.')->group(function () {
         Route::get('/', OfferManagement::class)->name('index');

@@ -69,6 +69,27 @@
                     </div>
                 </div>
 
+                <!-- Full Credit Invoice Button (when amount is 0) -->
+                @if($paidAmount == 0 && isset($cartData['customer_id']) && $cartData['customer_id'])
+                    <div class="mb-6">
+                        <div class="bg-orange-50 border-2 border-orange-500 rounded-lg p-6 text-center">
+                            <p class="text-orange-800 font-bold text-lg mb-3">💳 Full Credit Invoice Option</p>
+                            <p class="text-sm text-orange-700 mb-4">
+                                Customer will pay the full amount later. No payment received now.
+                            </p>
+                            <button
+                                wire:click="markAsFullCredit"
+                                class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-bold"
+                                wire:loading.attr="disabled">
+                                <span wire:loading.remove wire:target="markAsFullCredit">
+                                    Mark as Full Credit Invoice (Rs. {{ number_format($grandTotal, 2) }})
+                                </span>
+                                <span wire:loading wire:target="markAsFullCredit">Processing...</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Change/Balance Display -->
                 @if($paidAmount > 0)
                     <div class="mb-6">

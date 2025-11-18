@@ -87,19 +87,36 @@ class PaymentModal extends Component
     public function processPaymentAmount()
     {
         $this->validate([
-            'paidAmount' => 'required|numeric|min:0.01',
+            'paidAmount' => 'required|numeric|min:0',
         ], [
             'paidAmount.required' => 'Please enter the amount received from customer',
-            'paidAmount.min' => 'Amount must be greater than 0',
+            'paidAmount.min' => 'Amount cannot be negative',
         ]);
 
-        // If credit invoice, validate customer is selected
-        if ($this->isCreditInvoice && !$this->cartData['customer_id']) {
+        // If credit invoice (including 0 payment), validate customer is selected
+        if ($this->paidAmount < $this->grandTotal && !$this->cartData['customer_id']) {
             session()->flash('error', 'Please select a customer for credit invoices');
             return;
         }
 
         // Proceed to complete payment directly
+        $this->completePayment();
+    }
+
+    /**
+     * Mark as full credit invoice (0 payment)
+     */
+    public function markAsFullCredit()
+    {
+        // Validate customer is selected
+        if (!$this->cartData['customer_id']) {
+            session()->flash('error', 'Please select a customer for full credit invoices');
+            return;
+        }
+
+        $this->paidAmount = 0;
+        $this->isCreditInvoice = true;
+        $this->changeToReturn = 0;
         $this->completePayment();
     }
 
@@ -186,7 +203,13 @@ class PaymentModal extends Component
         try {
             DB::transaction(function () {
                 // Determine payment status
-                $paymentStatus = $this->paidAmount >= $this->grandTotal ? 'paid' : 'partial';
+                if ($this->paidAmount >= $this->grandTotal) {
+                    $paymentStatus = 'paid';
+                } elseif ($this->paidAmount > 0) {
+                    $paymentStatus = 'partial';
+                } else {
+                    $paymentStatus = 'unpaid';
+                }
                 $actualPaidAmount = min($this->paidAmount, $this->grandTotal);
 
                 // Create sale
@@ -245,13 +268,15 @@ class PaymentModal extends Component
                     ]);
                 }
 
-                // Create payment record (single payment - cash)
-                SalePayment::create([
-                    'sale_id' => $sale->id,
-                    'payment_mode' => 'cash',
-                    'bank_account_id' => null,
-                    'amount' => $actualPaidAmount,
-                ]);
+                // Create payment record (single payment - cash) only if amount > 0
+                if ($actualPaidAmount > 0) {
+                    SalePayment::create([
+                        'sale_id' => $sale->id,
+                        'payment_mode' => 'cash',
+                        'bank_account_id' => null,
+                        'amount' => $actualPaidAmount,
+                    ]);
+                }
 
                 // Update shift totals
                 $shift = auth()->user()->currentShift;
@@ -287,7 +312,9 @@ class PaymentModal extends Component
                 if ($this->changeToReturn > 0) {
                     $message .= ' | Change to return: Rs. ' . number_format($this->changeToReturn, 2);
                 }
-                if ($this->isCreditInvoice) {
+                if ($this->paidAmount == 0) {
+                    $message .= ' | FULL CREDIT INVOICE - Total due: Rs. ' . number_format($this->grandTotal, 2);
+                } elseif ($this->isCreditInvoice) {
                     $message .= ' | CREDIT INVOICE - Balance due: Rs. ' . number_format($this->grandTotal - $actualPaidAmount, 2);
                 }
                 session()->flash('success', $message);

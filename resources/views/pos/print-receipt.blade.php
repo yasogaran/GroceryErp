@@ -183,7 +183,12 @@
             </div>
 
             <!-- Payment Status Badge -->
-            @if($sale->payment_status === 'partial')
+            @if($sale->payment_status === 'unpaid')
+                <div class="bg-red-50 border-2 border-red-500 rounded-lg p-3 mb-4 text-center">
+                    <p class="text-red-800 font-bold text-lg">⚠ FULL CREDIT INVOICE</p>
+                    <p class="text-red-700 text-sm">Total Due: Rs. {{ number_format($sale->total_amount, 2) }}</p>
+                </div>
+            @elseif($sale->payment_status === 'partial')
                 <div class="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-3 mb-4 text-center">
                     <p class="text-yellow-800 font-bold text-lg">⚠ CREDIT INVOICE</p>
                     <p class="text-yellow-700 text-sm">Balance Due: Rs. {{ number_format($balance, 2) }}</p>
