@@ -39,6 +39,8 @@ class POSInterface extends Component
         'paymentCompleted' => 'handlePaymentCompleted',
     ];
 
+    public $lastSaleId = null;
+
     public function mount()
     {
         $this->loadHeldBills();
@@ -383,10 +385,15 @@ class POSInterface extends Component
     /**
      * Handle payment completed event
      */
-    public function handlePaymentCompleted()
+    public function handlePaymentCompleted($saleId)
     {
         $this->clearCart();
-        session()->flash('success', 'Sale completed successfully!');
+        $this->lastSaleId = $saleId;
+
+        // Dispatch browser event to open print preview in new tab
+        $this->dispatch('openPrintPreview', saleId: $saleId);
+
+        session()->flash('success', 'Sale completed successfully! Print preview opened in new tab.');
     }
 
     // Helper methods

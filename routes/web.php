@@ -134,6 +134,7 @@ Route::middleware(['auth'])->group(function () {
     // POS routes (cashier, manager, admin) - requires active shift
     Route::middleware(['check.role:cashier,manager,admin', 'shift.active'])->group(function () {
         Route::get('/pos', POSInterface::class)->name('pos.index');
+        Route::get('/pos/receipt/{saleId}', [\App\Http\Controllers\POSController::class, 'printReceipt'])->name('pos.receipt.print');
     });
 
     // Offer routes (manager, admin)
