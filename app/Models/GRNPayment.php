@@ -10,6 +10,13 @@ class GRNPayment extends Model
 {
     use LogsActivity;
 
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'grn_payments';
+
     protected $fillable = [
         'grn_id',
         'supplier_payment_id',
