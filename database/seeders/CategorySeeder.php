@@ -49,6 +49,18 @@ class CategorySeeder extends Seeder
             'is_active' => true,
         ]);
 
+        $groceryStaples = Category::create([
+            'name' => 'Grocery Staples',
+            'description' => 'Rice, flour, sugar, and other essential items',
+            'is_active' => true,
+        ]);
+
+        $personalCare = Category::create([
+            'name' => 'Personal Care',
+            'description' => 'Toiletries, cosmetics, and personal hygiene products',
+            'is_active' => true,
+        ]);
+
         // Create subcategories for Fresh Produce
         Category::create([
             'name' => 'Vegetables',
