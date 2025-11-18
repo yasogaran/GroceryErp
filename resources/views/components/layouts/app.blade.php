@@ -170,6 +170,9 @@
             style="display: none;"
         ></div>
 
+        <!-- Toast Notification Component -->
+        @livewire('toast')
+
         <!-- Alpine.js -->
     </body>
 </html>
