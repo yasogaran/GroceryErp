@@ -66,7 +66,6 @@ class StockMovementSeeder extends Seeder
                     'max_selling_price' => $product->max_selling_price,
                     'performed_by' => $admin->id,
                     'notes' => 'Initial stock from supplier',
-                    'created_by' => $admin->id,
                     'created_at' => Carbon::now()->subDays(rand(1, 30)),
                 ]);
 
@@ -81,7 +80,7 @@ class StockMovementSeeder extends Seeder
                     'product_id' => $product->id,
                     'movement_type' => 'adjustment',
                     'quantity' => $quantity,
-                    'reference_type' => 'manual',
+                    'reference_type' => 'adjustment',
                     'reference_id' => null,
                     'batch_number' => null,
                     'manufacturing_date' => null,
@@ -91,7 +90,6 @@ class StockMovementSeeder extends Seeder
                     'max_selling_price' => null,
                     'performed_by' => $admin->id,
                     'notes' => $quantity > 0 ? 'Stock count adjustment - found extra' : 'Stock count adjustment - discrepancy',
-                    'created_by' => $admin->id,
                     'created_at' => Carbon::now()->subDays(rand(1, 15)),
                 ]);
 
