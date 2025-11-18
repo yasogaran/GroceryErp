@@ -6,6 +6,7 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
 class SupplierPayment extends Model
@@ -77,6 +78,14 @@ class SupplierPayment extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the GRN payment allocations for this payment.
+     */
+    public function grnPayments(): HasMany
+    {
+        return $this->hasMany(GRNPayment::class);
     }
 
     /**

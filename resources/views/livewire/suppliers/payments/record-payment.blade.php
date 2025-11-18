@@ -77,7 +77,7 @@
                                 <span class="text-gray-500 sm:text-sm">₹</span>
                             </div>
                             <input
-                                wire:model="amount"
+                                wire:model.live="amount"
                                 type="number"
                                 id="amount"
                                 min="0"
@@ -148,6 +148,112 @@
                         @error('notes') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
+
+                <!-- GRN Allocation Preview -->
+                @if(count($suggestedAllocations) > 0)
+                    <div class="mt-6 border-t border-gray-200 pt-6">
+                        <div class="flex items-center mb-4">
+                            <svg class="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-900">Payment Allocation Preview (Water-Fill Method)</h3>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">
+                            The payment will be automatically allocated to outstanding GRNs from oldest to newest:
+                        </p>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                            <table class="min-w-full divide-y divide-blue-200">
+                                <thead class="bg-blue-100">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            GRN Number
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            GRN Date
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            Total Amount
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            Paid
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            Outstanding
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            Will Pay
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-blue-100">
+                                    @foreach($suggestedAllocations as $allocation)
+                                        <tr class="hover:bg-blue-50">
+                                            <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                                {{ $allocation['grn_number'] }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-600">
+                                                {{ \Carbon\Carbon::parse($allocation['grn_date'])->format('d M Y') }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-right text-gray-900">
+                                                ₹{{ number_format($allocation['total_amount'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-right text-gray-600">
+                                                ₹{{ number_format($allocation['paid_amount'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-right font-medium text-red-600">
+                                                ₹{{ number_format($allocation['outstanding_amount'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-right font-bold text-green-600">
+                                                ₹{{ number_format($allocation['allocated_amount'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                @php
+                                                    $remainingAfterPayment = $allocation['outstanding_amount'] - $allocation['allocated_amount'];
+                                                @endphp
+                                                @if($remainingAfterPayment <= 0.01)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        Will be Paid
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        Partial
+                                                    </span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="bg-blue-50">
+                                    <tr class="font-semibold">
+                                        <td colspan="5" class="px-4 py-3 text-right text-sm text-blue-900">
+                                            Total Payment Amount:
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-right text-blue-900">
+                                            ₹{{ number_format(collect($suggestedAllocations)->sum('allocated_amount'), 2) }}
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="mt-3 text-sm text-gray-600">
+                            <p class="flex items-start">
+                                <svg class="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>
+                                    <strong>Water-Fill Method:</strong> Payment is allocated to GRNs starting from the oldest first.
+                                    Each GRN is filled completely before moving to the next one, like water filling multiple buckets.
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Form Actions -->
                 <div class="mt-6 flex justify-end space-x-3">

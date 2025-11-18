@@ -18,6 +18,11 @@ class GRN extends Model
     const STATUS_DRAFT = 'draft';
     const STATUS_APPROVED = 'approved';
 
+    // Payment status constants
+    const PAYMENT_STATUS_UNPAID = 'unpaid';
+    const PAYMENT_STATUS_PARTIALLY_PAID = 'partially_paid';
+    const PAYMENT_STATUS_FULLY_PAID = 'fully_paid';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -28,6 +33,8 @@ class GRN extends Model
         'supplier_id',
         'grn_date',
         'total_amount',
+        'paid_amount',
+        'payment_status',
         'status',
         'notes',
         'created_by',
@@ -43,6 +50,7 @@ class GRN extends Model
     protected $casts = [
         'grn_date' => 'date',
         'total_amount' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
         'approved_at' => 'datetime',
     ];
 
@@ -83,6 +91,14 @@ class GRN extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Get the payments for this GRN.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(GRNPayment::class, 'grn_id');
     }
 
     /**
@@ -200,5 +216,109 @@ class GRN extends Model
     {
         $total = $this->items()->sum('total_amount');
         $this->update(['total_amount' => $total]);
+    }
+
+    /**
+     * Get the outstanding (unpaid) amount for this GRN.
+     *
+     * @return float
+     */
+    public function getOutstandingAmount(): float
+    {
+        return max(0, $this->total_amount - $this->paid_amount);
+    }
+
+    /**
+     * Record a payment against this GRN.
+     *
+     * @param int $supplierPaymentId
+     * @param float $amount
+     * @return GRNPayment
+     */
+    public function recordPayment(int $supplierPaymentId, float $amount): GRNPayment
+    {
+        $outstanding = $this->getOutstandingAmount();
+
+        if ($amount > $outstanding) {
+            throw new \Exception("Payment amount ({$amount}) exceeds outstanding amount ({$outstanding})");
+        }
+
+        $grnPayment = $this->payments()->create([
+            'supplier_payment_id' => $supplierPaymentId,
+            'amount' => $amount,
+        ]);
+
+        $this->updatePaymentStatus();
+
+        return $grnPayment;
+    }
+
+    /**
+     * Update the payment status based on paid amount.
+     *
+     * @return void
+     */
+    public function updatePaymentStatus(): void
+    {
+        $totalPaid = $this->payments()->sum('amount');
+
+        $this->update([
+            'paid_amount' => $totalPaid,
+            'payment_status' => $this->determinePaymentStatus($totalPaid),
+        ]);
+    }
+
+    /**
+     * Determine payment status based on paid amount.
+     *
+     * @param float $paidAmount
+     * @return string
+     */
+    protected function determinePaymentStatus(float $paidAmount): string
+    {
+        if ($paidAmount <= 0) {
+            return self::PAYMENT_STATUS_UNPAID;
+        }
+
+        if ($paidAmount >= $this->total_amount) {
+            return self::PAYMENT_STATUS_FULLY_PAID;
+        }
+
+        return self::PAYMENT_STATUS_PARTIALLY_PAID;
+    }
+
+    /**
+     * Scope a query to only include unpaid GRNs.
+     */
+    public function scopeUnpaid($query)
+    {
+        return $query->where('payment_status', self::PAYMENT_STATUS_UNPAID);
+    }
+
+    /**
+     * Scope a query to only include partially paid GRNs.
+     */
+    public function scopePartiallyPaid($query)
+    {
+        return $query->where('payment_status', self::PAYMENT_STATUS_PARTIALLY_PAID);
+    }
+
+    /**
+     * Scope a query to only include fully paid GRNs.
+     */
+    public function scopeFullyPaid($query)
+    {
+        return $query->where('payment_status', self::PAYMENT_STATUS_FULLY_PAID);
+    }
+
+    /**
+     * Scope a query to only include GRNs with outstanding balance.
+     */
+    public function scopeWithOutstanding($query)
+    {
+        return $query->whereIn('payment_status', [
+            self::PAYMENT_STATUS_UNPAID,
+            self::PAYMENT_STATUS_PARTIALLY_PAID,
+        ]);
     }
 }
