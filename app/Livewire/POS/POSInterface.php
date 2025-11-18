@@ -54,7 +54,7 @@ class POSInterface extends Component
         $product = Product::with('packaging')->find($productId);
 
         if (!$product) {
-            session()->flash('error', 'Product not found');
+            $this->dispatch('showToast', type: 'error', message: 'Product not found');
             return;
         }
 
@@ -65,7 +65,7 @@ class POSInterface extends Component
 
         // Check stock
         if (!app(POSService::class)->checkStock($product, $quantity)) {
-            session()->flash('error', 'Insufficient stock');
+            $this->dispatch('showToast', type: 'error', message: 'Insufficient stock');
             return;
         }
 
@@ -115,7 +115,7 @@ class POSInterface extends Component
         }
 
         $this->calculateTotals();
-        session()->flash('success', $product->name . ' added to cart');
+        $this->dispatch('showToast', type: 'success', message: $product->name . ' added to cart');
     }
 
     /**
@@ -154,7 +154,7 @@ class POSInterface extends Component
         $product = Product::find($item['product_id']);
 
         if (!app(POSService::class)->checkStock($product, $newQuantity)) {
-            session()->flash('error', 'Insufficient stock');
+            $this->dispatch('showToast', type: 'error', message: 'Insufficient stock');
             return;
         }
 
@@ -253,7 +253,7 @@ class POSInterface extends Component
     public function holdBill()
     {
         if (empty($this->cartItems)) {
-            session()->flash('warning', 'Cart is empty');
+            $this->dispatch('showToast', type: 'warning', message: 'Cart is empty');
             return;
         }
 
@@ -272,7 +272,7 @@ class POSInterface extends Component
         session(['held_bills' => $this->heldBills]);
 
         $this->clearCart();
-        session()->flash('success', 'Bill held successfully');
+        $this->dispatch('showToast', type: 'success', message: 'Bill held successfully');
     }
 
     /**
@@ -301,7 +301,7 @@ class POSInterface extends Component
         $this->calculateTotals();
         $this->showHoldBillsModal = false;
 
-        session()->flash('success', 'Bill retrieved');
+        $this->dispatch('showToast', type: 'success', message: 'Bill retrieved');
     }
 
     /**
@@ -316,7 +316,7 @@ class POSInterface extends Component
             $this->heldBills = array_values($this->heldBills);
             session(['held_bills' => $this->heldBills]);
 
-            session()->flash('info', 'Held bill deleted');
+            $this->dispatch('showToast', type: 'info', message: 'Held bill deleted');
         }
     }
 
@@ -346,7 +346,7 @@ class POSInterface extends Component
         $this->selectedCustomer = Customer::find($customerId);
         $this->showCustomerModal = false;
 
-        session()->flash('success', 'Customer selected: ' . $this->selectedCustomer->name);
+        $this->dispatch('showToast', type: 'success', message: 'Customer selected: ' . $this->selectedCustomer->name);
     }
 
     /**
@@ -364,7 +364,7 @@ class POSInterface extends Component
     public function proceedToPayment()
     {
         if (empty($this->cartItems)) {
-            session()->flash('warning', 'Cart is empty');
+            $this->dispatch('showToast', type: 'warning', message: 'Cart is empty');
             return;
         }
 
@@ -393,7 +393,7 @@ class POSInterface extends Component
         // Dispatch browser event to open print preview in new tab
         $this->dispatch('openPrintPreview', saleId: $saleId);
 
-        session()->flash('success', 'Sale completed successfully! Print preview opened in new tab.');
+        $this->dispatch('showToast', type: 'success', message: 'Sale completed successfully! Print preview opened in new tab.');
     }
 
     // Helper methods

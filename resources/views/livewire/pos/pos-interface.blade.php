@@ -69,19 +69,6 @@
         </div>
     </div>
 
-    <!-- Flash Messages -->
-    @if (session()->has('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 mx-4 mt-2 rounded" role="alert">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if (session()->has('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mx-4 mt-2 rounded" role="alert">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <!-- Main Content: Split Screen -->
     <div class="flex-1 flex overflow-hidden">
         <!-- Left: Product Search (60%) -->
