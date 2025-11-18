@@ -94,7 +94,7 @@
                             Payment Mode <span class="text-red-500">*</span>
                         </label>
                         <select
-                            wire:model="payment_mode"
+                            wire:model.live="payment_mode"
                             id="payment_mode"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                         >
@@ -104,8 +104,27 @@
                         @error('payment_mode') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Bank Reference (shown only for bank transfer) -->
+                    <!-- Bank Account (shown only for bank transfer) -->
                     @if($payment_mode === 'bank_transfer')
+                        <div>
+                            <label for="bank_account_id" class="block text-sm font-medium text-gray-700">
+                                Bank Account <span class="text-red-500">*</span>
+                            </label>
+                            <select
+                                wire:model="bank_account_id"
+                                id="bank_account_id"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('bank_account_id') border-red-500 @enderror"
+                            >
+                                <option value="">Select Bank Account</option>
+                                @foreach($bankAccounts as $account)
+                                    <option value="{{ $account->id }}">
+                                        {{ $account->account_name }} ({{ $account->account_code }}) - Balance: ₹{{ number_format($account->balance, 2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('bank_account_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
                         <div>
                             <label for="bank_reference" class="block text-sm font-medium text-gray-700">
                                 Bank Reference
@@ -114,6 +133,7 @@
                                 wire:model="bank_reference"
                                 type="text"
                                 id="bank_reference"
+                                placeholder="e.g., Cheque No., Transaction ID"
                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                             >
                             @error('bank_reference') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
