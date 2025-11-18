@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 class GRNPayment extends Model
 {
@@ -20,17 +19,6 @@ class GRNPayment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
     ];
-
-    /**
-     * Get the activity log options.
-     */
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly(['grn_id', 'supplier_payment_id', 'amount'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
 
     /**
      * Get the GRN that this payment is for.
