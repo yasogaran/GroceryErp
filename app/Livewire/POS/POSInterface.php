@@ -95,6 +95,9 @@ class POSInterface extends Component
             $this->cartItems[$cartKey]['quantity'] += $quantity;
         } else {
             // Add new item
+            $minPrice = $batchDetails['min_selling_price'] ?? $product->min_selling_price;
+            $maxPrice = $batchDetails['max_selling_price'] ?? $product->max_selling_price;
+
             $this->cartItems[] = [
                 'id' => Str::uuid()->toString(),
                 'product_id' => $product->id,
@@ -102,7 +105,10 @@ class POSInterface extends Component
                 'sku' => $product->sku,
                 'is_box_sale' => $isBoxSale,
                 'quantity' => $quantity,
-                'unit_price' => $batchDetails['max_selling_price'] ?? $product->max_selling_price,
+                'unit_price' => $maxPrice, // Default to max price (MRP)
+                'min_selling_price' => $minPrice,
+                'max_selling_price' => $maxPrice,
+                'can_adjust_price' => !is_null($minPrice) && $minPrice < $maxPrice,
                 'batch_id' => $batchDetails['stock_movement_id'] ?? null,
                 'batch_number' => $batchDetails['batch_number'] ?? 'N/A',
                 'batch_cost' => $batchDetails['unit_cost'] ?? null,
@@ -160,6 +166,45 @@ class POSInterface extends Component
 
         $this->cartItems[$key]['quantity'] = $newQuantity;
         $this->calculateTotals();
+    }
+
+    /**
+     * Update item price (between min and max selling price)
+     */
+    public function updatePrice($cartId, $newPrice)
+    {
+        $key = $this->findCartKeyById($cartId);
+
+        if ($key === null) {
+            return;
+        }
+
+        $item = $this->cartItems[$key];
+
+        // Check if price adjustment is allowed
+        if (!$item['can_adjust_price']) {
+            $this->dispatch('showToast', type: 'error', message: 'Price adjustment not available for this product');
+            return;
+        }
+
+        // Validate price is within range
+        $minPrice = $item['min_selling_price'];
+        $maxPrice = $item['max_selling_price'];
+
+        if ($newPrice < $minPrice) {
+            $this->dispatch('showToast', type: 'error', message: 'Price cannot be less than ₹' . number_format($minPrice, 2));
+            return;
+        }
+
+        if ($newPrice > $maxPrice) {
+            $this->dispatch('showToast', type: 'error', message: 'Price cannot be more than ₹' . number_format($maxPrice, 2));
+            return;
+        }
+
+        $this->cartItems[$key]['unit_price'] = $newPrice;
+        $this->calculateTotals();
+
+        $this->dispatch('showToast', type: 'success', message: 'Price updated to ₹' . number_format($newPrice, 2));
     }
 
     /**
