@@ -1,4 +1,4 @@
-<nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+<nav class="px-2 py-4 space-y-1">
     @php
         $menuItems = [
             [
