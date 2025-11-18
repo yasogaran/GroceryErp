@@ -165,10 +165,13 @@
                                     ₹{{ number_format($grn->total_amount, 2) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
-                                    <div class="text-gray-900 font-medium">₹{{ number_format($grn->paid_amount, 2) }}</div>
-                                    @if($grn->status === 'approved' && $grn->paid_amount < $grn->total_amount)
+                                    @php
+                                        $paidAmount = isset($grn->paid_amount) ? $grn->paid_amount : 0;
+                                    @endphp
+                                    <div class="text-gray-900 font-medium">₹{{ number_format($paidAmount, 2) }}</div>
+                                    @if($grn->status === 'approved' && $paidAmount < $grn->total_amount)
                                         <div class="text-xs text-red-600">
-                                            (₹{{ number_format($grn->total_amount - $grn->paid_amount, 2) }} due)
+                                            (₹{{ number_format($grn->total_amount - $paidAmount, 2) }} due)
                                         </div>
                                     @endif
                                 </td>
@@ -179,11 +182,14 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($grn->status === 'approved')
-                                        @if($grn->payment_status === 'fully_paid')
+                                        @php
+                                            $paymentStatus = $grn->payment_status ?? 'unpaid';
+                                        @endphp
+                                        @if($paymentStatus === 'fully_paid')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 Paid
                                             </span>
-                                        @elseif($grn->payment_status === 'partially_paid')
+                                        @elseif($paymentStatus === 'partially_paid')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                 Partial
                                             </span>

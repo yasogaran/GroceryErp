@@ -48,12 +48,17 @@ class PaymentAllocationService
 
         // Get all approved GRNs with outstanding balance for this supplier
         // Ordered by GRN date (oldest first)
-        $grns = GRN::where('supplier_id', $payment->supplier_id)
+        $query = GRN::where('supplier_id', $payment->supplier_id)
             ->where('status', GRN::STATUS_APPROVED)
-            ->withOutstanding()
             ->orderBy('grn_date', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+            ->orderBy('id', 'asc');
+
+        // Check if payment_status column exists (migration has been run)
+        if ($this->hasPaymentStatusColumn()) {
+            $query->withOutstanding();
+        }
+
+        $grns = $query->get();
 
         foreach ($grns as $grn) {
             if ($remainingAmount <= 0) {
@@ -137,12 +142,17 @@ class PaymentAllocationService
         $suggestions = collect();
 
         // Get all approved GRNs with outstanding balance
-        $grns = GRN::where('supplier_id', $supplierId)
+        $query = GRN::where('supplier_id', $supplierId)
             ->where('status', GRN::STATUS_APPROVED)
-            ->withOutstanding()
             ->orderBy('grn_date', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+            ->orderBy('id', 'asc');
+
+        // Check if payment_status column exists (migration has been run)
+        if ($this->hasPaymentStatusColumn()) {
+            $query->withOutstanding();
+        }
+
+        $grns = $query->get();
 
         foreach ($grns as $grn) {
             if ($remainingAmount <= 0) {
@@ -164,10 +174,10 @@ class PaymentAllocationService
                 'grn_number' => $grn->grn_number,
                 'grn_date' => $grn->grn_date,
                 'total_amount' => $grn->total_amount,
-                'paid_amount' => $grn->paid_amount,
+                'paid_amount' => $this->getPaidAmount($grn),
                 'outstanding_amount' => $grnOutstanding,
                 'allocated_amount' => $allocationAmount,
-                'payment_status' => $grn->payment_status,
+                'payment_status' => $this->getPaymentStatus($grn),
             ]);
 
             $remainingAmount -= $allocationAmount;
@@ -184,12 +194,17 @@ class PaymentAllocationService
      */
     public function getOutstandingGRNs(int $supplierId): Collection
     {
-        return GRN::where('supplier_id', $supplierId)
+        $query = GRN::where('supplier_id', $supplierId)
             ->where('status', GRN::STATUS_APPROVED)
-            ->withOutstanding()
             ->orderBy('grn_date', 'asc')
-            ->orderBy('id', 'asc')
-            ->get()
+            ->orderBy('id', 'asc');
+
+        // Check if payment_status column exists (migration has been run)
+        if ($this->hasPaymentStatusColumn()) {
+            $query->withOutstanding();
+        }
+
+        return $query->get()
             ->map(function ($grn) {
                 return [
                     'grn' => $grn,
@@ -197,10 +212,52 @@ class PaymentAllocationService
                     'grn_number' => $grn->grn_number,
                     'grn_date' => $grn->grn_date,
                     'total_amount' => $grn->total_amount,
-                    'paid_amount' => $grn->paid_amount,
+                    'paid_amount' => $this->getPaidAmount($grn),
                     'outstanding_amount' => $grn->getOutstandingAmount(),
-                    'payment_status' => $grn->payment_status,
+                    'payment_status' => $this->getPaymentStatus($grn),
                 ];
             });
+    }
+
+    /**
+     * Check if payment_status column exists in grns table.
+     *
+     * @return bool
+     */
+    protected function hasPaymentStatusColumn(): bool
+    {
+        try {
+            return \Schema::hasColumn('grns', 'payment_status');
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get paid amount for GRN (handles column not existing).
+     *
+     * @param GRN $grn
+     * @return float
+     */
+    protected function getPaidAmount(GRN $grn): float
+    {
+        if ($this->hasPaymentStatusColumn() && isset($grn->paid_amount)) {
+            return $grn->paid_amount;
+        }
+        return 0;
+    }
+
+    /**
+     * Get payment status for GRN (handles column not existing).
+     *
+     * @param GRN $grn
+     * @return string
+     */
+    protected function getPaymentStatus(GRN $grn): string
+    {
+        if ($this->hasPaymentStatusColumn() && isset($grn->payment_status)) {
+            return $grn->payment_status;
+        }
+        return GRN::PAYMENT_STATUS_UNPAID;
     }
 }

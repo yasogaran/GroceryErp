@@ -225,7 +225,16 @@ class GRN extends Model
      */
     public function getOutstandingAmount(): float
     {
-        return max(0, $this->total_amount - $this->paid_amount);
+        // Handle case where paid_amount column doesn't exist yet (migration not run)
+        $paidAmount = 0;
+        if (\Schema::hasColumn('grns', 'paid_amount') && isset($this->paid_amount)) {
+            $paidAmount = $this->paid_amount;
+        } elseif ($this->exists) {
+            // If column doesn't exist, calculate from payments
+            $paidAmount = $this->payments()->sum('amount');
+        }
+
+        return max(0, $this->total_amount - $paidAmount);
     }
 
     /**
@@ -241,6 +250,11 @@ class GRN extends Model
 
         if ($amount > $outstanding) {
             throw new \Exception("Payment amount ({$amount}) exceeds outstanding amount ({$outstanding})");
+        }
+
+        // Check if grn_payments table exists (migration has been run)
+        if (!\Schema::hasTable('grn_payments')) {
+            throw new \Exception("GRN payments table does not exist. Please run migrations first.");
         }
 
         $grnPayment = $this->payments()->create([
@@ -260,6 +274,11 @@ class GRN extends Model
      */
     public function updatePaymentStatus(): void
     {
+        // Only update if payment tracking columns exist
+        if (!\Schema::hasColumn('grns', 'paid_amount') || !\Schema::hasColumn('grns', 'payment_status')) {
+            return;
+        }
+
         $totalPaid = $this->payments()->sum('amount');
 
         $this->update([
