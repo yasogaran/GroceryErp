@@ -64,7 +64,7 @@ class AdminDashboard extends Component
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.created_at', '>=', now()->subDays(30))
-            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_sold'), DB::raw('SUM(sale_items.subtotal) as revenue'))
+            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_sold'), DB::raw('SUM(sale_items.total_price) as revenue'))
             ->groupBy('products.id', 'products.name')
             ->orderBy('total_sold', 'desc')
             ->limit(5)
