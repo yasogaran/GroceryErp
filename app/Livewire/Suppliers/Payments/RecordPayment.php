@@ -4,6 +4,7 @@ namespace App\Livewire\Suppliers\Payments;
 
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use App\Services\PaymentAllocationService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -18,6 +19,8 @@ class RecordPayment extends Component
     public $notes = '';
 
     public $selectedSupplier = null;
+    public $suggestedAllocations = [];
+    public $outstandingGRNs = [];
 
     protected $rules = [
         'supplier_id' => 'required|exists:suppliers,id',
@@ -38,9 +41,46 @@ class RecordPayment extends Component
     {
         if ($value) {
             $this->selectedSupplier = Supplier::find($value);
+            $this->loadOutstandingGRNs();
+            $this->updateAllocationSuggestions();
         } else {
             $this->selectedSupplier = null;
+            $this->outstandingGRNs = [];
+            $this->suggestedAllocations = [];
         }
+    }
+
+    public function updatedAmount($value)
+    {
+        if ($this->supplier_id && $value > 0) {
+            $this->updateAllocationSuggestions();
+        } else {
+            $this->suggestedAllocations = [];
+        }
+    }
+
+    protected function loadOutstandingGRNs()
+    {
+        if (!$this->supplier_id) {
+            return;
+        }
+
+        $allocationService = app(PaymentAllocationService::class);
+        $this->outstandingGRNs = $allocationService->getOutstandingGRNs($this->supplier_id)->toArray();
+    }
+
+    protected function updateAllocationSuggestions()
+    {
+        if (!$this->supplier_id || !$this->amount || $this->amount <= 0) {
+            $this->suggestedAllocations = [];
+            return;
+        }
+
+        $allocationService = app(PaymentAllocationService::class);
+        $this->suggestedAllocations = $allocationService->getSuggestedAllocation(
+            $this->supplier_id,
+            $this->amount
+        )->toArray();
     }
 
     public function save()
@@ -54,7 +94,8 @@ class RecordPayment extends Component
                 return;
             }
 
-            SupplierPayment::create([
+            // Create supplier payment
+            $payment = SupplierPayment::create([
                 'supplier_id' => $this->supplier_id,
                 'payment_date' => $this->payment_date,
                 'amount' => $this->amount,
@@ -65,7 +106,12 @@ class RecordPayment extends Component
                 'created_by' => auth()->id(),
             ]);
 
-            session()->flash('success', 'Payment recorded successfully');
+            // Allocate payment to GRNs using water-fill logic
+            $allocationService = app(PaymentAllocationService::class);
+            $allocations = $allocationService->allocatePayment($payment);
+
+            $allocationCount = count($allocations);
+            session()->flash('success', "Payment recorded successfully and allocated to {$allocationCount} GRN(s)");
             return redirect()->route('suppliers.payments.index');
         } catch (\Exception $e) {
             session()->flash('error', 'Error recording payment: ' . $e->getMessage());

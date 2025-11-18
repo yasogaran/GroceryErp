@@ -13,6 +13,7 @@ class GRNList extends Component
 
     public $search = '';
     public $statusFilter = 'all'; // all, draft, approved
+    public $paymentStatusFilter = 'all'; // all, unpaid, partially_paid, fully_paid
     public $supplierFilter = '';
     public $startDate = '';
     public $endDate = '';
@@ -20,6 +21,7 @@ class GRNList extends Component
     protected $queryString = [
         'search' => ['except' => ''],
         'statusFilter' => ['except' => 'all'],
+        'paymentStatusFilter' => ['except' => 'all'],
         'supplierFilter' => ['except' => ''],
     ];
 
@@ -45,6 +47,11 @@ class GRNList extends Component
         $this->resetPage();
     }
 
+    public function updatingPaymentStatusFilter()
+    {
+        $this->resetPage();
+    }
+
     #[Layout('components.layouts.app')]
     public function render()
     {
@@ -63,6 +70,11 @@ class GRNList extends Component
         // Apply status filter
         if ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
+        }
+
+        // Apply payment status filter
+        if ($this->paymentStatusFilter !== 'all') {
+            $query->where('payment_status', $this->paymentStatusFilter);
         }
 
         // Apply supplier filter

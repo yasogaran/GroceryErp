@@ -58,6 +58,19 @@
                                 <option value="approved">Approved</option>
                             </select>
                         </div>
+
+                        <!-- Payment Status Filter -->
+                        <div class="w-full sm:w-40">
+                            <select
+                                wire:model.live="paymentStatusFilter"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="all">All Payments</option>
+                                <option value="unpaid">Unpaid</option>
+                                <option value="partially_paid">Partial</option>
+                                <option value="fully_paid">Paid</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Create Button -->
@@ -119,8 +132,14 @@
                             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Total Amount
                             </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Paid Amount
+                            </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Payment
                             </th>
                             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
@@ -145,10 +164,43 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-medium">
                                     ₹{{ number_format($grn->total_amount, 2) }}
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                                    @php
+                                        $paidAmount = isset($grn->paid_amount) ? $grn->paid_amount : 0;
+                                    @endphp
+                                    <div class="text-gray-900 font-medium">₹{{ number_format($paidAmount, 2) }}</div>
+                                    @if($grn->status === 'approved' && $paidAmount < $grn->total_amount)
+                                        <div class="text-xs text-red-600">
+                                            (₹{{ number_format($grn->total_amount - $paidAmount, 2) }} due)
+                                        </div>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $grn->status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
                                         {{ ucfirst($grn->status) }}
                                     </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($grn->status === 'approved')
+                                        @php
+                                            $paymentStatus = $grn->payment_status ?? 'unpaid';
+                                        @endphp
+                                        @if($paymentStatus === 'fully_paid')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Paid
+                                            </span>
+                                        @elseif($paymentStatus === 'partially_paid')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Partial
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Unpaid
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400 text-xs">N/A</span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
                                     <a href="{{ route('grn.view', $grn->id) }}" class="text-blue-600 hover:text-blue-900">
@@ -163,7 +215,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                <td colspan="9" class="px-6 py-4 text-center text-gray-500">
                                     No GRNs found.
                                 </td>
                             </tr>

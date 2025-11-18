@@ -221,4 +221,9 @@
             </div>
         </div>
     @endif
+
+    <!-- Payment Modal -->
+    @if($showPaymentModal)
+        <livewire:grn.grn-payment-modal :grn="$grn" :key="'payment-modal-'.$grn->id" />
+    @endif
 </div>

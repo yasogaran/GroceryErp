@@ -11,6 +11,7 @@ class GRNApproval extends Component
     public $grnId;
     public $grn;
     public $showApprovalModal = false;
+    public $showPaymentModal = false;
 
     public function mount($id)
     {
@@ -41,10 +42,23 @@ class GRNApproval extends Component
             $this->loadGRN();
             $this->showApprovalModal = false;
 
+            // Show payment modal after successful approval
+            $this->showPaymentModal = true;
+
             session()->flash('success', 'GRN approved successfully. Stock has been updated.');
         } catch (\Exception $e) {
             session()->flash('error', 'Error approving GRN: ' . $e->getMessage());
         }
+    }
+
+    public function openPaymentModal()
+    {
+        $this->showPaymentModal = true;
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
     }
 
     public function cancelApproval()
