@@ -33,6 +33,7 @@ class GRNForm extends Component
 
     public $isEditMode = false;
     public $selectedProduct = null;
+    public $editingItemIndex = null; // Track which item is being edited
 
     protected $rules = [
         'supplier_id' => 'required|exists:suppliers,id',
@@ -129,29 +130,29 @@ class GRNForm extends Component
     public function addItem()
     {
         if (!$this->product_id || $this->received_pieces <= 0 || $this->unit_price < 0) {
-            session()->flash('item_error', 'Please fill all required fields correctly');
+            $this->dispatch('showToast', message: 'Please fill all required fields correctly', type: 'error');
             return;
         }
 
         if ($this->min_selling_price <= 0 || $this->max_selling_price <= 0) {
-            session()->flash('item_error', 'Please enter valid selling prices');
+            $this->dispatch('showToast', message: 'Please enter valid selling prices', type: 'error');
             return;
         }
 
         if ($this->min_selling_price < $this->unit_price) {
-            session()->flash('item_error', 'Minimum selling price must be greater than or equal to unit cost');
+            $this->dispatch('showToast', message: 'Minimum selling price must be greater than or equal to unit cost', type: 'error');
             return;
         }
 
         if ($this->max_selling_price < $this->min_selling_price) {
-            session()->flash('item_error', 'Maximum selling price must be greater than or equal to minimum selling price');
+            $this->dispatch('showToast', message: 'Maximum selling price must be greater than or equal to minimum selling price', type: 'error');
             return;
         }
 
-        // Check if product already exists in items
-        foreach ($this->items as $item) {
-            if ($item['product_id'] == $this->product_id) {
-                session()->flash('item_error', 'Product already added. Please edit the existing item.');
+        // Check if product already exists in items (but not the one being edited)
+        foreach ($this->items as $index => $item) {
+            if ($item['product_id'] == $this->product_id && $index !== $this->editingItemIndex) {
+                $this->dispatch('showToast', message: 'Product already added. Please edit the existing item.', type: 'error');
                 return;
             }
         }
@@ -159,7 +160,7 @@ class GRNForm extends Component
         $product = Product::find($this->product_id);
         $total_amount = $this->received_pieces * $this->unit_price;
 
-        $this->items[] = [
+        $itemData = [
             'product_id' => $this->product_id,
             'product_name' => $product->name,
             'received_boxes' => $this->received_boxes,
@@ -174,9 +175,43 @@ class GRNForm extends Component
             'notes' => $this->item_notes,
         ];
 
+        if ($this->editingItemIndex !== null) {
+            // Update existing item
+            $this->items[$this->editingItemIndex] = $itemData;
+            $this->dispatch('showToast', message: 'Item updated successfully', type: 'success');
+            $this->editingItemIndex = null;
+        } else {
+            // Add new item
+            $this->items[] = $itemData;
+            $this->dispatch('showToast', message: 'Item added successfully', type: 'success');
+        }
+
         // Reset form
         $this->resetItemForm();
-        session()->flash('item_success', 'Item added successfully');
+    }
+
+    public function editItem($index)
+    {
+        $item = $this->items[$index];
+
+        $this->editingItemIndex = $index;
+        $this->product_id = $item['product_id'];
+        $this->selectedProduct = Product::with('packaging')->find($item['product_id']);
+        $this->received_boxes = $item['received_boxes'];
+        $this->received_pieces = $item['received_pieces'];
+        $this->unit_price = $item['unit_price'];
+        $this->min_selling_price = $item['min_selling_price'];
+        $this->max_selling_price = $item['max_selling_price'];
+        $this->batch_number = $item['batch_number'];
+        $this->manufacturing_date = $item['manufacturing_date'];
+        $this->expiry_date = $item['expiry_date'];
+        $this->item_notes = $item['notes'] ?? '';
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingItemIndex = null;
+        $this->resetItemForm();
     }
 
     public function removeItem($index)
@@ -202,58 +237,63 @@ class GRNForm extends Component
 
     public function save()
     {
-        $this->validate();
+        try {
+            $this->validate();
 
-        if (count($this->items) === 0) {
-            session()->flash('error', 'Please add at least one item to the GRN');
-            return;
+            if (count($this->items) === 0) {
+                $this->dispatch('showToast', message: 'Please add at least one item to the GRN', type: 'error');
+                return;
+            }
+
+            DB::transaction(function () {
+                $total_amount = array_sum(array_column($this->items, 'total_amount'));
+
+                $grnData = [
+                    'grn_number' => $this->grn_number,
+                    'supplier_id' => $this->supplier_id,
+                    'grn_date' => $this->grn_date,
+                    'total_amount' => $total_amount,
+                    'status' => 'draft',
+                    'notes' => $this->notes,
+                    'created_by' => auth()->id(),
+                ];
+
+                if ($this->isEditMode) {
+                    $grn = GRN::findOrFail($this->grnId);
+                    $grn->update($grnData);
+
+                    // Delete existing items
+                    $grn->items()->delete();
+                } else {
+                    $grn = GRN::create($grnData);
+                }
+
+                // Create items
+                foreach ($this->items as $item) {
+                    GRNItem::create([
+                        'grn_id' => $grn->id,
+                        'product_id' => $item['product_id'],
+                        'received_boxes' => $item['received_boxes'],
+                        'received_pieces' => $item['received_pieces'],
+                        'unit_price' => $item['unit_price'],
+                        'min_selling_price' => $item['min_selling_price'] ?? null,
+                        'max_selling_price' => $item['max_selling_price'] ?? null,
+                        'total_amount' => $item['total_amount'],
+                        'batch_number' => $item['batch_number'],
+                        'manufacturing_date' => $item['manufacturing_date'] ?: null,
+                        'expiry_date' => $item['expiry_date'] ?: null,
+                        'notes' => $item['notes'],
+                    ]);
+                }
+
+                session()->flash('success', $this->isEditMode ? 'GRN updated successfully' : 'GRN created successfully');
+            });
+
+            return redirect()->route('grn.index');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('showToast', message: 'Please check the form for errors', type: 'error');
+            throw $e;
         }
-
-        DB::transaction(function () {
-            $total_amount = array_sum(array_column($this->items, 'total_amount'));
-
-            $grnData = [
-                'grn_number' => $this->grn_number,
-                'supplier_id' => $this->supplier_id,
-                'grn_date' => $this->grn_date,
-                'total_amount' => $total_amount,
-                'status' => 'draft',
-                'notes' => $this->notes,
-                'created_by' => auth()->id(),
-            ];
-
-            if ($this->isEditMode) {
-                $grn = GRN::findOrFail($this->grnId);
-                $grn->update($grnData);
-
-                // Delete existing items
-                $grn->items()->delete();
-            } else {
-                $grn = GRN::create($grnData);
-            }
-
-            // Create items
-            foreach ($this->items as $item) {
-                GRNItem::create([
-                    'grn_id' => $grn->id,
-                    'product_id' => $item['product_id'],
-                    'received_boxes' => $item['received_boxes'],
-                    'received_pieces' => $item['received_pieces'],
-                    'unit_price' => $item['unit_price'],
-                    'min_selling_price' => $item['min_selling_price'] ?? null,
-                    'max_selling_price' => $item['max_selling_price'] ?? null,
-                    'total_amount' => $item['total_amount'],
-                    'batch_number' => $item['batch_number'],
-                    'manufacturing_date' => $item['manufacturing_date'] ?: null,
-                    'expiry_date' => $item['expiry_date'] ?: null,
-                    'notes' => $item['notes'],
-                ]);
-            }
-
-            session()->flash('success', $this->isEditMode ? 'GRN updated successfully' : 'GRN created successfully');
-        });
-
-        return redirect()->route('grn.index');
     }
 
     #[Layout('components.layouts.app')]

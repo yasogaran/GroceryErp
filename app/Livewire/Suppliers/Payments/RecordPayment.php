@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Suppliers\Payments;
 
+use App\Models\Account;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use App\Services\PaymentAllocationService;
@@ -14,6 +15,7 @@ class RecordPayment extends Component
     public $payment_date;
     public $amount = '';
     public $payment_mode = 'cash';
+    public $bank_account_id = '';
     public $bank_reference = '';
     public $reference_number = '';
     public $notes = '';
@@ -27,9 +29,15 @@ class RecordPayment extends Component
         'payment_date' => 'required|date',
         'amount' => 'required|numeric|min:0.01',
         'payment_mode' => 'required|in:cash,bank_transfer',
+        'bank_account_id' => 'nullable|exists:accounts,id',
         'bank_reference' => 'nullable|string|max:100',
         'reference_number' => 'nullable|string|max:100',
         'notes' => 'nullable|string',
+    ];
+
+    protected $messages = [
+        'bank_account_id.required' => 'Please select a bank account for bank transfer.',
+        'bank_account_id.exists' => 'Selected bank account is invalid.',
     ];
 
     public function mount()
@@ -85,6 +93,12 @@ class RecordPayment extends Component
 
     public function save()
     {
+        // Additional validation for bank transfer
+        if ($this->payment_mode === 'bank_transfer' && empty($this->bank_account_id)) {
+            $this->addError('bank_account_id', 'Please select a bank account for bank transfer.');
+            return;
+        }
+
         $this->validate();
 
         try {
@@ -100,6 +114,7 @@ class RecordPayment extends Component
                 'payment_date' => $this->payment_date,
                 'amount' => $this->amount,
                 'payment_mode' => $this->payment_mode,
+                'bank_account_id' => $this->payment_mode === 'bank_transfer' ? $this->bank_account_id : null,
                 'bank_reference' => $this->bank_reference,
                 'reference_number' => $this->reference_number,
                 'notes' => $this->notes,
@@ -126,8 +141,21 @@ class RecordPayment extends Component
             ->orderBy('name')
             ->get();
 
+        // Get bank/cash accounts (asset type accounts)
+        $bankAccounts = Account::active()
+            ->where('account_type', 'asset')
+            ->whereIn('account_name', ['Cash', 'Bank', 'Petty Cash'])
+            ->orWhere(function($query) {
+                $query->where('account_type', 'asset')
+                      ->where('account_name', 'like', '%Bank%')
+                      ->orWhere('account_name', 'like', '%Cash%');
+            })
+            ->orderBy('account_name')
+            ->get();
+
         return view('livewire.suppliers.payments.record-payment', [
             'suppliers' => $suppliers,
+            'bankAccounts' => $bankAccounts,
         ]);
     }
 }

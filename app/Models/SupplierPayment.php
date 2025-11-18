@@ -23,6 +23,7 @@ class SupplierPayment extends Model
         'payment_date',
         'amount',
         'payment_mode',
+        'bank_account_id',
         'bank_reference',
         'reference_number',
         'notes',
@@ -78,6 +79,14 @@ class SupplierPayment extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the bank account for this payment.
+     */
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'bank_account_id');
     }
 
     /**

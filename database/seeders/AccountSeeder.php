@@ -71,18 +71,20 @@ class AccountSeeder extends Seeder
 
         $this->createAccount([
             'account_code' => '1210',
-            'account_name' => 'Bank Account 1',
+            'account_name' => 'BOC Bank Account',
             'account_type' => 'asset',
             'parent_id' => $parentAccounts['bank'],
-            'is_system_account' => true,
+            'is_system_account' => false,
+            'balance' => 250000.00,
         ]);
 
         $this->createAccount([
             'account_code' => '1220',
-            'account_name' => 'Bank Account 2',
+            'account_name' => 'Peoples Bank Account',
             'account_type' => 'asset',
             'parent_id' => $parentAccounts['bank'],
-            'is_system_account' => true,
+            'is_system_account' => false,
+            'balance' => 180000.00,
         ]);
 
         // Accounts Receivable (1300-1399)

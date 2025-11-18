@@ -15,10 +15,10 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-gray-100">
-        <div class="min-h-screen" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }" x-init="$watch('sidebarCollapsed', value => localStorage.setItem('sidebarCollapsed', value))">
+        <div class="min-h-screen" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true', userDropdownOpen: false }" x-init="$watch('sidebarCollapsed', value => localStorage.setItem('sidebarCollapsed', value))">
             <!-- Sidebar -->
             <aside
-                class="fixed inset-y-0 left-0 z-50 bg-gray-900 transform transition-all duration-300 ease-in-out"
+                class="fixed inset-y-0 left-0 z-50 bg-gray-900 transform transition-all duration-300 ease-in-out flex flex-col"
                 :class="{
                     'w-64': !sidebarCollapsed,
                     'w-20': sidebarCollapsed,
@@ -27,12 +27,23 @@
                 }"
                 @click.away="sidebarOpen = false"
             >
-                <!-- Logo -->
-                <div class="flex items-center justify-between h-16 px-4 bg-gray-800">
+                <!-- Logo and Toggle Button -->
+                <div class="flex items-center justify-between h-16 px-4 bg-gray-800 flex-shrink-0">
                     <a href="{{ route('dashboard') }}" class="font-bold text-white transition-all duration-300" :class="sidebarCollapsed ? 'text-lg' : 'text-xl'">
                         <span x-show="!sidebarCollapsed" x-transition>Grocery ERP</span>
                         <span x-show="sidebarCollapsed" x-transition class="text-center block">GE</span>
                     </a>
+                    <!-- Desktop Collapse Button -->
+                    <button
+                        @click="sidebarCollapsed = !sidebarCollapsed"
+                        class="hidden lg:block text-gray-400 hover:text-white"
+                        :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                    >
+                        <svg class="w-5 h-5 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <!-- Mobile Close Button -->
                     <button
                         @click="sidebarOpen = false"
                         class="text-gray-400 hover:text-white lg:hidden"
@@ -43,112 +54,61 @@
                     </button>
                 </div>
 
-                <!-- Navigation Container with Scroll -->
-                <div class="flex flex-col h-[calc(100vh-4rem)]">
-                    <!-- Navigation -->
-                    @include('components.layouts.sidebar-navigation')
-
-                    <!-- Collapse Button (Desktop Only) -->
-                    <div class="hidden lg:block px-4 py-4 border-t border-gray-800">
-                        <button
-                            @click="sidebarCollapsed = !sidebarCollapsed"
-                            class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors duration-150"
-                            :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
-                        >
-                            <svg class="w-5 h-5 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                            </svg>
-                            <span x-show="!sidebarCollapsed" x-transition class="ml-2">Collapse</span>
-                        </button>
+                <!-- User Profile Section -->
+                @auth
+                <div class="px-4 py-4 border-b border-gray-800 flex-shrink-0">
+                    <div class="flex items-center space-x-3" :class="sidebarCollapsed ? 'justify-center' : ''">
+                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white font-medium text-lg">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                        </div>
+                        <div x-show="!sidebarCollapsed" x-transition class="flex-1 min-w-0">
+                            <div class="font-medium text-white text-sm truncate">{{ auth()->user()->name }}</div>
+                            <div class="text-xs text-gray-400 truncate">{{ ucfirst(auth()->user()->role) }}</div>
+                        </div>
                     </div>
                 </div>
+                @endauth
+
+                <!-- Navigation Container with Scroll -->
+                <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+                    <!-- Navigation -->
+                    @include('components.layouts.sidebar-navigation')
+                </div>
+
+                <!-- Sign Out Button at Bottom -->
+                @auth
+                <div class="px-4 py-4 border-t border-gray-800 flex-shrink-0">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="w-full flex items-center text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-colors duration-150 border-l-4 border-transparent hover:border-red-500"
+                            :class="sidebarCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3'"
+                            :title="sidebarCollapsed ? 'Sign Out' : ''"
+                        >
+                            <svg class="w-5 h-5 flex-shrink-0 transition-all duration-150" :class="sidebarCollapsed ? 'mr-0' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Sign Out</span>
+                        </button>
+                    </form>
+                </div>
+                @endauth
             </aside>
 
             <!-- Main Content -->
             <div :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'" class="transition-all duration-300">
-                <!-- Top Bar -->
-                <header class="sticky top-0 z-40 bg-white border-b border-gray-200">
-                    <div class="flex items-center justify-between h-16 px-4 sm:px-6">
-                        <!-- Mobile menu button -->
-                        <button
-                            @click="sidebarOpen = true"
-                            class="text-gray-500 hover:text-gray-700 lg:hidden"
-                        >
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-
-                        <!-- Page Title (optional, can be overridden in pages) -->
-                        <div class="flex-1 lg:ml-0 ml-4">
-                            @if(isset($header))
-                                <h1 class="text-xl font-semibold text-gray-800">
-                                    {{ $header }}
-                                </h1>
-                            @endif
-                        </div>
-
-                        <!-- User Menu -->
-                        @auth
-                            <div class="flex items-center space-x-4">
-                                <!-- User Dropdown -->
-                                <div class="relative" x-data="{ open: false }">
-                                    <button
-                                        @click="open = !open"
-                                        class="flex items-center space-x-3 text-sm focus:outline-none"
-                                    >
-                                        <div class="flex items-center space-x-2">
-                                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                                <span class="text-white font-medium">
-                                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                                </span>
-                                            </div>
-                                            <div class="hidden md:block text-left">
-                                                <div class="font-medium text-gray-700">{{ auth()->user()->name }}</div>
-                                                <div class="text-xs text-gray-500">{{ ucfirst(auth()->user()->role) }}</div>
-                                            </div>
-                                        </div>
-                                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-
-                                    <!-- Dropdown Menu -->
-                                    <div
-                                        x-show="open"
-                                        @click.away="open = false"
-                                        x-transition:enter="transition ease-out duration-100"
-                                        x-transition:enter-start="transform opacity-0 scale-95"
-                                        x-transition:enter-end="transform opacity-100 scale-100"
-                                        x-transition:leave="transition ease-in duration-75"
-                                        x-transition:leave-start="transform opacity-100 scale-100"
-                                        x-transition:leave-end="transform opacity-0 scale-95"
-                                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
-                                        style="display: none;"
-                                    >
-                                        <div class="py-1">
-                                            <div class="px-4 py-2 text-xs text-gray-500 border-b">
-                                                {{ auth()->user()->email }}
-                                            </div>
-                                            <form method="POST" action="{{ route('logout') }}">
-                                                @csrf
-                                                <button
-                                                    type="submit"
-                                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                                                >
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                    </svg>
-                                                    <span>Log Out</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endauth
-                    </div>
-                </header>
+                <!-- Mobile menu button (floating) -->
+                <button
+                    @click="sidebarOpen = true"
+                    class="lg:hidden fixed top-4 left-4 z-30 bg-gray-900 text-white p-2 rounded-lg shadow-lg"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
 
                 <!-- Page Content -->
                 <main class="p-6">

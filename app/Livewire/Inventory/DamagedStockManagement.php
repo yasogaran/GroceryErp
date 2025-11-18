@@ -79,22 +79,15 @@ class DamagedStockManagement extends Component
 
         try {
             app(InventoryService::class)->markAsDamaged($product, $this->damageQuantity, [
-                'reference_type' => 'manual',
                 'notes' => $this->damageReason,
             ]);
 
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Stock marked as damaged successfully'
-            ]);
+            $this->dispatch('showToast', type: 'success', message: 'Stock marked as damaged successfully');
 
             $this->closeMarkDamagedModal();
 
         } catch (\Exception $e) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            $this->dispatch('showToast', type: 'error', message: $e->getMessage());
         }
     }
 
@@ -135,18 +128,12 @@ class DamagedStockManagement extends Component
                 $this->writeOffReason
             );
 
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Damaged stock written-off successfully'
-            ]);
+            $this->dispatch('showToast', type: 'success', message: 'Damaged stock written-off successfully');
 
             $this->closeWriteOffModal();
 
         } catch (\Exception $e) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            $this->dispatch('showToast', type: 'error', message: $e->getMessage());
         }
     }
 

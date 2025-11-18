@@ -54,7 +54,7 @@ class POSInterface extends Component
         $product = Product::with('packaging')->find($productId);
 
         if (!$product) {
-            session()->flash('error', 'Product not found');
+            $this->dispatch('showToast', type: 'error', message: 'Product not found');
             return;
         }
 
@@ -65,7 +65,7 @@ class POSInterface extends Component
 
         // Check stock
         if (!app(POSService::class)->checkStock($product, $quantity)) {
-            session()->flash('error', 'Insufficient stock');
+            $this->dispatch('showToast', type: 'error', message: 'Insufficient stock');
             return;
         }
 
@@ -95,6 +95,9 @@ class POSInterface extends Component
             $this->cartItems[$cartKey]['quantity'] += $quantity;
         } else {
             // Add new item
+            $minPrice = $batchDetails['min_selling_price'] ?? $product->min_selling_price;
+            $maxPrice = $batchDetails['max_selling_price'] ?? $product->max_selling_price;
+
             $this->cartItems[] = [
                 'id' => Str::uuid()->toString(),
                 'product_id' => $product->id,
@@ -102,7 +105,10 @@ class POSInterface extends Component
                 'sku' => $product->sku,
                 'is_box_sale' => $isBoxSale,
                 'quantity' => $quantity,
-                'unit_price' => $batchDetails['max_selling_price'] ?? $product->max_selling_price,
+                'unit_price' => $maxPrice, // Default to max price (MRP)
+                'min_selling_price' => $minPrice,
+                'max_selling_price' => $maxPrice,
+                'can_adjust_price' => !is_null($minPrice) && $minPrice < $maxPrice,
                 'batch_id' => $batchDetails['stock_movement_id'] ?? null,
                 'batch_number' => $batchDetails['batch_number'] ?? 'N/A',
                 'batch_cost' => $batchDetails['unit_cost'] ?? null,
@@ -115,7 +121,7 @@ class POSInterface extends Component
         }
 
         $this->calculateTotals();
-        session()->flash('success', $product->name . ' added to cart');
+        $this->dispatch('showToast', type: 'success', message: $product->name . ' added to cart');
     }
 
     /**
@@ -154,12 +160,51 @@ class POSInterface extends Component
         $product = Product::find($item['product_id']);
 
         if (!app(POSService::class)->checkStock($product, $newQuantity)) {
-            session()->flash('error', 'Insufficient stock');
+            $this->dispatch('showToast', type: 'error', message: 'Insufficient stock');
             return;
         }
 
         $this->cartItems[$key]['quantity'] = $newQuantity;
         $this->calculateTotals();
+    }
+
+    /**
+     * Update item price (between min and max selling price)
+     */
+    public function updatePrice($cartId, $newPrice)
+    {
+        $key = $this->findCartKeyById($cartId);
+
+        if ($key === null) {
+            return;
+        }
+
+        $item = $this->cartItems[$key];
+
+        // Check if price adjustment is allowed
+        if (!$item['can_adjust_price']) {
+            $this->dispatch('showToast', type: 'error', message: 'Price adjustment not available for this product');
+            return;
+        }
+
+        // Validate price is within range
+        $minPrice = $item['min_selling_price'];
+        $maxPrice = $item['max_selling_price'];
+
+        if ($newPrice < $minPrice) {
+            $this->dispatch('showToast', type: 'error', message: 'Price cannot be less than ₹' . number_format($minPrice, 2));
+            return;
+        }
+
+        if ($newPrice > $maxPrice) {
+            $this->dispatch('showToast', type: 'error', message: 'Price cannot be more than ₹' . number_format($maxPrice, 2));
+            return;
+        }
+
+        $this->cartItems[$key]['unit_price'] = $newPrice;
+        $this->calculateTotals();
+
+        $this->dispatch('showToast', type: 'success', message: 'Price updated to ₹' . number_format($newPrice, 2));
     }
 
     /**
@@ -253,7 +298,7 @@ class POSInterface extends Component
     public function holdBill()
     {
         if (empty($this->cartItems)) {
-            session()->flash('warning', 'Cart is empty');
+            $this->dispatch('showToast', type: 'warning', message: 'Cart is empty');
             return;
         }
 
@@ -272,7 +317,7 @@ class POSInterface extends Component
         session(['held_bills' => $this->heldBills]);
 
         $this->clearCart();
-        session()->flash('success', 'Bill held successfully');
+        $this->dispatch('showToast', type: 'success', message: 'Bill held successfully');
     }
 
     /**
@@ -301,7 +346,7 @@ class POSInterface extends Component
         $this->calculateTotals();
         $this->showHoldBillsModal = false;
 
-        session()->flash('success', 'Bill retrieved');
+        $this->dispatch('showToast', type: 'success', message: 'Bill retrieved');
     }
 
     /**
@@ -316,7 +361,7 @@ class POSInterface extends Component
             $this->heldBills = array_values($this->heldBills);
             session(['held_bills' => $this->heldBills]);
 
-            session()->flash('info', 'Held bill deleted');
+            $this->dispatch('showToast', type: 'info', message: 'Held bill deleted');
         }
     }
 
@@ -346,7 +391,7 @@ class POSInterface extends Component
         $this->selectedCustomer = Customer::find($customerId);
         $this->showCustomerModal = false;
 
-        session()->flash('success', 'Customer selected: ' . $this->selectedCustomer->name);
+        $this->dispatch('showToast', type: 'success', message: 'Customer selected: ' . $this->selectedCustomer->name);
     }
 
     /**
@@ -364,7 +409,7 @@ class POSInterface extends Component
     public function proceedToPayment()
     {
         if (empty($this->cartItems)) {
-            session()->flash('warning', 'Cart is empty');
+            $this->dispatch('showToast', type: 'warning', message: 'Cart is empty');
             return;
         }
 
@@ -393,7 +438,7 @@ class POSInterface extends Component
         // Dispatch browser event to open print preview in new tab
         $this->dispatch('openPrintPreview', saleId: $saleId);
 
-        session()->flash('success', 'Sale completed successfully! Print preview opened in new tab.');
+        $this->dispatch('showToast', type: 'success', message: 'Sale completed successfully! Print preview opened in new tab.');
     }
 
     // Helper methods

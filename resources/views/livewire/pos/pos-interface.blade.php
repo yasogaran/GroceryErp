@@ -69,19 +69,6 @@
         </div>
     </div>
 
-    <!-- Flash Messages -->
-    @if (session()->has('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 mx-4 mt-2 rounded" role="alert">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if (session()->has('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mx-4 mt-2 rounded" role="alert">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <!-- Main Content: Split Screen -->
     <div class="flex-1 flex overflow-hidden">
         <!-- Left: Product Search (60%) -->
@@ -123,12 +110,13 @@
                             </button>
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <!-- Quantity Controls -->
+                        <!-- Quantity Controls -->
+                        <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-500">Qty:</span>
                                 <button
                                     wire:click="updateQuantity('{{ $item['id'] }}', {{ $item['quantity'] - 1 }})"
-                                    class="bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded flex items-center justify-center"
+                                    class="bg-gray-200 hover:bg-gray-300 w-7 h-7 rounded flex items-center justify-center"
                                 >
                                     <span class="text-lg font-bold">-</span>
                                 </button>
@@ -137,33 +125,76 @@
                                     type="number"
                                     value="{{ $item['quantity'] }}"
                                     wire:change="updateQuantity('{{ $item['id'] }}', $event.target.value)"
-                                    class="w-16 text-center border border-gray-300 rounded py-1"
+                                    class="w-14 text-center border border-gray-300 rounded py-1 text-sm"
                                     min="1"
                                 >
 
                                 <button
                                     wire:click="updateQuantity('{{ $item['id'] }}', {{ $item['quantity'] + 1 }})"
-                                    class="bg-gray-200 hover:bg-gray-300 w-8 h-8 rounded flex items-center justify-center"
+                                    class="bg-gray-200 hover:bg-gray-300 w-7 h-7 rounded flex items-center justify-center"
                                 >
                                     <span class="text-lg font-bold">+</span>
                                 </button>
                             </div>
 
-                            <!-- Price -->
+                            <!-- Total Price -->
                             <div class="text-right">
-                                <p class="text-sm text-gray-600">
-                                    @ Rs. {{ number_format($item['unit_price'], 2) }}
-                                </p>
-
-                                @if($item['item_discount'] > 0)
-                                    <p class="text-xs text-green-600">
-                                        -Rs. {{ number_format($item['item_discount'], 2) }}
-                                    </p>
-                                @endif
-
                                 <p class="text-lg font-bold text-gray-800">
                                     Rs. {{ number_format($item['total'], 2) }}
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Price Adjustment Controls -->
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-500">Price:</span>
+                                @if($item['can_adjust_price'])
+                                    <button
+                                        wire:click="updatePrice('{{ $item['id'] }}', {{ max($item['min_selling_price'], $item['unit_price'] - 1) }})"
+                                        class="bg-blue-100 hover:bg-blue-200 text-blue-700 w-7 h-7 rounded flex items-center justify-center"
+                                        title="Decrease price"
+                                    >
+                                        <span class="text-lg font-bold">-</span>
+                                    </button>
+
+                                    <input
+                                        type="number"
+                                        value="{{ $item['unit_price'] }}"
+                                        wire:change="updatePrice('{{ $item['id'] }}', $event.target.value)"
+                                        class="w-20 text-center border border-blue-300 rounded py-1 text-sm font-semibold text-blue-700"
+                                        min="{{ $item['min_selling_price'] }}"
+                                        max="{{ $item['max_selling_price'] }}"
+                                        step="0.50"
+                                    >
+
+                                    <button
+                                        wire:click="updatePrice('{{ $item['id'] }}', {{ min($item['max_selling_price'], $item['unit_price'] + 1) }})"
+                                        class="bg-blue-100 hover:bg-blue-200 text-blue-700 w-7 h-7 rounded flex items-center justify-center"
+                                        title="Increase price"
+                                    >
+                                        <span class="text-lg font-bold">+</span>
+                                    </button>
+                                @else
+                                    <span class="text-sm font-semibold text-gray-700">
+                                        Rs. {{ number_format($item['unit_price'], 2) }}
+                                    </span>
+                                    <span class="text-xs text-gray-400">(Fixed)</span>
+                                @endif
+                            </div>
+
+                            <!-- Price Range Info -->
+                            <div class="text-right">
+                                @if($item['can_adjust_price'])
+                                    <p class="text-xs text-gray-500">
+                                        Range: {{ number_format($item['min_selling_price'], 0) }} - {{ number_format($item['max_selling_price'], 0) }}
+                                    </p>
+                                    @if($item['unit_price'] < $item['max_selling_price'])
+                                        <p class="text-xs text-green-600 font-medium">
+                                            Discount: Rs. {{ number_format($item['max_selling_price'] - $item['unit_price'], 2) }}
+                                        </p>
+                                    @endif
+                                @endif
                             </div>
                         </div>
                     </div>

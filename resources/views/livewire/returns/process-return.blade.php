@@ -181,12 +181,14 @@
 
             <!-- Refund Mode -->
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Refund Mode</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Refund Mode <span class="text-red-500">*</span>
+                </label>
                 <div class="flex space-x-4">
                     <label class="flex items-center">
                         <input
                             type="radio"
-                            wire:model="refundMode"
+                            wire:model.live="refundMode"
                             value="cash"
                             class="form-radio h-5 w-5 text-blue-600"
                         >
@@ -195,7 +197,7 @@
                     <label class="flex items-center">
                         <input
                             type="radio"
-                            wire:model="refundMode"
+                            wire:model.live="refundMode"
                             value="bank_transfer"
                             class="form-radio h-5 w-5 text-blue-600"
                         >
@@ -210,13 +212,17 @@
             <!-- Bank Account (if bank transfer) -->
             @if($refundMode === 'bank_transfer')
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Bank Account</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Bank Account <span class="text-red-500">*</span>
+                    </label>
                     <select
                         wire:model="bankAccountId"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2">
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 @error('bankAccountId') border-red-500 @enderror">
                         <option value="">Select Bank Account</option>
                         @foreach($bankAccounts as $account)
-                            <option value="{{ $account->id }}">{{ $account->name }}</option>
+                            <option value="{{ $account->id }}">
+                                {{ $account->account_name }} ({{ $account->account_code }}) - Balance: ₹{{ number_format($account->balance, 2) }}
+                            </option>
                         @endforeach
                     </select>
                     @error('bankAccountId')

@@ -302,7 +302,7 @@ class InventoryService
                 'product_id' => $product->id,
                 'movement_type' => 'write_off',
                 'quantity' => -$quantity,
-                'reference_type' => 'write_off',
+                'reference_type' => null,
                 'reference_id' => null,
                 'batch_number' => null,
                 'expiry_date' => null,
