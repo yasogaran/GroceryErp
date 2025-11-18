@@ -134,6 +134,12 @@ Route::middleware(['auth'])->group(function () {
     // POS routes (cashier, manager, admin) - requires active shift
     Route::middleware(['check.role:cashier,manager,admin', 'shift.active'])->group(function () {
         Route::get('/pos', POSInterface::class)->name('pos.index');
+        Route::get('/pos/receipt/{saleId}', [\App\Http\Controllers\POSController::class, 'printReceipt'])->name('pos.receipt.print');
+    });
+
+    // Invoice History routes (cashier, manager, admin) - no active shift required
+    Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/invoices', \App\Livewire\Invoices\InvoiceHistory::class)->name('invoices.history');
     });
 
     // Offer routes (manager, admin)

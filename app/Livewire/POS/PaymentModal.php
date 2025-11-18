@@ -20,6 +20,11 @@ class PaymentModal extends Component
     public $grandTotal = 0;
     public $cartData = [];
 
+    // Payment amount from customer
+    public $paidAmount = 0;
+    public $changeToReturn = 0;
+    public $isCreditInvoice = false;
+
     // Multiple payment support
     public $payments = []; // Array of payment entries
     public $currentPaymentMode = 'cash';
@@ -35,6 +40,7 @@ class PaymentModal extends Component
 
     // Processing state
     public $processing = false;
+    public $showPaymentStep = 'amount'; // 'amount' or 'payment'
 
     protected $listeners = [
         'openPaymentModal' => 'open',
@@ -55,6 +61,63 @@ class PaymentModal extends Component
         $this->currentAmount = 0;
         $this->currentPaymentMode = 'cash';
         $this->currentBankAccount = null;
+        $this->paidAmount = 0;
+        $this->changeToReturn = 0;
+        $this->isCreditInvoice = false;
+        $this->showPaymentStep = 'amount';
+    }
+
+    /**
+     * Calculate change when paid amount is updated
+     */
+    public function updatedPaidAmount()
+    {
+        if ($this->paidAmount >= $this->grandTotal) {
+            $this->changeToReturn = $this->paidAmount - $this->grandTotal;
+            $this->isCreditInvoice = false;
+        } else {
+            $this->changeToReturn = 0;
+            $this->isCreditInvoice = $this->paidAmount > 0;
+        }
+    }
+
+    /**
+     * Process payment after amount is entered
+     */
+    public function processPaymentAmount()
+    {
+        $this->validate([
+            'paidAmount' => 'required|numeric|min:0',
+        ], [
+            'paidAmount.required' => 'Please enter the amount received from customer',
+            'paidAmount.min' => 'Amount cannot be negative',
+        ]);
+
+        // If credit invoice (including 0 payment), validate customer is selected
+        if ($this->paidAmount < $this->grandTotal && !$this->cartData['customer_id']) {
+            session()->flash('error', 'Please select a customer for credit invoices');
+            return;
+        }
+
+        // Proceed to complete payment directly
+        $this->completePayment();
+    }
+
+    /**
+     * Mark as full credit invoice (0 payment)
+     */
+    public function markAsFullCredit()
+    {
+        // Validate customer is selected
+        if (!$this->cartData['customer_id']) {
+            session()->flash('error', 'Please select a customer for full credit invoices');
+            return;
+        }
+
+        $this->paidAmount = 0;
+        $this->isCreditInvoice = true;
+        $this->changeToReturn = 0;
+        $this->completePayment();
     }
 
     public function addPayment()
@@ -127,6 +190,140 @@ class PaymentModal extends Component
             $this->change = $this->cashReceived - $this->grandTotal;
         } else {
             $this->change = 0;
+        }
+    }
+
+    /**
+     * Complete payment with the amount entered by cashier
+     */
+    public function completePayment()
+    {
+        $this->processing = true;
+
+        try {
+            DB::transaction(function () {
+                // Determine payment status
+                if ($this->paidAmount >= $this->grandTotal) {
+                    $paymentStatus = 'paid';
+                } elseif ($this->paidAmount > 0) {
+                    $paymentStatus = 'partial';
+                } else {
+                    $paymentStatus = 'unpaid';
+                }
+                $actualPaidAmount = min($this->paidAmount, $this->grandTotal);
+
+                // Create sale
+                $sale = Sale::create([
+                    'invoice_number' => Sale::generateInvoiceNumber(),
+                    'shift_id' => auth()->user()->currentShift->id,
+                    'customer_id' => $this->cartData['customer_id'],
+                    'sale_date' => now(),
+                    'subtotal' => $this->cartData['subtotal'],
+                    'discount_amount' => $this->cartData['discount'],
+                    'discount_type' => $this->cartData['discount_type'],
+                    'total_amount' => $this->cartData['total'],
+                    'payment_status' => $paymentStatus,
+                    'status' => 'completed',
+                    'points_earned' => 0, // Will be set by LoyaltyService
+                    'notes' => $this->isCreditInvoice ? 'Credit Invoice - Partial Payment' : null,
+                    'created_by' => auth()->id(),
+                ]);
+
+                // Create sale items and reduce stock
+                foreach ($this->cartData['items'] as $item) {
+                    // Reduce stock using InventoryService and get the stock movement
+                    $product = Product::find($item['product_id']);
+
+                    // If batch was selected in cart, use that batch's pricing
+                    $details = [
+                        'reference_type' => 'sale',
+                        'reference_id' => $sale->id,
+                    ];
+
+                    // If specific batch was selected, get its details
+                    if (isset($item['batch_id']) && $item['batch_id']) {
+                        $batchDetails = app(InventoryService::class)->getBatchDetails($item['batch_id']);
+                        if ($batchDetails) {
+                            $details['unit_cost'] = $batchDetails['unit_cost'];
+                            $details['min_selling_price'] = $batchDetails['min_selling_price'];
+                            $details['max_selling_price'] = $batchDetails['max_selling_price'];
+                            $details['batch_number'] = $batchDetails['batch_number'];
+                        }
+                    }
+
+                    $stockMovement = app(InventoryService::class)->reduceStock($product, $item['quantity'], $details);
+
+                    // Create sale item with batch tracking and COGS
+                    SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $item['product_id'],
+                        'stock_movement_id' => $stockMovement->id, // Link to the stock movement (batch)
+                        'quantity' => $item['quantity'],
+                        'is_box_sale' => $item['is_box_sale'],
+                        'unit_price' => $item['unit_price'],
+                        'unit_cost' => $stockMovement->unit_cost ?? $item['batch_cost'] ?? null, // Cost from selected/FIFO batch for COGS calculation
+                        'discount_amount' => $item['item_discount'] ?? 0,
+                        'total_price' => $item['total'],
+                        'offer_id' => $item['offer_id'] ?? null,
+                    ]);
+                }
+
+                // Create payment record (single payment - cash) only if amount > 0
+                if ($actualPaidAmount > 0) {
+                    SalePayment::create([
+                        'sale_id' => $sale->id,
+                        'payment_mode' => 'cash',
+                        'bank_account_id' => null,
+                        'amount' => $actualPaidAmount,
+                    ]);
+                }
+
+                // Update shift totals
+                $shift = auth()->user()->currentShift;
+                $shift->increment('total_sales', $actualPaidAmount);
+                $shift->increment('total_transactions');
+                $shift->increment('total_cash_sales', $actualPaidAmount);
+
+                // Update customer total purchases and award loyalty points
+                if ($this->cartData['customer_id']) {
+                    $customer = Customer::find($this->cartData['customer_id']);
+                    $customer->increment('total_purchases', $actualPaidAmount);
+
+                    // Award loyalty points (only on paid amount for credit invoices)
+                    app(LoyaltyService::class)->awardPoints($customer, $sale);
+                }
+
+                // Print receipt
+                try {
+                    app(PrintService::class)->printReceipt($sale);
+                } catch (\Exception $e) {
+                    logger()->error('Receipt printing failed: ' . $e->getMessage());
+                }
+
+                // Store sale ID for print preview
+                session(['last_sale_id' => $sale->id]);
+
+                // Close modal and clear parent cart
+                $this->show = false;
+                $this->dispatch('paymentCompleted', saleId: $sale->id);
+
+                // Show success message
+                $message = 'Sale completed! Invoice: ' . $sale->invoice_number;
+                if ($this->changeToReturn > 0) {
+                    $message .= ' | Change to return: Rs. ' . number_format($this->changeToReturn, 2);
+                }
+                if ($this->paidAmount == 0) {
+                    $message .= ' | FULL CREDIT INVOICE - Total due: Rs. ' . number_format($this->grandTotal, 2);
+                } elseif ($this->isCreditInvoice) {
+                    $message .= ' | CREDIT INVOICE - Balance due: Rs. ' . number_format($this->grandTotal - $actualPaidAmount, 2);
+                }
+                session()->flash('success', $message);
+            });
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error: ' . $e->getMessage());
+            logger()->error('Payment processing error: ' . $e->getMessage());
+        } finally {
+            $this->processing = false;
         }
     }
 
@@ -237,9 +434,12 @@ class PaymentModal extends Component
                     logger()->error('Receipt printing failed: ' . $e->getMessage());
                 }
 
+                // Store sale ID for print preview
+                session(['last_sale_id' => $sale->id]);
+
                 // Close modal and clear parent cart
                 $this->show = false;
-                $this->dispatch('paymentCompleted');
+                $this->dispatch('paymentCompleted', saleId: $sale->id);
 
                 // Show success message
                 session()->flash('success', 'Sale completed! Invoice: ' . $sale->invoice_number);

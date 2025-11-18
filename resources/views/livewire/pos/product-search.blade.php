@@ -31,17 +31,22 @@
             @endforeach
         </div>
 
-        <!-- Batch Selection Toggle -->
-        <button
-            wire:click="toggleBatchSelection"
-            class="px-3 py-1 rounded-lg text-sm font-medium {{ $showBatchSelection ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700' }}"
-            title="{{ $showBatchSelection ? 'Batch selection ON' : 'Batch selection OFF' }}"
-        >
-            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            {{ $showBatchSelection ? 'Batch Mode' : 'Auto Mode' }}
-        </button>
+        <!-- Batch Selection Toggle Switch -->
+        <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+            <span class="text-sm font-medium text-gray-700">Stock Mode:</span>
+            <button
+                wire:click="toggleBatchSelection"
+                class="relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $showBatchSelection ? 'bg-green-500' : 'bg-blue-500' }}"
+                role="switch"
+                aria-checked="{{ $showBatchSelection ? 'true' : 'false' }}"
+                title="Toggle between Batch Mode and Auto Mode"
+            >
+                <span class="inline-block h-6 w-6 transform rounded-full bg-white transition-transform {{ $showBatchSelection ? 'translate-x-9' : 'translate-x-1' }}"></span>
+            </button>
+            <span class="text-sm font-bold {{ $showBatchSelection ? 'text-green-600' : 'text-blue-600' }}">
+                {{ $showBatchSelection ? 'Batch Mode' : 'Auto Mode' }}
+            </span>
+        </div>
     </div>
 
     <!-- Products Grid -->

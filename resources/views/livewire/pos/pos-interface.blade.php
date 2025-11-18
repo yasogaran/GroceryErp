@@ -346,4 +346,14 @@
             }
         }
     });
+
+    // Listen for payment completion to open print preview
+    window.addEventListener('openPrintPreview', event => {
+        const saleId = event.detail.saleId;
+        if (saleId) {
+            // Open print preview in new tab
+            const printUrl = '{{ route("pos.receipt.print", ":saleId") }}'.replace(':saleId', saleId);
+            window.open(printUrl, '_blank');
+        }
+    });
 </script>
