@@ -2,7 +2,17 @@
     <!-- Top Action Bar -->
     <div class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center space-x-4">
-            <h1 class="text-2xl font-bold text-gray-800">Point of Sale</h1>
+            <!-- Shift Balance -->
+            @if($currentShift)
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-500 uppercase">Current Shift Balance</span>
+                    <span class="text-lg font-bold text-gray-800">{{ settings('currency_symbol', 'Rs.') }} {{ number_format($currentShiftBalance, 2) }}</span>
+                </div>
+            @else
+                <div class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg text-sm font-medium">
+                    No Active Shift
+                </div>
+            @endif
 
             <!-- Customer Selection -->
             <div class="flex items-center space-x-2">
@@ -30,6 +40,7 @@
                     </button>
                 @endif
             </div>
+
         </div>
 
         <!-- Action Buttons -->
@@ -66,6 +77,20 @@
             >
                 <span>Clear (ESC)</span>
             </button>
+
+            <!-- Close Shift -->
+            @if($currentShift)
+                <button
+                    onclick="window.location.href='{{ route('shifts.close') }}'"
+                    class="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg flex items-center space-x-2"
+                    title="Close current shift"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Close Shift</span>
+                </button>
+            @endif
         </div>
     </div>
 

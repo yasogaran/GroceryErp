@@ -56,24 +56,56 @@
             </div>
         </div>
 
-        <!-- Category Filters - Horizontal Scroll -->
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <div class="flex gap-2 pb-2 min-w-max">
-                <button
-                    wire:click="clearCategory"
-                    class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ is_null($selectedCategory) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
-                >
-                    All Categories
-                </button>
-                @foreach($categories as $category)
+        <!-- Category Filters - Horizontal Scroll with Buttons -->
+        <div class="relative flex items-center gap-2">
+            <!-- Left Scroll Button -->
+            <button
+                type="button"
+                onclick="document.getElementById('category-scroll').scrollBy({left: -200, behavior: 'smooth'})"
+                class="shrink-0 bg-white border border-gray-300 hover:bg-gray-50 rounded-full p-2 shadow-sm z-10"
+                title="Scroll Left"
+            >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Categories Container - Hidden Scrollbar -->
+            <div id="category-scroll" class="overflow-x-auto flex-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                <style>
+                    #category-scroll::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <div class="flex gap-2 pb-2 min-w-max">
                     <button
-                        wire:click="selectCategory({{ $category->id }})"
-                        class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ $selectedCategory == $category->id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
+                        wire:click="clearCategory"
+                        class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ is_null($selectedCategory) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
                     >
-                        {{ $category->name }} ({{ $category->products_count }})
+                        All Categories
                     </button>
-                @endforeach
+                    @foreach($categories as $category)
+                        <button
+                            wire:click="selectCategory({{ $category->id }})"
+                            class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ $selectedCategory == $category->id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
+                        >
+                            {{ $category->name }} ({{ $category->products_count }})
+                        </button>
+                    @endforeach
+                </div>
             </div>
+
+            <!-- Right Scroll Button -->
+            <button
+                type="button"
+                onclick="document.getElementById('category-scroll').scrollBy({left: 200, behavior: 'smooth'})"
+                class="shrink-0 bg-white border border-gray-300 hover:bg-gray-50 rounded-full p-2 shadow-sm z-10"
+                title="Scroll Right"
+            >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
