@@ -66,11 +66,16 @@ class POSInterface extends Component
 
         // Check stock with detailed error message
         if (!app(POSService::class)->checkStock($product, $quantity)) {
-            $saleType = $isBoxSale ? 'box' : 'piece';
-            $boxInfo = $isBoxSale ? " (1 box = {$quantity} pieces)" : '';
-            $message = "Insufficient stock for {$product->name}. " .
-                       "Trying to add {$quantity} {$saleType}{$boxInfo}, " .
-                       "but only {$product->current_stock_quantity} pieces available.";
+            if ($isBoxSale) {
+                $message = "Cannot sell {$product->name} as box. " .
+                           "Need {$quantity} pieces for 1 box, " .
+                           "but only {$product->current_stock_quantity} pieces available in stock. " .
+                           "Not enough pieces for box sale.";
+            } else {
+                $message = "Insufficient stock for {$product->name}. " .
+                           "Trying to add {$quantity} piece, " .
+                           "but only {$product->current_stock_quantity} pieces available.";
+            }
             $this->dispatch('showToast', type: 'error', message: $message);
             return;
         }
@@ -102,13 +107,21 @@ class POSInterface extends Component
             $newTotalQuantity = $existingQuantity + $quantity;
 
             if ($newTotalQuantity > $product->current_stock_quantity) {
-                $saleType = $isBoxSale ? 'box' : 'piece';
-                $boxInfo = $isBoxSale ? " (1 box = {$quantity} pieces)" : '';
-                $message = "Cannot add more {$product->name}. " .
-                           "Cart already has {$existingQuantity} pieces. " .
-                           "Trying to add {$quantity} more {$saleType}{$boxInfo}, " .
-                           "but only {$product->current_stock_quantity} pieces total available in stock. " .
-                           "Maximum you can add: " . ($product->current_stock_quantity - $existingQuantity) . " more pieces.";
+                $maxCanAdd = $product->current_stock_quantity - $existingQuantity;
+
+                if ($isBoxSale) {
+                    $message = "Cannot add another box of {$product->name}. " .
+                               "Cart already has {$existingQuantity} pieces. " .
+                               "Need {$quantity} more pieces for 1 box, " .
+                               "but only {$product->current_stock_quantity} pieces total available in stock. " .
+                               "Not enough pieces for box sale. " .
+                               "You can only add {$maxCanAdd} more pieces individually.";
+                } else {
+                    $message = "Cannot add more {$product->name}. " .
+                               "Cart already has {$existingQuantity} pieces. " .
+                               "Only {$product->current_stock_quantity} pieces total available in stock. " .
+                               "Maximum you can add: {$maxCanAdd} more pieces.";
+                }
                 $this->dispatch('showToast', type: 'error', message: $message);
                 return;
             }

@@ -60,11 +60,16 @@ class ProductSearch extends Component
             : 1;
 
         if ($product->current_stock_quantity < $quantity) {
-            $saleType = $isBoxSale ? 'box' : 'piece';
-            $boxInfo = $isBoxSale ? " (1 box = {$quantity} pieces)" : '';
-            $message = "Insufficient stock for {$product->name}. " .
-                       "Trying to add {$quantity} {$saleType}{$boxInfo}, " .
-                       "but only {$product->current_stock_quantity} pieces available.";
+            if ($isBoxSale) {
+                $message = "Cannot sell {$product->name} as box. " .
+                           "Need {$quantity} pieces for 1 box, " .
+                           "but only {$product->current_stock_quantity} pieces available in stock. " .
+                           "Not enough pieces for box sale.";
+            } else {
+                $message = "Insufficient stock for {$product->name}. " .
+                           "Trying to add {$quantity} piece, " .
+                           "but only {$product->current_stock_quantity} pieces available.";
+            }
             $this->dispatch('notify', [
                 'type' => 'error',
                 'message' => $message
