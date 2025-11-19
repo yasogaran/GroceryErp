@@ -49,29 +49,24 @@ class StockAdjustments extends Component
         if ($value) {
             $this->selectedProduct = Product::find($value);
 
-            // Get available batches for decrease adjustments only
+            // Get available batches for all adjustment types
+            $inventoryService = app(\App\Services\InventoryService::class);
+            $this->availableBatches = $inventoryService->getAvailableBatches($this->selectedProduct);
+
+            // Calculate remaining quantity for each batch
+            foreach ($this->availableBatches as &$batch) {
+                $batch['remaining_quantity'] = $this->calculateBatchRemainingQuantity($value, $batch['stock_movement_id']);
+            }
+
+            // For decrease adjustments, filter out batches with no remaining quantity
             if ($this->adjustmentType === 'decrease') {
-                $inventoryService = app(\App\Services\InventoryService::class);
-                $this->availableBatches = $inventoryService->getAvailableBatches($this->selectedProduct);
-
-                // Calculate remaining quantity for each batch
-                foreach ($this->availableBatches as &$batch) {
-                    $batch['remaining_quantity'] = $this->calculateBatchRemainingQuantity($value, $batch['stock_movement_id']);
-                }
-
-                // Filter out batches with no remaining quantity
                 $this->availableBatches = array_filter($this->availableBatches, function($batch) {
                     return $batch['remaining_quantity'] > 0;
                 });
-
-                // Auto-select if only one batch
-                if (count($this->availableBatches) === 1) {
-                    $this->selectedBatchId = array_values($this->availableBatches)[0]['stock_movement_id'];
-                }
-            } else {
-                $this->availableBatches = [];
-                $this->selectedBatchId = null;
             }
+
+            // Reset selection when batches change
+            $this->selectedBatchId = null;
         } else {
             $this->selectedProduct = null;
             $this->availableBatches = [];
@@ -91,16 +86,16 @@ class StockAdjustments extends Component
     {
         $this->validate();
 
-        // Additional validation for batch selection on decrease adjustments
-        if ($this->adjustmentType === 'decrease' && count($this->availableBatches) > 1 && !$this->selectedBatchId) {
+        // Require batch selection when batches are available
+        if (count($this->availableBatches) > 0 && !$this->selectedBatchId) {
             $this->dispatch('notify', [
                 'type' => 'error',
-                'message' => 'Please select a batch for stock decrease'
+                'message' => 'Please select a batch'
             ]);
             return;
         }
 
-        // Validate quantity against batch if batch is selected
+        // Validate quantity against batch for decrease adjustments
         if ($this->selectedBatchId && $this->adjustmentType === 'decrease') {
             $selectedBatch = collect($this->availableBatches)->firstWhere('stock_movement_id', $this->selectedBatchId);
             if ($selectedBatch && $this->quantity > $selectedBatch['remaining_quantity']) {

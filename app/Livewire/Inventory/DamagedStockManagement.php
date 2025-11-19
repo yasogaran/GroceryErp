@@ -73,10 +73,8 @@ class DamagedStockManagement extends Component
             return $batch['remaining_quantity'] > 0;
         });
 
-        // Auto-select if only one batch
-        if (count($this->availableBatches) === 1) {
-            $this->selectedBatchId = array_values($this->availableBatches)[0]['stock_movement_id'];
-        }
+        // Reset batch selection (no auto-select)
+        $this->selectedBatchId = null;
 
         $this->showMarkDamagedModal = true;
     }
@@ -99,8 +97,8 @@ class DamagedStockManagement extends Component
 
         $product = Product::find($this->selectedProductId);
 
-        // Check if batch selection is required and validate
-        if (count($this->availableBatches) > 1 && !$this->selectedBatchId) {
+        // Require batch selection when batches are available
+        if (count($this->availableBatches) > 0 && !$this->selectedBatchId) {
             $this->addError('selectedBatchId', 'Please select a batch');
             return;
         }
