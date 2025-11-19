@@ -28,7 +28,8 @@ class JournalEntryService
             }
 
             // Set defaults
-            $data['created_by'] = Auth::id();
+            // Use provided created_by, fallback to Auth::id(), then to system user (1)
+            $data['created_by'] = $data['created_by'] ?? Auth::id() ?? 1;
             $data['status'] = $data['status'] ?? 'draft';
             $data['entry_type'] = $data['entry_type'] ?? 'manual';
 
@@ -137,7 +138,7 @@ class JournalEntryService
             // Update entry status
             $entry->update([
                 'status' => 'posted',
-                'posted_by' => Auth::id(),
+                'posted_by' => Auth::id() ?? $entry->created_by ?? 1,
                 'posted_at' => now(),
             ]);
 
@@ -322,9 +323,10 @@ class JournalEntryService
         string $description,
         string $entryType = 'manual',
         ?string $referenceType = null,
-        ?int $referenceId = null
+        ?int $referenceId = null,
+        ?int $createdBy = null
     ): JournalEntry {
-        return $this->createEntry([
+        $data = [
             'entry_date' => $entryDate,
             'description' => $description,
             'entry_type' => $entryType,
@@ -344,6 +346,12 @@ class JournalEntryService
                     'credit' => $amount,
                 ],
             ],
-        ]);
+        ];
+
+        if ($createdBy !== null) {
+            $data['created_by'] = $createdBy;
+        }
+
+        return $this->createEntry($data);
     }
 }
