@@ -17,7 +17,16 @@ class ProductSearch extends Component
     protected $listeners = [
         'resetSearch' => 'resetSearch',
         'paymentCompleted' => 'refreshProducts',
+        'toggleBatchMode' => 'toggleBatchSelection',
+        'setViewMode' => 'setViewMode',
     ];
+
+    public function mount()
+    {
+        // Initialize and dispatch initial state to parent
+        $this->dispatchBrowserEvent('batchModeChanged', ['enabled' => $this->showBatchSelection]);
+        $this->dispatchBrowserEvent('viewModeChanged', ['mode' => $this->viewMode]);
+    }
 
     public function updated($property)
     {
@@ -40,6 +49,19 @@ class ProductSearch extends Component
     public function toggleBatchSelection()
     {
         $this->showBatchSelection = !$this->showBatchSelection;
+
+        // Notify parent component about state change
+        $this->dispatchBrowserEvent('batchModeChanged', ['enabled' => $this->showBatchSelection]);
+    }
+
+    public function setViewMode($mode)
+    {
+        if (in_array($mode, ['grid', 'list'])) {
+            $this->viewMode = $mode;
+
+            // Notify parent component about state change
+            $this->dispatchBrowserEvent('viewModeChanged', ['mode' => $this->viewMode]);
+        }
     }
 
     public function addToCart($productId, $isBoxSale = false, $batchId = null)

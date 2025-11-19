@@ -14,6 +14,45 @@
                 </div>
             @endif
 
+            <!-- Batch Selection Toggle Switch -->
+            <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+                <span class="text-xs font-medium text-gray-700">Stock:</span>
+                <button
+                    onclick="Livewire.dispatch('toggleBatchMode')"
+                    id="batch-toggle"
+                    class="relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 bg-blue-500"
+                    role="switch"
+                    title="Toggle between Batch Mode and Auto Mode"
+                >
+                    <span id="batch-toggle-slider" class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                </button>
+                <span id="batch-toggle-label" class="text-xs font-bold text-blue-600">Auto</span>
+            </div>
+
+            <!-- View Toggle (Card/List) -->
+            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                    onclick="Livewire.dispatch('setViewMode', { mode: 'grid' })"
+                    id="view-grid"
+                    class="p-2 rounded bg-white text-blue-600 shadow-sm"
+                    title="Grid View"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                    </svg>
+                </button>
+                <button
+                    onclick="Livewire.dispatch('setViewMode', { mode: 'list' })"
+                    id="view-list"
+                    class="p-2 rounded text-gray-600 hover:text-gray-800"
+                    title="List View"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+
             <!-- Customer Selection -->
             <div class="flex items-center space-x-2">
                 @if($selectedCustomer)
@@ -410,6 +449,51 @@
             // Open print preview in new tab
             const printUrl = '{{ route("pos.receipt.print", ":saleId") }}'.replace(':saleId', saleId);
             window.open(printUrl, '_blank');
+        }
+    });
+
+    // Listen for batch mode state changes from ProductSearch component
+    window.addEventListener('batchModeChanged', event => {
+        const isEnabled = event.detail.enabled;
+        const toggle = document.getElementById('batch-toggle');
+        const slider = document.getElementById('batch-toggle-slider');
+        const label = document.getElementById('batch-toggle-label');
+
+        if (isEnabled) {
+            toggle.classList.remove('bg-blue-500');
+            toggle.classList.add('bg-green-500');
+            slider.classList.remove('translate-x-1');
+            slider.classList.add('translate-x-8');
+            label.textContent = 'Batch';
+            label.classList.remove('text-blue-600');
+            label.classList.add('text-green-600');
+        } else {
+            toggle.classList.remove('bg-green-500');
+            toggle.classList.add('bg-blue-500');
+            slider.classList.remove('translate-x-8');
+            slider.classList.add('translate-x-1');
+            label.textContent = 'Auto';
+            label.classList.remove('text-green-600');
+            label.classList.add('text-blue-600');
+        }
+    });
+
+    // Listen for view mode changes from ProductSearch component
+    window.addEventListener('viewModeChanged', event => {
+        const mode = event.detail.mode;
+        const gridBtn = document.getElementById('view-grid');
+        const listBtn = document.getElementById('view-list');
+
+        if (mode === 'grid') {
+            gridBtn.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            gridBtn.classList.remove('text-gray-600', 'hover:text-gray-800');
+            listBtn.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+            listBtn.classList.add('text-gray-600', 'hover:text-gray-800');
+        } else {
+            listBtn.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            listBtn.classList.remove('text-gray-600', 'hover:text-gray-800');
+            gridBtn.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+            gridBtn.classList.add('text-gray-600', 'hover:text-gray-800');
         }
     });
 </script>

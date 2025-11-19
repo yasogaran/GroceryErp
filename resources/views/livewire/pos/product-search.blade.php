@@ -1,9 +1,8 @@
 <div class="bg-white rounded-lg shadow-sm p-4 h-full">
-    <!-- Header Section with Search, Toggles -->
+    <!-- Header Section with Search -->
     <div class="mb-4 space-y-3">
-        <!-- Top Row: Search Bar with Toggles -->
+        <!-- Search Bar -->
         <div class="flex gap-3 items-center">
-            <!-- Search Bar -->
             <div class="flex-1">
                 <input
                     type="text"
@@ -14,45 +13,6 @@
                     id="product-search-input"
                 >
                 <p class="text-xs text-gray-500 mt-1">Press F1 to focus search | Scan barcode to auto-add</p>
-            </div>
-
-            <!-- Batch Selection Toggle Switch -->
-            <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 shrink-0">
-                <span class="text-sm font-medium text-gray-700">Stock:</span>
-                <button
-                    wire:click="toggleBatchSelection"
-                    class="relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $showBatchSelection ? 'bg-green-500' : 'bg-blue-500' }}"
-                    role="switch"
-                    aria-checked="{{ $showBatchSelection ? 'true' : 'false' }}"
-                    title="Toggle between Batch Mode and Auto Mode"
-                >
-                    <span class="inline-block h-6 w-6 transform rounded-full bg-white transition-transform {{ $showBatchSelection ? 'translate-x-9' : 'translate-x-1' }}"></span>
-                </button>
-                <span class="text-xs font-bold {{ $showBatchSelection ? 'text-green-600' : 'text-blue-600' }}">
-                    {{ $showBatchSelection ? 'Batch' : 'Auto' }}
-                </span>
-            </div>
-
-            <!-- View Toggle (Card/List) -->
-            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1 shrink-0">
-                <button
-                    wire:click="$set('viewMode', 'grid')"
-                    class="p-2 rounded {{ $viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}"
-                    title="Grid View"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                    </svg>
-                </button>
-                <button
-                    wire:click="$set('viewMode', 'list')"
-                    class="p-2 rounded {{ $viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}"
-                    title="List View"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
             </div>
         </div>
 
