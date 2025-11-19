@@ -56,6 +56,17 @@ class TransactionService
                 ];
             }
 
+            // If there's a due amount (credit sale), debit Accounts Receivable
+            if ($sale->due_amount > 0) {
+                $receivablesAccount = $this->getAccountByCode('1310');
+                $lines[] = [
+                    'account_id' => $receivablesAccount->id,
+                    'description' => $description . " - Credit",
+                    'debit' => $sale->due_amount,
+                    'credit' => 0,
+                ];
+            }
+
             // Credit: Sales Revenue (4110)
             $salesAccount = $this->getAccountByCode('4110');
             $lines[] = [
