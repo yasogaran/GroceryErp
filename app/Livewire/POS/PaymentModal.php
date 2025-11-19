@@ -30,6 +30,11 @@ class PaymentModal extends Component
     public $customerSearchTerm = '';
     public $selectedCustomerId = null;
 
+    // Customer creation
+    public $showCreateCustomer = false;
+    public $newCustomerName = '';
+    public $newCustomerPhone = '';
+
     // Multiple payment support
     public $payments = []; // Array of payment entries
     public $currentPaymentMode = 'cash';
@@ -503,7 +508,75 @@ class PaymentModal extends Component
     public function closeCustomerSelector()
     {
         $this->showCustomerSelector = false;
+        $this->showCreateCustomer = false;
         $this->customerSearchTerm = '';
+        $this->newCustomerName = '';
+        $this->newCustomerPhone = '';
+    }
+
+    /**
+     * Open customer creation form
+     */
+    public function openCreateCustomer()
+    {
+        $this->showCreateCustomer = true;
+
+        // Pre-fill from search term if it looks like a phone number
+        if (preg_match('/^[0-9]{10,}/', $this->customerSearchTerm)) {
+            $this->newCustomerPhone = $this->customerSearchTerm;
+        } else {
+            $this->newCustomerName = $this->customerSearchTerm;
+        }
+    }
+
+    /**
+     * Go back to customer list from creation form
+     */
+    public function backToCustomerList()
+    {
+        $this->showCreateCustomer = false;
+        $this->newCustomerName = '';
+        $this->newCustomerPhone = '';
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Create a new customer from payment modal
+     */
+    public function createCustomer()
+    {
+        $this->validate([
+            'newCustomerName' => 'required|max:255',
+            'newCustomerPhone' => 'required|unique:customers,phone|max:20',
+        ], [
+            'newCustomerName.required' => 'Customer name is required',
+            'newCustomerPhone.required' => 'Phone number is required',
+            'newCustomerPhone.unique' => 'This phone number is already registered',
+        ]);
+
+        try {
+            $customer = Customer::create([
+                'customer_code' => Customer::generateCustomerCode(),
+                'name' => $this->newCustomerName,
+                'phone' => $this->newCustomerPhone,
+                'is_active' => true,
+            ]);
+
+            // Auto-select the newly created customer
+            $this->selectedCustomerId = $customer->id;
+            $this->cartData['customer_id'] = $customer->id;
+
+            // Close modals and reset
+            $this->showCustomerSelector = false;
+            $this->showCreateCustomer = false;
+            $this->customerSearchTerm = '';
+            $this->newCustomerName = '';
+            $this->newCustomerPhone = '';
+
+            session()->flash('success', 'Customer created and selected: ' . $customer->name);
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error creating customer: ' . $e->getMessage());
+        }
     }
 
     public function closeModal()

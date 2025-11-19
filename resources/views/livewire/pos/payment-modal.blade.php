@@ -230,7 +230,13 @@
         <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" style="z-index: 60;">
             <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-gray-800">Select Customer</h3>
+                    <h3 class="text-xl font-bold text-gray-800">
+                        @if($showCreateCustomer)
+                            Create New Customer
+                        @else
+                            Select Customer
+                        @endif
+                    </h3>
                     <button wire:click="closeCustomerSelector" class="text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -238,45 +244,143 @@
                     </button>
                 </div>
 
-                <!-- Search Input -->
-                <div class="mb-4">
-                    <input
-                        type="text"
-                        wire:model.live="customerSearchTerm"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                        placeholder="Search by name or phone number..."
-                        autofocus
-                    >
-                </div>
+                @if($showCreateCustomer)
+                    <!-- Customer Creation Form -->
+                    <form wire:submit.prevent="createCustomer">
+                        <div class="space-y-4">
+                            <!-- Success/Error Messages -->
+                            @if (session()->has('success'))
+                                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                                    <span class="block sm:inline">{{ session('success') }}</span>
+                                </div>
+                            @endif
+                            @if (session()->has('error'))
+                                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                                    <span class="block sm:inline">{{ session('error') }}</span>
+                                </div>
+                            @endif
 
-                <!-- Customer List -->
-                <div class="space-y-2">
-                    @forelse($customers as $customer)
-                        <div
-                            wire:click="selectCustomer({{ $customer->id }})"
-                            class="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <p class="font-semibold text-gray-800">{{ $customer->name }}</p>
-                                    @if($customer->phone)
-                                        <p class="text-sm text-gray-600">{{ $customer->phone }}</p>
+                            <!-- Name -->
+                            <div>
+                                <label for="newCustomerName" class="block text-sm font-medium text-gray-700">
+                                    Customer Name <span class="text-red-500">*</span>
+                                </label>
+                                <input
+                                    wire:model="newCustomerName"
+                                    type="text"
+                                    id="newCustomerName"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Enter customer name"
+                                    autofocus
+                                >
+                                @error('newCustomerName')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Phone -->
+                            <div>
+                                <label for="newCustomerPhone" class="block text-sm font-medium text-gray-700">
+                                    Phone Number <span class="text-red-500">*</span>
+                                </label>
+                                <input
+                                    wire:model="newCustomerPhone"
+                                    type="text"
+                                    id="newCustomerPhone"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="07XXXXXXXX"
+                                >
+                                @error('newCustomerPhone')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <p class="text-xs text-gray-500">
+                                Customer code will be auto-generated upon creation.
+                            </p>
+                        </div>
+
+                        <div class="mt-6 flex space-x-3">
+                            <button
+                                type="button"
+                                wire:click="backToCustomerList"
+                                class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg font-medium">
+                                Back to List
+                            </button>
+                            <button
+                                type="submit"
+                                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">
+                                Create Customer
+                            </button>
+                        </div>
+                    </form>
+                @else
+                    <!-- Search Input -->
+                    <div class="mb-4">
+                        <input
+                            type="text"
+                            wire:model.live="customerSearchTerm"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                            placeholder="Search by name or phone number..."
+                            autofocus
+                        >
+                    </div>
+
+                    <!-- Customer List -->
+                    <div class="space-y-2">
+                        @forelse($customers as $customer)
+                            <div
+                                wire:click="selectCustomer({{ $customer->id }})"
+                                class="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="font-semibold text-gray-800">{{ $customer->name }}</p>
+                                        @if($customer->phone)
+                                            <p class="text-sm text-gray-600">{{ $customer->phone }}</p>
+                                        @endif
+                                    </div>
+                                    @if($customer->email)
+                                        <p class="text-sm text-gray-500">{{ $customer->email }}</p>
                                     @endif
                                 </div>
-                                @if($customer->email)
-                                    <p class="text-sm text-gray-500">{{ $customer->email }}</p>
-                                @endif
                             </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-8 text-gray-500">
-                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            <p>No customers found</p>
-                            <p class="text-sm mt-1">Try a different search term</p>
-                        </div>
-                    @endforelse
-                </div>
+                        @empty
+                            <div class="text-center py-8 text-gray-500">
+                                <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <p class="font-medium">No customers found</p>
+                                @if($customerSearchTerm)
+                                    <p class="text-sm mt-1">No results for "{{ $customerSearchTerm }}"</p>
+                                @else
+                                    <p class="text-sm mt-1">Start typing to search</p>
+                                @endif
+                                <button
+                                    wire:click="openCreateCustomer"
+                                    class="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Create New Customer
+                                </button>
+                            </div>
+                        @endforelse
+
+                        <!-- Create New Customer Button (always visible when there are results too) -->
+                        @if($customers->count() > 0)
+                            <div class="pt-4 border-t border-gray-200">
+                                <button
+                                    wire:click="openCreateCustomer"
+                                    class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium inline-flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Create New Customer
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
         </div>
     @endif
