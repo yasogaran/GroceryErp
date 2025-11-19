@@ -8,9 +8,11 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Account;
 use App\Services\ReturnService;
+use App\Traits\WithToast;
 
 class ProcessReturn extends Component
 {
+    use WithToast;
     // Step 1: Search sale
     public $invoiceSearch = '';
     public $selectedSale = null;
@@ -47,20 +49,14 @@ class ProcessReturn extends Component
             ->first();
 
         if (!$this->selectedSale) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Invoice not found'
-            ]);
+            $this->toastError('Invoice not found');
             return;
         }
 
         // Check if invoice has any due amount
         if ($this->selectedSale->hasDueAmount()) {
             $dueAmount = number_format($this->selectedSale->due_amount, 2);
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => "This invoice has a due amount of Rs. {$dueAmount}. Please complete the payment before processing a return."
-            ]);
+            $this->toastError("This invoice has a due amount of " . settings('currency_symbol', 'Rs.') . " {$dueAmount}. Please complete the payment before processing a return.");
             $this->selectedSale = null;
             return;
         }
@@ -92,10 +88,7 @@ class ProcessReturn extends Component
         }
 
         if (empty($this->returnItems)) {
-            $this->dispatch('notify', [
-                'type' => 'warning',
-                'message' => 'All items have already been returned'
-            ]);
+            $this->toastWarning('All items have already been returned');
             return;
         }
 
@@ -132,10 +125,7 @@ class ProcessReturn extends Component
         $hasSelection = collect($this->returnItems)->where('selected', true)->isNotEmpty();
 
         if (!$hasSelection) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Please select at least one item to return'
-            ]);
+            $this->toastError('Please select at least one item to return');
             return;
         }
 
@@ -150,36 +140,37 @@ class ProcessReturn extends Component
 
     public function processReturn()
     {
-        $this->validate();
-
-        $returnService = app(ReturnService::class);
-
-        // Prepare return items data
-        $selectedItems = collect($this->returnItems)
-            ->where('selected', true)
-            ->map(function($item) {
-                return [
-                    'sale_item_id' => $item['sale_item_id'],
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'refund_amount' => $item['refund_amount'],
-                    'is_damaged' => $item['is_damaged'],
-                ];
-            })
-            ->values()
-            ->toArray();
-
-        // Validate quantities
-        $errors = $returnService->validateReturnQuantities($this->selectedSale, $selectedItems);
-
-        if (!empty($errors)) {
-            foreach ($errors as $error) {
-                $this->addError('returnItems', $error);
-            }
-            return;
-        }
-
         try {
+            $this->validate();
+
+            $returnService = app(ReturnService::class);
+
+            // Prepare return items data
+            $selectedItems = collect($this->returnItems)
+                ->where('selected', true)
+                ->map(function($item) {
+                    return [
+                        'sale_item_id' => $item['sale_item_id'],
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'refund_amount' => $item['refund_amount'],
+                        'is_damaged' => $item['is_damaged'],
+                    ];
+                })
+                ->values()
+                ->toArray();
+
+            // Validate quantities
+            $errors = $returnService->validateReturnQuantities($this->selectedSale, $selectedItems);
+
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    $this->addError('returnItems', $error);
+                }
+                $this->toastError('Please fix the validation errors');
+                return;
+            }
+
             $return = $returnService->processReturn([
                 'sale_id' => $this->selectedSale->id,
                 'customer_id' => $this->selectedSale->customer_id,
@@ -190,20 +181,17 @@ class ProcessReturn extends Component
                 'items' => $selectedItems,
             ]);
 
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Return processed successfully! Return Number: ' . $return->return_number
-            ]);
+            $this->toastSuccess('Return processed successfully! Return Number: ' . $return->return_number);
 
             // Reset form
             $this->reset();
             $this->step = 1;
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->toastValidationErrors($e);
+            throw $e;
         } catch (\Exception $e) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Error processing return: ' . $e->getMessage()
-            ]);
+            $this->toastError('Error processing return: ' . $e->getMessage());
         }
     }
 
