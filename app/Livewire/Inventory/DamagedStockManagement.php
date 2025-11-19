@@ -21,11 +21,15 @@ class DamagedStockManagement extends Component
     public $selectedProduct = null;
     public $damageQuantity = 0;
     public $damageReason = '';
+    public $availableBatches = [];
+    public $selectedBatchId = null;
 
     // Write-off modal
     public $showWriteOffModal = false;
     public $writeOffQuantity = 0;
     public $writeOffReason = '';
+    public $writeOffAvailableBatches = [];
+    public $selectedWriteOffBatchId = null;
 
     protected $rules = [
         'damageQuantity' => 'required|numeric|min:0.01',
@@ -53,6 +57,27 @@ class DamagedStockManagement extends Component
         $this->selectedProductId = $productId;
         $this->damageQuantity = 0;
         $this->damageReason = '';
+        $this->selectedBatchId = null;
+
+        // Get available batches for this product
+        $inventoryService = app(InventoryService::class);
+        $this->availableBatches = $inventoryService->getAvailableBatches($this->selectedProduct);
+
+        // Calculate remaining quantity for each batch
+        foreach ($this->availableBatches as &$batch) {
+            $batch['remaining_quantity'] = $this->calculateBatchRemainingQuantity($productId, $batch['stock_movement_id']);
+        }
+
+        // Filter out batches with no remaining quantity
+        $this->availableBatches = array_filter($this->availableBatches, function($batch) {
+            return $batch['remaining_quantity'] > 0;
+        });
+
+        // Auto-select if only one batch
+        if (count($this->availableBatches) === 1) {
+            $this->selectedBatchId = array_values($this->availableBatches)[0]['stock_movement_id'];
+        }
+
         $this->showMarkDamagedModal = true;
     }
 
@@ -63,6 +88,8 @@ class DamagedStockManagement extends Component
         $this->selectedProduct = null;
         $this->damageQuantity = 0;
         $this->damageReason = '';
+        $this->availableBatches = [];
+        $this->selectedBatchId = null;
         $this->resetValidation();
     }
 
@@ -72,15 +99,38 @@ class DamagedStockManagement extends Component
 
         $product = Product::find($this->selectedProductId);
 
-        if ($this->damageQuantity > $product->current_stock_quantity) {
-            $this->addError('damageQuantity', 'Insufficient stock. Available: ' . $product->current_stock_quantity);
+        // Check if batch selection is required and validate
+        if (count($this->availableBatches) > 1 && !$this->selectedBatchId) {
+            $this->addError('selectedBatchId', 'Please select a batch');
             return;
         }
 
+        // Validate quantity against batch if batch is selected
+        if ($this->selectedBatchId) {
+            $selectedBatch = collect($this->availableBatches)->firstWhere('stock_movement_id', $this->selectedBatchId);
+            if ($selectedBatch && $this->damageQuantity > $selectedBatch['remaining_quantity']) {
+                $this->addError('damageQuantity', 'Insufficient stock in selected batch. Available: ' . $selectedBatch['remaining_quantity']);
+                return;
+            }
+        } else {
+            // No batch selected, validate against total stock
+            if ($this->damageQuantity > $product->current_stock_quantity) {
+                $this->addError('damageQuantity', 'Insufficient stock. Available: ' . $product->current_stock_quantity);
+                return;
+            }
+        }
+
         try {
-            app(InventoryService::class)->markAsDamaged($product, $this->damageQuantity, [
+            $details = [
                 'notes' => $this->damageReason,
-            ]);
+            ];
+
+            // Add batch tracking if batch is selected
+            if ($this->selectedBatchId) {
+                $details['source_stock_movement_id'] = $this->selectedBatchId;
+            }
+
+            app(InventoryService::class)->markAsDamaged($product, $this->damageQuantity, $details);
 
             $this->dispatch('showToast', type: 'success', message: 'Stock marked as damaged successfully');
 
@@ -135,6 +185,25 @@ class DamagedStockManagement extends Component
         } catch (\Exception $e) {
             $this->dispatch('showToast', type: 'error', message: $e->getMessage());
         }
+    }
+
+    private function calculateBatchRemainingQuantity($productId, $batchId)
+    {
+        // Get initial batch quantity
+        $batch = \App\Models\StockMovement::find($batchId);
+        if (!$batch) {
+            return 0;
+        }
+
+        $initialQty = $batch->quantity;
+
+        // Get total outgoing movements for this batch using the new source_stock_movement_id field
+        $outgoingQty = \App\Models\StockMovement::where('product_id', $productId)
+            ->whereIn('movement_type', ['out', 'damage', 'write_off'])
+            ->where('source_stock_movement_id', $batchId)
+            ->sum('quantity');
+
+        return $initialQty - abs($outgoingQty);
     }
 
     #[Layout('components.layouts.app')]

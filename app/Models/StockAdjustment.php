@@ -19,6 +19,7 @@ class StockAdjustment extends Model
         'min_selling_price',
         'max_selling_price',
         'batch_number',
+        'batch_id', // Reference to stock_movement_id for batch tracking
         'reason',
         'notes',
         'status',
@@ -106,6 +107,11 @@ class StockAdjustment extends Model
                 'notes' => 'Adjustment approved: ' . $this->reason . ' - ' . ($this->notes ?? ''),
                 'batch_number' => $this->batch_number,
             ];
+
+            // Add batch tracking if batch_id is present (for decrease adjustments)
+            if ($this->batch_id) {
+                $details['source_stock_movement_id'] = $this->batch_id;
+            }
 
             // Add pricing information if available
             if ($this->unit_cost !== null) {
