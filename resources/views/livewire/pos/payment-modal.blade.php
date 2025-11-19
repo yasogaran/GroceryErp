@@ -93,6 +93,58 @@
                     </div>
                 </div>
 
+                <!-- Payment Mode Selection -->
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold text-gray-700 mb-3">Payment Method</label>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <!-- Cash Option -->
+                        <button
+                            type="button"
+                            wire:click="$set('selectedPaymentMode', 'cash')"
+                            class="flex items-center justify-center p-4 rounded-lg border-2 transition-all {{ $selectedPaymentMode === 'cash' ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white hover:border-gray-400' }}">
+                            <div class="text-center">
+                                <svg class="w-8 h-8 mx-auto mb-2 {{ $selectedPaymentMode === 'cash' ? 'text-green-600' : 'text-gray-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="font-semibold {{ $selectedPaymentMode === 'cash' ? 'text-green-700' : 'text-gray-700' }}">
+                                    Cash
+                                </span>
+                            </div>
+                        </button>
+
+                        <!-- Bank Transfer Option -->
+                        <button
+                            type="button"
+                            wire:click="$set('selectedPaymentMode', 'bank_transfer')"
+                            class="flex items-center justify-center p-4 rounded-lg border-2 transition-all {{ $selectedPaymentMode === 'bank_transfer' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400' }}">
+                            <div class="text-center">
+                                <svg class="w-8 h-8 mx-auto mb-2 {{ $selectedPaymentMode === 'bank_transfer' ? 'text-blue-600' : 'text-gray-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                <span class="font-semibold {{ $selectedPaymentMode === 'bank_transfer' ? 'text-blue-700' : 'text-gray-700' }}">
+                                    Bank Transfer
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Bank Account Selection (shown when bank transfer is selected) -->
+                    @if($selectedPaymentMode === 'bank_transfer')
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Bank Account</label>
+                            <select
+                                wire:model="selectedBankAccountId"
+                                class="w-full border-2 border-blue-300 rounded-lg px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                                @foreach($bankAccounts as $account)
+                                    <option value="{{ $account->id }}">
+                                        {{ $account->account_name }} ({{ $account->account_code }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                </div>
+
                 <!-- Full Credit Invoice Button (when amount is 0) -->
                 @if($paidAmount == 0 && isset($cartData['customer_id']) && $cartData['customer_id'])
                     <div class="mb-6">
