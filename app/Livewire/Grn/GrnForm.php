@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\GRN;
+namespace App\Livewire\Grn;
 
 use App\Models\GRN;
 use App\Models\GRNItem;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-class GRNForm extends Component
+class GrnForm extends Component
 {
     public $grnId;
     public $grn_number;

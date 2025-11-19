@@ -14,15 +14,15 @@ use App\Livewire\Products\ProductManagement;
 use App\Livewire\Suppliers\SupplierManagement;
 use App\Livewire\Suppliers\SupplierForm;
 use App\Livewire\Suppliers\SupplierLedger;
-use App\Livewire\GRN\GRNList;
-use App\Livewire\GRN\GRNForm;
-use App\Livewire\GRN\GRNApproval;
+use App\Livewire\Grn\GrnList;
+use App\Livewire\Grn\GrnForm;
+use App\Livewire\Grn\GrnApproval;
 use App\Livewire\Suppliers\Payments\RecordPayment;
 use App\Livewire\Suppliers\Payments\PaymentHistory;
 use App\Livewire\Customers\CustomerManagement;
 use App\Livewire\Shifts\OpenShift;
 use App\Livewire\Shifts\CloseShift;
-use App\Livewire\POS\POSInterface;
+use App\Livewire\Pos\PosInterface;
 use App\Livewire\Reports\DailySalesReport;
 use App\Livewire\Reports\StockReport;
 use App\Livewire\Offers\OfferManagement;
@@ -102,10 +102,10 @@ Route::middleware(['auth'])->group(function () {
 
     // GRN routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->prefix('grn')->name('grn.')->group(function () {
-        Route::get('/', GRNList::class)->name('index');
-        Route::get('/create', GRNForm::class)->name('create');
-        Route::get('/{id}/edit', GRNForm::class)->name('edit');
-        Route::get('/{id}/view', GRNApproval::class)->name('view');
+        Route::get('/', GrnList::class)->name('index');
+        Route::get('/create', GrnForm::class)->name('create');
+        Route::get('/{id}/edit', GrnForm::class)->name('edit');
+        Route::get('/{id}/view', GrnApproval::class)->name('view');
     });
 
     // Supplier Payment routes (manager, admin)
@@ -133,7 +133,7 @@ Route::middleware(['auth'])->group(function () {
 
     // POS routes (cashier, manager, admin) - requires active shift
     Route::middleware(['check.role:cashier,manager,admin', 'shift.active'])->group(function () {
-        Route::get('/pos', POSInterface::class)->name('pos.index');
+        Route::get('/pos', PosInterface::class)->name('pos.index');
         Route::get('/pos/receipt/{saleId}', [\App\Http\Controllers\POSController::class, 'printReceipt'])->name('pos.receipt.print');
     });
 

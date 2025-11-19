@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\POS;
+namespace App\Livewire\Pos;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -10,7 +10,7 @@ use App\Services\POSService;
 use App\Services\OfferService;
 use Illuminate\Support\Str;
 
-class POSInterface extends Component
+class PosInterface extends Component
 {
     // Cart state
     public $cartItems = [];
