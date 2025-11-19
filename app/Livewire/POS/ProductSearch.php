@@ -14,7 +14,10 @@ class ProductSearch extends Component
     public $viewMode = 'grid'; // grid or list
     public $showBatchSelection = true; // Toggle for batch selection mode
 
-    protected $listeners = ['resetSearch' => 'resetSearch'];
+    protected $listeners = [
+        'resetSearch' => 'resetSearch',
+        'paymentCompleted' => 'refreshProducts',
+    ];
 
     public function updated($property)
     {
@@ -77,6 +80,17 @@ class ProductSearch extends Component
     public function resetSearch()
     {
         $this->reset(['searchTerm', 'selectedCategory']);
+    }
+
+    /**
+     * Refresh products after sale completion to show updated stock
+     */
+    public function refreshProducts()
+    {
+        // Force Livewire to re-render by updating a property
+        // This ensures products are re-queried from database with fresh stock quantities
+        $this->viewMode = $this->viewMode; // Touch a property to force re-render
+        $this->dispatch('productsUpdated');
     }
 
     public function render()

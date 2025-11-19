@@ -25,6 +25,11 @@ class PaymentModal extends Component
     public $changeToReturn = 0;
     public $isCreditInvoice = false;
 
+    // Customer selection
+    public $showCustomerSelector = false;
+    public $customerSearchTerm = '';
+    public $selectedCustomerId = null;
+
     // Multiple payment support
     public $payments = []; // Array of payment entries
     public $currentPaymentMode = 'cash';
@@ -65,6 +70,9 @@ class PaymentModal extends Component
         $this->changeToReturn = 0;
         $this->isCreditInvoice = false;
         $this->showPaymentStep = 'amount';
+        $this->showCustomerSelector = false;
+        $this->customerSearchTerm = '';
+        $this->selectedCustomerId = $this->cartData['customer_id'] ?? null;
     }
 
     /**
@@ -94,9 +102,16 @@ class PaymentModal extends Component
         ]);
 
         // If credit invoice (including 0 payment), validate customer is selected
-        if ($this->paidAmount < $this->grandTotal && !$this->cartData['customer_id']) {
+        if ($this->paidAmount < $this->grandTotal && !$this->selectedCustomerId && !$this->cartData['customer_id']) {
+            // Show customer selector instead of just error
+            $this->showCustomerSelector = true;
             session()->flash('error', 'Please select a customer for credit invoices');
             return;
+        }
+
+        // Update cart data with selected customer if changed
+        if ($this->selectedCustomerId) {
+            $this->cartData['customer_id'] = $this->selectedCustomerId;
         }
 
         // Proceed to complete payment directly
@@ -109,9 +124,16 @@ class PaymentModal extends Component
     public function markAsFullCredit()
     {
         // Validate customer is selected
-        if (!$this->cartData['customer_id']) {
+        if (!$this->selectedCustomerId && !$this->cartData['customer_id']) {
+            // Show customer selector instead of just error
+            $this->showCustomerSelector = true;
             session()->flash('error', 'Please select a customer for full credit invoices');
             return;
+        }
+
+        // Update cart data with selected customer if changed
+        if ($this->selectedCustomerId) {
+            $this->cartData['customer_id'] = $this->selectedCustomerId;
         }
 
         $this->paidAmount = 0;
@@ -452,6 +474,36 @@ class PaymentModal extends Component
         }
     }
 
+    /**
+     * Select customer from the payment modal
+     */
+    public function selectCustomer($customerId)
+    {
+        $this->selectedCustomerId = $customerId;
+        $this->cartData['customer_id'] = $customerId;
+        $this->showCustomerSelector = false;
+
+        $customer = Customer::find($customerId);
+        session()->flash('success', 'Customer selected: ' . $customer->name);
+    }
+
+    /**
+     * Open customer selector
+     */
+    public function openCustomerSelector()
+    {
+        $this->showCustomerSelector = true;
+    }
+
+    /**
+     * Close customer selector
+     */
+    public function closeCustomerSelector()
+    {
+        $this->showCustomerSelector = false;
+        $this->customerSearchTerm = '';
+    }
+
     public function closeModal()
     {
         $this->show = false;
@@ -467,8 +519,18 @@ class PaymentModal extends Component
             ->orderBy('account_name')
             ->get();
 
+        // Get customers for selection
+        $customers = Customer::active()
+            ->when($this->customerSearchTerm, function($query) {
+                $query->where('name', 'like', '%' . $this->customerSearchTerm . '%')
+                      ->orWhere('phone', 'like', '%' . $this->customerSearchTerm . '%');
+            })
+            ->limit(10)
+            ->get();
+
         return view('livewire.pos.payment-modal', [
             'bankAccounts' => $bankAccounts,
+            'customers' => $customers,
         ]);
     }
 }

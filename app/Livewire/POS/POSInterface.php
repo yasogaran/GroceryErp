@@ -51,6 +51,7 @@ class POSInterface extends Component
      */
     public function addToCart($productId, $isBoxSale = false, $batchId = null)
     {
+        // Fresh query to get latest stock quantity
         $product = Product::with('packaging')->find($productId);
 
         if (!$product) {

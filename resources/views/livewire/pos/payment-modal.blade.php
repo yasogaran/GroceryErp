@@ -19,17 +19,41 @@
                     @endphp
                     @if($customer)
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                <span class="font-semibold text-green-800">Customer: {{ $customer->name }}</span>
-                                @if($customer->phone)
-                                    <span class="ml-2 text-sm text-green-600">{{ $customer->phone }}</span>
-                                @endif
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span class="font-semibold text-green-800">Customer: {{ $customer->name }}</span>
+                                    @if($customer->phone)
+                                        <span class="ml-2 text-sm text-green-600">{{ $customer->phone }}</span>
+                                    @endif
+                                </div>
+                                <button
+                                    wire:click="openCustomerSelector"
+                                    class="text-sm text-blue-600 hover:text-blue-800 underline">
+                                    Change Customer
+                                </button>
                             </div>
                         </div>
                     @endif
+                @else
+                    <!-- No customer selected - show select button -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span class="text-gray-600">No customer selected (Walk-in customer)</span>
+                            </div>
+                            <button
+                                wire:click="openCustomerSelector"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium">
+                                Select Customer
+                            </button>
+                        </div>
+                    </div>
                 @endif
 
                 <!-- Amount Received Input -->
@@ -199,5 +223,61 @@
                 document.getElementById('paid-amount-input')?.focus();
             }, 100);
         </script>
+    @endif
+
+    <!-- Customer Selector Modal -->
+    @if($showCustomerSelector)
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" style="z-index: 60;">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Select Customer</h3>
+                    <button wire:click="closeCustomerSelector" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        wire:model.live="customerSearchTerm"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                        placeholder="Search by name or phone number..."
+                        autofocus
+                    >
+                </div>
+
+                <!-- Customer List -->
+                <div class="space-y-2">
+                    @forelse($customers as $customer)
+                        <div
+                            wire:click="selectCustomer({{ $customer->id }})"
+                            class="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer transition">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-semibold text-gray-800">{{ $customer->name }}</p>
+                                    @if($customer->phone)
+                                        <p class="text-sm text-gray-600">{{ $customer->phone }}</p>
+                                    @endif
+                                </div>
+                                @if($customer->email)
+                                    <p class="text-sm text-gray-500">{{ $customer->email }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-8 text-gray-500">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <p>No customers found</p>
+                            <p class="text-sm mt-1">Try a different search term</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
     @endif
 </div>
