@@ -186,14 +186,19 @@ class EditProduct extends Component
             $imagePath = $this->image->store('products', 'public');
         }
 
+        // Convert empty strings to null for nullable fields
+        $barcode = !empty($validated['barcode']) ? $validated['barcode'] : null;
+        $description = !empty($validated['description']) ? $validated['description'] : null;
+        $brand = !empty($validated['brand']) ? $validated['brand'] : null;
+
         // Update the product
         $product->update([
             'sku' => $validated['sku'],
-            'barcode' => $validated['barcode'],
+            'barcode' => $barcode,
             'name' => $validated['name'],
-            'description' => $validated['description'],
+            'description' => $description,
             'category_id' => $validated['category_id'],
-            'brand' => $validated['brand'],
+            'brand' => $brand,
             'base_unit' => $validated['base_unit'],
             'min_selling_price' => $validated['min_selling_price'],
             'max_selling_price' => $validated['max_selling_price'],
@@ -206,12 +211,14 @@ class EditProduct extends Component
 
         // Handle packaging
         if ($this->has_packaging) {
+            $packageBarcode = !empty($validated['package_barcode']) ? $validated['package_barcode'] : null;
+
             if ($this->packaging_id) {
                 // Update existing packaging
                 ProductPackaging::where('id', $this->packaging_id)->update([
                     'packaging_name' => $validated['packaging_name'],
                     'pieces_per_package' => $validated['pieces_per_package'],
-                    'package_barcode' => $validated['package_barcode'],
+                    'package_barcode' => $packageBarcode,
                     'discount_type' => $validated['discount_type'],
                     'discount_value' => $validated['discount_value'],
                 ]);
@@ -221,7 +228,7 @@ class EditProduct extends Component
                     'product_id' => $product->id,
                     'packaging_name' => $validated['packaging_name'],
                     'pieces_per_package' => $validated['pieces_per_package'],
-                    'package_barcode' => $validated['package_barcode'],
+                    'package_barcode' => $packageBarcode,
                     'discount_type' => $validated['discount_type'],
                     'discount_value' => $validated['discount_value'],
                 ]);
