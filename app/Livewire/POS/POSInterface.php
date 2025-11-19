@@ -97,8 +97,24 @@ class POSInterface extends Component
         $cartKey = $this->findInCartWithBatch($productId, $isBoxSale, $batchDetails['stock_movement_id'] ?? null);
 
         if ($cartKey !== null) {
+            // Check if adding more quantity would exceed available stock
+            $existingQuantity = $this->cartItems[$cartKey]['quantity'];
+            $newTotalQuantity = $existingQuantity + $quantity;
+
+            if ($newTotalQuantity > $product->current_stock_quantity) {
+                $saleType = $isBoxSale ? 'box' : 'piece';
+                $boxInfo = $isBoxSale ? " (1 box = {$quantity} pieces)" : '';
+                $message = "Cannot add more {$product->name}. " .
+                           "Cart already has {$existingQuantity} pieces. " .
+                           "Trying to add {$quantity} more {$saleType}{$boxInfo}, " .
+                           "but only {$product->current_stock_quantity} pieces total available in stock. " .
+                           "Maximum you can add: " . ($product->current_stock_quantity - $existingQuantity) . " more pieces.";
+                $this->dispatch('showToast', type: 'error', message: $message);
+                return;
+            }
+
             // Increment existing item
-            $this->cartItems[$cartKey]['quantity'] += $quantity;
+            $this->cartItems[$cartKey]['quantity'] = $newTotalQuantity;
         } else {
             // Add new item
             $minPrice = $batchDetails['min_selling_price'] ?? $product->min_selling_price;
@@ -161,12 +177,16 @@ class POSInterface extends Component
             return;
         }
 
-        // Check stock
+        // Check stock with detailed error message
         $item = $this->cartItems[$key];
         $product = Product::find($item['product_id']);
 
         if (!app(POSService::class)->checkStock($product, $newQuantity)) {
-            $this->dispatch('showToast', type: 'error', message: 'Insufficient stock');
+            $saleType = $item['is_box_sale'] ? 'box' : 'piece';
+            $message = "Cannot update quantity for {$product->name}. " .
+                       "You are trying to set quantity to {$newQuantity} {$saleType}, " .
+                       "but only {$product->current_stock_quantity} pieces available in stock.";
+            $this->dispatch('showToast', type: 'error', message: $message);
             return;
         }
 
