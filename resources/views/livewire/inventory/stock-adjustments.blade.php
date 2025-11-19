@@ -88,7 +88,7 @@
                     Product <span class="text-red-500">*</span>
                 </label>
                 <select
-                    wire:model="productId"
+                    wire:model.live="productId"
                     class="w-full border border-gray-300 rounded-lg px-4 py-2"
                 >
                     <option value="">Select Product</option>
@@ -111,7 +111,7 @@
                     <label class="flex items-center">
                         <input
                             type="radio"
-                            wire:model="adjustmentType"
+                            wire:model.live="adjustmentType"
                             value="increase"
                             class="form-radio h-5 w-5 text-blue-600"
                         >
@@ -120,7 +120,7 @@
                     <label class="flex items-center">
                         <input
                             type="radio"
-                            wire:model="adjustmentType"
+                            wire:model.live="adjustmentType"
                             value="decrease"
                             class="form-radio h-5 w-5 text-blue-600"
                         >
@@ -131,6 +131,69 @@
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
+
+            <!-- Batch Selection (show for all adjustment types when batches exist) -->
+            @if(count($availableBatches) > 0)
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Batch <span class="text-red-500">*</span>
+                    </label>
+                    <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                        @foreach($availableBatches as $batch)
+                            <label class="block p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ $selectedBatchId == $batch['stock_movement_id'] ? 'border-blue-500 bg-blue-50' : 'border-gray-300' }}">
+                                <div class="flex items-start">
+                                    <input
+                                        type="radio"
+                                        wire:model.live="selectedBatchId"
+                                        value="{{ $batch['stock_movement_id'] }}"
+                                        class="form-radio h-4 w-4 text-blue-600 mt-1"
+                                    >
+                                    <div class="ml-3 flex-1">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="font-semibold text-gray-900">
+                                                Batch: {{ $batch['batch_number'] ?? 'N/A' }}
+                                            </span>
+                                            <span class="text-sm font-bold {{ $adjustmentType === 'decrease' ? 'text-green-600' : 'text-blue-600' }}">
+                                                {{ number_format($batch['remaining_quantity'], 0) }} pcs
+                                            </span>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            @if(isset($batch['supplier_name']))
+                                                <div>
+                                                    <span class="text-gray-600">Supplier:</span>
+                                                    <span class="text-gray-900 font-medium">{{ $batch['supplier_name'] }}</span>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <span class="text-gray-600">Unit Cost:</span>
+                                                <span class="text-gray-900 font-medium">Rs. {{ number_format($batch['unit_cost'], 2) }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-600">Min Price:</span>
+                                                <span class="text-gray-900 font-medium">Rs. {{ number_format($batch['min_selling_price'], 2) }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-600">Max Price:</span>
+                                                <span class="text-gray-900 font-medium">Rs. {{ number_format($batch['max_selling_price'], 2) }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-xs text-gray-500 mt-2">
+                                            @if(isset($batch['manufacturing_date']))
+                                                <span>Mfg: {{ \Carbon\Carbon::parse($batch['manufacturing_date'])->format('M d, Y') }}</span>
+                                            @endif
+                                            @if(isset($batch['expiry_date']))
+                                                <span class="ml-2">Exp: {{ \Carbon\Carbon::parse($batch['expiry_date'])->format('M d, Y') }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">

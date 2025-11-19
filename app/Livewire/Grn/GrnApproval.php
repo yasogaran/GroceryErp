@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Livewire\GRN;
+namespace App\Livewire\Grn;
 
 use App\Models\GRN;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-class GRNApproval extends Component
+class GrnApproval extends Component
 {
     public $grnId;
     public $grn;

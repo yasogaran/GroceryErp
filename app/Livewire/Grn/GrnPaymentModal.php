@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\GRN;
+namespace App\Livewire\Grn;
 
 use App\Models\GRN;
 use App\Models\SupplierPayment;
@@ -8,7 +8,7 @@ use App\Services\PaymentAllocationService;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 
-class GRNPaymentModal extends Component
+class GrnPaymentModal extends Component
 {
     public $grn;
     public $showModal = false;

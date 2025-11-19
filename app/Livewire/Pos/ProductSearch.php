@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\POS;
+namespace App\Livewire\Pos;
 
 use Livewire\Component;
 use App\Models\Product;
@@ -14,7 +14,10 @@ class ProductSearch extends Component
     public $viewMode = 'grid'; // grid or list
     public $showBatchSelection = true; // Toggle for batch selection mode
 
-    protected $listeners = ['resetSearch' => 'resetSearch'];
+    protected $listeners = [
+        'resetSearch' => 'resetSearch',
+        'paymentCompleted' => 'refreshProducts',
+    ];
 
     public function updated($property)
     {
@@ -51,15 +54,25 @@ class ProductSearch extends Component
             return;
         }
 
-        // Check stock
+        // Check stock with detailed error message
         $quantity = $isBoxSale && $product->packaging
             ? $product->packaging->pieces_per_package
             : 1;
 
         if ($product->current_stock_quantity < $quantity) {
+            if ($isBoxSale) {
+                $message = "Cannot sell {$product->name} as box. " .
+                           "Need {$quantity} pieces for 1 box, " .
+                           "but only {$product->current_stock_quantity} pieces available in stock. " .
+                           "Not enough pieces for box sale.";
+            } else {
+                $message = "Insufficient stock for {$product->name}. " .
+                           "Trying to add {$quantity} piece, " .
+                           "but only {$product->current_stock_quantity} pieces available.";
+            }
             $this->dispatch('notify', [
                 'type' => 'error',
-                'message' => 'Insufficient stock for ' . $product->name
+                'message' => $message
             ]);
             return;
         }
@@ -77,6 +90,17 @@ class ProductSearch extends Component
     public function resetSearch()
     {
         $this->reset(['searchTerm', 'selectedCategory']);
+    }
+
+    /**
+     * Refresh products after sale completion to show updated stock
+     */
+    public function refreshProducts()
+    {
+        // Force Livewire to re-render by updating a property
+        // This ensures products are re-queried from database with fresh stock quantities
+        $this->viewMode = $this->viewMode; // Touch a property to force re-render
+        $this->dispatch('productsUpdated');
     }
 
     public function render()
@@ -154,11 +178,10 @@ class ProductSearch extends Component
 
         $initialQty = $batch->quantity;
 
-        // Get total outgoing movements for this batch
+        // Get total outgoing movements for this batch using the new source_stock_movement_id field
         $outgoingQty = \App\Models\StockMovement::where('product_id', $productId)
             ->whereIn('movement_type', ['out', 'damage', 'write_off'])
-            ->where('reference_type', 'App\\Models\\StockMovement')
-            ->where('reference_id', $batchId)
+            ->where('source_stock_movement_id', $batchId)
             ->sum('quantity');
 
         return $initialQty - abs($outgoingQty);

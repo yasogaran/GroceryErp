@@ -54,6 +54,17 @@ class ProcessReturn extends Component
             return;
         }
 
+        // Check if invoice has any due amount
+        if ($this->selectedSale->hasDueAmount()) {
+            $dueAmount = number_format($this->selectedSale->due_amount, 2);
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => "This invoice has a due amount of Rs. {$dueAmount}. Please complete the payment before processing a return."
+            ]);
+            $this->selectedSale = null;
+            return;
+        }
+
         // Initialize return items
         $this->returnItems = [];
         foreach ($this->selectedSale->items as $item) {

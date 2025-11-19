@@ -89,7 +89,20 @@
                 ],
             ],
 
-            // Group 4: Returns & Promotions
+            // Group 4: Sales & Invoices
+            'sales_invoices' => [
+                'label' => 'Sales & Invoices',
+                'items' => [
+                    [
+                        'name' => 'Invoice History',
+                        'route' => 'invoices.history',
+                        'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                        'roles' => ['admin', 'manager', 'cashier'],
+                    ],
+                ],
+            ],
+
+            // Group 5: Returns & Promotions
             'returns_promotions' => [
                 'label' => 'Returns & Promotions',
                 'items' => [
@@ -114,7 +127,7 @@
                 ],
             ],
 
-            // Group 5: Accounting
+            // Group 6: Accounting
             'accounting' => [
                 'label' => 'Accounting',
                 'items' => [
@@ -133,7 +146,7 @@
                 ],
             ],
 
-            // Group 6: Reports
+            // Group 7: Reports
             'reports' => [
                 'label' => 'Reports',
                 'items' => [
@@ -182,7 +195,7 @@
                 ],
             ],
 
-            // Group 7: Product Management (Less Frequent)
+            // Group 8: Product Management (Less Frequent)
             'products' => [
                 'label' => 'Product Management',
                 'items' => [
@@ -207,7 +220,7 @@
                 ],
             ],
 
-            // Group 8: Administration (Least Frequent)
+            // Group 9: Administration (Least Frequent)
             'administration' => [
                 'label' => 'Administration',
                 'items' => [

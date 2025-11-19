@@ -7,6 +7,7 @@ use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
 use App\Models\SaleItem;
 use App\Models\Product;
+use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 
 class ReturnService
@@ -51,6 +52,9 @@ class ReturnService
 
             // 2. Process each returned item
             foreach ($data['items'] as $itemData) {
+                // Get the original sale item to retrieve batch information
+                $saleItem = SaleItem::find($itemData['sale_item_id']);
+
                 // Create return item record
                 $returnItem = SaleReturnItem::create([
                     'return_id' => $return->id,
@@ -62,21 +66,63 @@ class ReturnService
                     'notes' => $itemData['notes'] ?? null,
                 ]);
 
-                // Update stock based on damaged status
+                // Get product
                 $product = Product::find($itemData['product_id']);
 
+                // Get the original batch/stock movement from the sale item
+                $originalBatchId = $saleItem->stock_movement_id ?? null;
+
                 if ($itemData['is_damaged']) {
-                    // Add to damaged stock
+                    // For damaged items: First restore to current stock, then move to damaged stock
+
+                    // Step 1: Restore to current stock (reversing the original sale)
+                    $product->increment('current_stock_quantity', $itemData['quantity']);
+
+                    // Create a stock movement to record the restoration
+                    StockMovement::create([
+                        'product_id' => $product->id,
+                        'movement_type' => 'in',
+                        'quantity' => $itemData['quantity'],
+                        'reference_type' => 'return',
+                        'reference_id' => $return->id,
+                        'source_stock_movement_id' => $originalBatchId,
+                        'batch_number' => $saleItem->stockMovement->batch_number ?? null,
+                        'unit_cost' => $saleItem->unit_cost,
+                        'min_selling_price' => $saleItem->stockMovement->min_selling_price ?? $product->min_selling_price,
+                        'max_selling_price' => $saleItem->stockMovement->max_selling_price ?? $product->max_selling_price,
+                        'performed_by' => auth()->id(),
+                        'notes' => 'Returned as damaged from return #' . $return->return_number . ' (restored to current stock)',
+                    ]);
+
+                    // Step 2: Move from current stock to damaged stock
                     app(InventoryService::class)->markAsDamaged(
                         $product,
                         $itemData['quantity'],
-                        'Returned as damaged from return #' . $return->return_number . ': ' . ($itemData['notes'] ?? 'No reason specified')
+                        [
+                            'reference_type' => 'return',
+                            'reference_id' => $return->id,
+                            'source_stock_movement_id' => $originalBatchId,
+                            'unit_cost' => $saleItem->unit_cost,
+                            'notes' => 'Returned as damaged from return #' . $return->return_number . ': ' . ($itemData['notes'] ?? 'No reason specified')
+                        ]
                     );
                 } else {
-                    // Restock non-damaged items
-                    app(InventoryService::class)->addStock($product, $itemData['quantity'], [
+                    // For non-damaged items: Restore to stock with batch tracking
+                    $product->increment('current_stock_quantity', $itemData['quantity']);
+
+                    // Create stock movement with proper batch tracking
+                    StockMovement::create([
+                        'product_id' => $product->id,
+                        'movement_type' => 'in',
+                        'quantity' => $itemData['quantity'],
                         'reference_type' => 'return',
                         'reference_id' => $return->id,
+                        'source_stock_movement_id' => $originalBatchId, // Link back to original batch
+                        'batch_number' => $saleItem->stockMovement->batch_number ?? null,
+                        'unit_cost' => $saleItem->unit_cost,
+                        'min_selling_price' => $saleItem->stockMovement->min_selling_price ?? $product->min_selling_price,
+                        'max_selling_price' => $saleItem->stockMovement->max_selling_price ?? $product->max_selling_price,
+                        'performed_by' => auth()->id(),
                         'notes' => 'Restocked from sale return #' . $return->return_number,
                     ]);
                 }

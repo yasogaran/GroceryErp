@@ -99,6 +99,30 @@ class Sale extends Model
     }
 
     /**
+     * Get the total amount paid for this sale
+     */
+    public function getPaidAmountAttribute()
+    {
+        return $this->payments()->sum('amount');
+    }
+
+    /**
+     * Get the due amount for this sale
+     */
+    public function getDueAmountAttribute()
+    {
+        return $this->total_amount - $this->paid_amount;
+    }
+
+    /**
+     * Check if this sale has any due amount
+     */
+    public function hasDueAmount()
+    {
+        return $this->due_amount > 0;
+    }
+
+    /**
      * Generate a unique invoice number
      */
     public static function generateInvoiceNumber()

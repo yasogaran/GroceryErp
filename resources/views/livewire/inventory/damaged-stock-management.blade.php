@@ -171,6 +171,73 @@
                     <p class="font-medium text-lg">{{ number_format($selectedProduct->current_stock_quantity, 0) }} pieces</p>
                 </div>
 
+                <!-- Batch Selection -->
+                @if(count($availableBatches) > 0)
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Select Batch <span class="text-red-500">*</span>
+                        </label>
+                        <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                            @foreach($availableBatches as $batch)
+                                <label class="block p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ $selectedBatchId == $batch['stock_movement_id'] ? 'border-orange-500 bg-orange-50' : 'border-gray-300' }}">
+                                    <div class="flex items-start">
+                                        <input
+                                            type="radio"
+                                            wire:model.live="selectedBatchId"
+                                            value="{{ $batch['stock_movement_id'] }}"
+                                            class="form-radio h-4 w-4 text-orange-600 mt-1"
+                                        >
+                                        <div class="ml-3 flex-1">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="font-semibold text-gray-900">
+                                                    Batch: {{ $batch['batch_number'] ?? 'N/A' }}
+                                                </span>
+                                                <span class="text-sm font-bold text-orange-600">
+                                                    {{ number_format($batch['remaining_quantity'], 0) }} pcs
+                                                </span>
+                                            </div>
+
+                                            <!-- Pricing and supplier information -->
+                                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                                @if(isset($batch['supplier_name']))
+                                                    <div>
+                                                        <span class="text-gray-600">Supplier:</span>
+                                                        <span class="text-gray-900 font-medium">{{ $batch['supplier_name'] }}</span>
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    <span class="text-gray-600">Unit Cost:</span>
+                                                    <span class="text-gray-900 font-medium">Rs. {{ number_format($batch['unit_cost'], 2) }}</span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-600">Min Price:</span>
+                                                    <span class="text-gray-900 font-medium">Rs. {{ number_format($batch['min_selling_price'], 2) }}</span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-600">Max Price:</span>
+                                                    <span class="text-gray-900 font-medium">Rs. {{ number_format($batch['max_selling_price'], 2) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-xs text-gray-500 mt-2">
+                                                @if(isset($batch['manufacturing_date']))
+                                                    <span>Mfg: {{ \Carbon\Carbon::parse($batch['manufacturing_date'])->format('M d, Y') }}</span>
+                                                @endif
+                                                @if(isset($batch['expiry_date']))
+                                                    <span class="ml-2">Exp: {{ \Carbon\Carbon::parse($batch['expiry_date'])->format('M d, Y') }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('selectedBatchId')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
+
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Quantity to Mark as Damaged <span class="text-red-500">*</span>
@@ -180,7 +247,7 @@
                         wire:model.defer="damageQuantity"
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         min="1"
-                        max="{{ $selectedProduct->current_stock_quantity }}"
+                        max="{{ count($availableBatches) > 0 && $selectedBatchId ? (collect($availableBatches)->firstWhere('stock_movement_id', $selectedBatchId)['remaining_quantity'] ?? $selectedProduct->current_stock_quantity) : $selectedProduct->current_stock_quantity }}"
                         step="1"
                         placeholder="Enter quantity"
                     >

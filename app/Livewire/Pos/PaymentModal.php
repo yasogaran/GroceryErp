@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\POS;
+namespace App\Livewire\Pos;
 
 use Livewire\Component;
 use App\Models\Sale;
@@ -24,6 +24,16 @@ class PaymentModal extends Component
     public $paidAmount = 0;
     public $changeToReturn = 0;
     public $isCreditInvoice = false;
+
+    // Customer selection
+    public $showCustomerSelector = false;
+    public $customerSearchTerm = '';
+    public $selectedCustomerId = null;
+
+    // Customer creation
+    public $showCreateCustomer = false;
+    public $newCustomerName = '';
+    public $newCustomerPhone = '';
 
     // Multiple payment support
     public $payments = []; // Array of payment entries
@@ -65,6 +75,9 @@ class PaymentModal extends Component
         $this->changeToReturn = 0;
         $this->isCreditInvoice = false;
         $this->showPaymentStep = 'amount';
+        $this->showCustomerSelector = false;
+        $this->customerSearchTerm = '';
+        $this->selectedCustomerId = $this->cartData['customer_id'] ?? null;
     }
 
     /**
@@ -94,9 +107,16 @@ class PaymentModal extends Component
         ]);
 
         // If credit invoice (including 0 payment), validate customer is selected
-        if ($this->paidAmount < $this->grandTotal && !$this->cartData['customer_id']) {
+        if ($this->paidAmount < $this->grandTotal && !$this->selectedCustomerId && !$this->cartData['customer_id']) {
+            // Show customer selector instead of just error
+            $this->showCustomerSelector = true;
             session()->flash('error', 'Please select a customer for credit invoices');
             return;
+        }
+
+        // Update cart data with selected customer if changed
+        if ($this->selectedCustomerId) {
+            $this->cartData['customer_id'] = $this->selectedCustomerId;
         }
 
         // Proceed to complete payment directly
@@ -109,9 +129,16 @@ class PaymentModal extends Component
     public function markAsFullCredit()
     {
         // Validate customer is selected
-        if (!$this->cartData['customer_id']) {
+        if (!$this->selectedCustomerId && !$this->cartData['customer_id']) {
+            // Show customer selector instead of just error
+            $this->showCustomerSelector = true;
             session()->flash('error', 'Please select a customer for full credit invoices');
             return;
+        }
+
+        // Update cart data with selected customer if changed
+        if ($this->selectedCustomerId) {
+            $this->cartData['customer_id'] = $this->selectedCustomerId;
         }
 
         $this->paidAmount = 0;
@@ -201,6 +228,33 @@ class PaymentModal extends Component
         $this->processing = true;
 
         try {
+            // VALIDATE STOCK BEFORE CREATING SALE
+            foreach ($this->cartData['items'] as $item) {
+                $product = Product::find($item['product_id']);
+
+                if (!$product) {
+                    throw new \Exception("Product not found: {$item['name']}");
+                }
+
+                // Check if sufficient stock is available
+                if ($product->current_stock_quantity < $item['quantity']) {
+                    if ($item['is_box_sale']) {
+                        throw new \Exception(
+                            "Cannot sell {$product->name} as box. " .
+                            "Need {$item['quantity']} pieces for 1 box, " .
+                            "but only {$product->current_stock_quantity} pieces available in stock. " .
+                            "Not enough pieces for box sale."
+                        );
+                    } else {
+                        throw new \Exception(
+                            "Insufficient stock for {$product->name}. " .
+                            "Trying to sell {$item['quantity']} pieces, " .
+                            "but only {$product->current_stock_quantity} pieces available in stock."
+                        );
+                    }
+                }
+            }
+
             DB::transaction(function () {
                 // Determine payment status
                 if ($this->paidAmount >= $this->grandTotal) {
@@ -240,10 +294,11 @@ class PaymentModal extends Component
                         'reference_id' => $sale->id,
                     ];
 
-                    // If specific batch was selected, get its details
+                    // If specific batch was selected, get its details and track source batch
                     if (isset($item['batch_id']) && $item['batch_id']) {
                         $batchDetails = app(InventoryService::class)->getBatchDetails($item['batch_id']);
                         if ($batchDetails) {
+                            $details['source_stock_movement_id'] = $item['batch_id']; // Track which batch is being depleted
                             $details['unit_cost'] = $batchDetails['unit_cost'];
                             $details['min_selling_price'] = $batchDetails['min_selling_price'];
                             $details['max_selling_price'] = $batchDetails['max_selling_price'];
@@ -338,6 +393,33 @@ class PaymentModal extends Component
         $this->processing = true;
 
         try {
+            // VALIDATE STOCK BEFORE CREATING SALE
+            foreach ($this->cartData['items'] as $item) {
+                $product = Product::find($item['product_id']);
+
+                if (!$product) {
+                    throw new \Exception("Product not found: {$item['name']}");
+                }
+
+                // Check if sufficient stock is available
+                if ($product->current_stock_quantity < $item['quantity']) {
+                    if ($item['is_box_sale']) {
+                        throw new \Exception(
+                            "Cannot sell {$product->name} as box. " .
+                            "Need {$item['quantity']} pieces for 1 box, " .
+                            "but only {$product->current_stock_quantity} pieces available in stock. " .
+                            "Not enough pieces for box sale."
+                        );
+                    } else {
+                        throw new \Exception(
+                            "Insufficient stock for {$product->name}. " .
+                            "Trying to sell {$item['quantity']} pieces, " .
+                            "but only {$product->current_stock_quantity} pieces available in stock."
+                        );
+                    }
+                }
+            }
+
             DB::transaction(function () {
                 // Create sale
                 $sale = Sale::create([
@@ -366,10 +448,11 @@ class PaymentModal extends Component
                         'reference_id' => $sale->id,
                     ];
 
-                    // If specific batch was selected, get its details
+                    // If specific batch was selected, get its details and track source batch
                     if (isset($item['batch_id']) && $item['batch_id']) {
                         $batchDetails = app(InventoryService::class)->getBatchDetails($item['batch_id']);
                         if ($batchDetails) {
+                            $details['source_stock_movement_id'] = $item['batch_id']; // Track which batch is being depleted
                             $details['unit_cost'] = $batchDetails['unit_cost'];
                             $details['min_selling_price'] = $batchDetails['min_selling_price'];
                             $details['max_selling_price'] = $batchDetails['max_selling_price'];
@@ -452,6 +535,104 @@ class PaymentModal extends Component
         }
     }
 
+    /**
+     * Select customer from the payment modal
+     */
+    public function selectCustomer($customerId)
+    {
+        $this->selectedCustomerId = $customerId;
+        $this->cartData['customer_id'] = $customerId;
+        $this->showCustomerSelector = false;
+
+        $customer = Customer::find($customerId);
+        session()->flash('success', 'Customer selected: ' . $customer->name);
+    }
+
+    /**
+     * Open customer selector
+     */
+    public function openCustomerSelector()
+    {
+        $this->showCustomerSelector = true;
+    }
+
+    /**
+     * Close customer selector
+     */
+    public function closeCustomerSelector()
+    {
+        $this->showCustomerSelector = false;
+        $this->showCreateCustomer = false;
+        $this->customerSearchTerm = '';
+        $this->newCustomerName = '';
+        $this->newCustomerPhone = '';
+    }
+
+    /**
+     * Open customer creation form
+     */
+    public function openCreateCustomer()
+    {
+        $this->showCreateCustomer = true;
+
+        // Pre-fill from search term if it looks like a phone number
+        if (preg_match('/^[0-9]{10,}/', $this->customerSearchTerm)) {
+            $this->newCustomerPhone = $this->customerSearchTerm;
+        } else {
+            $this->newCustomerName = $this->customerSearchTerm;
+        }
+    }
+
+    /**
+     * Go back to customer list from creation form
+     */
+    public function backToCustomerList()
+    {
+        $this->showCreateCustomer = false;
+        $this->newCustomerName = '';
+        $this->newCustomerPhone = '';
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Create a new customer from payment modal
+     */
+    public function createCustomer()
+    {
+        $this->validate([
+            'newCustomerName' => 'required|max:255',
+            'newCustomerPhone' => 'required|unique:customers,phone|max:20',
+        ], [
+            'newCustomerName.required' => 'Customer name is required',
+            'newCustomerPhone.required' => 'Phone number is required',
+            'newCustomerPhone.unique' => 'This phone number is already registered',
+        ]);
+
+        try {
+            $customer = Customer::create([
+                'customer_code' => Customer::generateCustomerCode(),
+                'name' => $this->newCustomerName,
+                'phone' => $this->newCustomerPhone,
+                'is_active' => true,
+            ]);
+
+            // Auto-select the newly created customer
+            $this->selectedCustomerId = $customer->id;
+            $this->cartData['customer_id'] = $customer->id;
+
+            // Close modals and reset
+            $this->showCustomerSelector = false;
+            $this->showCreateCustomer = false;
+            $this->customerSearchTerm = '';
+            $this->newCustomerName = '';
+            $this->newCustomerPhone = '';
+
+            session()->flash('success', 'Customer created and selected: ' . $customer->name);
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error creating customer: ' . $e->getMessage());
+        }
+    }
+
     public function closeModal()
     {
         $this->show = false;
@@ -467,8 +648,18 @@ class PaymentModal extends Component
             ->orderBy('account_name')
             ->get();
 
+        // Get customers for selection
+        $customers = Customer::active()
+            ->when($this->customerSearchTerm, function($query) {
+                $query->where('name', 'like', '%' . $this->customerSearchTerm . '%')
+                      ->orWhere('phone', 'like', '%' . $this->customerSearchTerm . '%');
+            })
+            ->limit(10)
+            ->get();
+
         return view('livewire.pos.payment-modal', [
             'bankAccounts' => $bankAccounts,
+            'customers' => $customers,
         ]);
     }
 }

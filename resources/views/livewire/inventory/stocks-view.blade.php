@@ -249,8 +249,27 @@
                                 <!-- Quantity -->
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex flex-col">
-                                        <div class="text-sm font-medium text-gray-900">{{ number_format($batch->remaining_quantity) }} {{ $batch->product->base_unit }}</div>
-                                        <div class="text-xs text-gray-500">Initial: {{ number_format($batch->quantity) }}</div>
+                                        @if($batch->product->has_packaging && $batch->product->packaging)
+                                            @php
+                                                $totalPieces = $batch->remaining_quantity * $batch->product->packaging->pieces_per_package;
+                                            @endphp
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ number_format($batch->remaining_quantity) }} {{ $batch->product->base_unit }}
+                                                <span class="text-gray-600">({{ number_format($totalPieces) }} pieces)</span>
+                                            </div>
+                                        @else
+                                            <div class="text-sm font-medium text-gray-900">{{ number_format($batch->remaining_quantity) }} {{ $batch->product->base_unit }}</div>
+                                        @endif
+                                        @if($batch->product->has_packaging && $batch->product->packaging)
+                                            @php
+                                                $initialPieces = $batch->quantity * $batch->product->packaging->pieces_per_package;
+                                            @endphp
+                                            <div class="text-xs text-gray-500">
+                                                Initial: {{ number_format($batch->quantity) }} ({{ number_format($initialPieces) }} pieces)
+                                            </div>
+                                        @else
+                                            <div class="text-xs text-gray-500">Initial: {{ number_format($batch->quantity) }}</div>
+                                        @endif
                                         @if($batch->product->reorder_level && $batch->remaining_quantity <= $batch->product->reorder_level)
                                             <div class="text-xs text-orange-600 font-medium">Below reorder level</div>
                                         @endif
