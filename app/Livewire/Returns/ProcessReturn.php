@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Account;
+use App\Models\Shift;
 use App\Services\ReturnService;
 use App\Traits\WithToast;
 
@@ -25,9 +26,11 @@ class ProcessReturn extends Component
     public $bankAccountId = null;
     public $returnReason = '';
     public $totalRefund = 0;
+    public $deductFromShift = false;
 
     // UI State
     public $step = 1; // 1: Search, 2: Select Items, 3: Process Refund
+    public $activeShift = null;
 
     protected $rules = [
         'returnItems.*.quantity' => 'required|numeric|min:0.01',
@@ -36,6 +39,14 @@ class ProcessReturn extends Component
         'refundMode' => 'required|in:cash,bank_transfer',
         'bankAccountId' => 'required_if:refundMode,bank_transfer',
     ];
+
+    public function mount()
+    {
+        // Check if current user has an active shift
+        $this->activeShift = Shift::where('cashier_id', auth()->id())
+            ->open()
+            ->first();
+    }
 
     public function searchSale()
     {
@@ -180,6 +191,12 @@ class ProcessReturn extends Component
                 'reason' => $this->returnReason,
                 'items' => $selectedItems,
             ]);
+
+            // Deduct from shift if requested and refund is cash
+            if ($this->deductFromShift && $this->refundMode === 'cash' && $this->activeShift) {
+                $this->activeShift->decrement('total_cash_sales', $this->totalRefund);
+                $this->activeShift->decrement('total_sales', $this->totalRefund);
+            }
 
             $this->toastSuccess('Return processed successfully! Return Number: ' . $return->return_number);
 

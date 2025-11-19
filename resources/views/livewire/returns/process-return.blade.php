@@ -231,6 +231,30 @@
                 </div>
             @endif
 
+            <!-- Deduct from Shift Checkbox (shown only for cash and if active shift exists) -->
+            @if($refundMode === 'cash' && $activeShift)
+                <div class="mb-4">
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <label class="flex items-start cursor-pointer">
+                            <input
+                                type="checkbox"
+                                wire:model="deductFromShift"
+                                class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            >
+                            <span class="ml-3">
+                                <span class="block text-sm font-medium text-amber-900">
+                                    Deduct this refund from my current shift cash
+                                </span>
+                                <span class="block text-xs text-amber-700 mt-1">
+                                    Active Shift: Started at {{ $activeShift->shift_start->format('d M Y, h:i A') }} |
+                                    Current Cash: {{ settings('currency_symbol', 'Rs.') }} {{ number_format($activeShift->total_cash_sales, 2) }}
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            @endif
+
             <!-- Return Reason -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
