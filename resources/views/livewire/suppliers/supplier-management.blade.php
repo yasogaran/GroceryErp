@@ -120,7 +120,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium {{ $supplier->outstanding_balance > 0 ? 'text-red-600' : 'text-green-600' }}">
-                                        ₹{{ number_format($supplier->outstanding_balance, 2) }}
+                                        {{ settings('currency_symbol', 'Rs.') }} {{ number_format($supplier->outstanding_balance, 2) }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
