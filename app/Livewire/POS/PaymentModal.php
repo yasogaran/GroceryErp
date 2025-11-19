@@ -262,10 +262,11 @@ class PaymentModal extends Component
                         'reference_id' => $sale->id,
                     ];
 
-                    // If specific batch was selected, get its details
+                    // If specific batch was selected, get its details and track source batch
                     if (isset($item['batch_id']) && $item['batch_id']) {
                         $batchDetails = app(InventoryService::class)->getBatchDetails($item['batch_id']);
                         if ($batchDetails) {
+                            $details['source_stock_movement_id'] = $item['batch_id']; // Track which batch is being depleted
                             $details['unit_cost'] = $batchDetails['unit_cost'];
                             $details['min_selling_price'] = $batchDetails['min_selling_price'];
                             $details['max_selling_price'] = $batchDetails['max_selling_price'];
@@ -388,10 +389,11 @@ class PaymentModal extends Component
                         'reference_id' => $sale->id,
                     ];
 
-                    // If specific batch was selected, get its details
+                    // If specific batch was selected, get its details and track source batch
                     if (isset($item['batch_id']) && $item['batch_id']) {
                         $batchDetails = app(InventoryService::class)->getBatchDetails($item['batch_id']);
                         if ($batchDetails) {
+                            $details['source_stock_movement_id'] = $item['batch_id']; // Track which batch is being depleted
                             $details['unit_cost'] = $batchDetails['unit_cost'];
                             $details['min_selling_price'] = $batchDetails['min_selling_price'];
                             $details['max_selling_price'] = $batchDetails['max_selling_price'];

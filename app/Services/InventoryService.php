@@ -176,13 +176,17 @@ class InventoryService
         }
 
         return DB::transaction(function () use ($product, $quantity, $details) {
-            // Get pricing from FIFO batch if not provided
-            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price'])) {
+            // Get FIFO batch for pricing and tracking
+            $sourceBatchId = $details['source_stock_movement_id'] ?? null;
+
+            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price']) || !$sourceBatchId) {
                 $fifoBatch = $this->getFIFOBatch($product);
                 $details['unit_cost'] = $details['unit_cost'] ?? $fifoBatch['unit_cost'] ?? null;
                 $details['min_selling_price'] = $details['min_selling_price'] ?? $fifoBatch['min_selling_price'] ?? $product->min_selling_price;
                 $details['max_selling_price'] = $details['max_selling_price'] ?? $fifoBatch['max_selling_price'] ?? $product->max_selling_price;
                 $details['batch_number'] = $details['batch_number'] ?? $fifoBatch['batch_number'] ?? null;
+                // Use FIFO batch as source if not specified
+                $sourceBatchId = $sourceBatchId ?? $fifoBatch['stock_movement_id'] ?? null;
             }
 
             // Decrement product stock
@@ -195,6 +199,7 @@ class InventoryService
                 'quantity' => -$quantity, // Negative for OUT
                 'reference_type' => $details['reference_type'] ?? null,
                 'reference_id' => $details['reference_id'] ?? null,
+                'source_stock_movement_id' => $sourceBatchId, // Track which batch this depletes
                 'batch_number' => $details['batch_number'] ?? null,
                 'expiry_date' => $details['expiry_date'] ?? null,
                 'unit_cost' => $details['unit_cost'] ?? null,
@@ -235,13 +240,17 @@ class InventoryService
         $details = is_array($reasonOrDetails) ? $reasonOrDetails : ['notes' => $reasonOrDetails];
 
         return DB::transaction(function () use ($product, $quantity, $details) {
-            // Get pricing from FIFO batch if not provided
-            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price'])) {
+            // Get FIFO batch for pricing and tracking
+            $sourceBatchId = $details['source_stock_movement_id'] ?? null;
+
+            if (!isset($details['unit_cost']) || !isset($details['min_selling_price']) || !isset($details['max_selling_price']) || !$sourceBatchId) {
                 $fifoBatch = $this->getFIFOBatch($product);
                 $details['unit_cost'] = $details['unit_cost'] ?? $fifoBatch['unit_cost'] ?? null;
                 $details['min_selling_price'] = $details['min_selling_price'] ?? $fifoBatch['min_selling_price'] ?? $product->min_selling_price;
                 $details['max_selling_price'] = $details['max_selling_price'] ?? $fifoBatch['max_selling_price'] ?? $product->max_selling_price;
                 $details['batch_number'] = $details['batch_number'] ?? $fifoBatch['batch_number'] ?? null;
+                // Use FIFO batch as source if not specified
+                $sourceBatchId = $sourceBatchId ?? $fifoBatch['stock_movement_id'] ?? null;
             }
 
             // Decrement current stock
@@ -257,6 +266,7 @@ class InventoryService
                 'quantity' => -$quantity, // Negative because it's removed from current stock
                 'reference_type' => $details['reference_type'] ?? null,
                 'reference_id' => $details['reference_id'] ?? null,
+                'source_stock_movement_id' => $sourceBatchId, // Track which batch this depletes
                 'batch_number' => $details['batch_number'] ?? null,
                 'expiry_date' => null,
                 'unit_cost' => $details['unit_cost'] ?? null,

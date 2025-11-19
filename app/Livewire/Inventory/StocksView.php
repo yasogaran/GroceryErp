@@ -120,8 +120,7 @@ class StocksView extends Component
                 FROM stock_movements sm
                 WHERE sm.product_id = stock_movements.product_id
                 AND sm.movement_type IN ("out", "damage", "write_off")
-                AND sm.reference_type = "App\\\\Models\\\\StockMovement"
-                AND sm.reference_id = stock_movements.id
+                AND sm.source_stock_movement_id = stock_movements.id
             )) as remaining_quantity');
 
         // Apply filters

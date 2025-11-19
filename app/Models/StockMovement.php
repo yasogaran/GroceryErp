@@ -32,6 +32,7 @@ class StockMovement extends Model
         'quantity',
         'reference_type',
         'reference_id',
+        'source_stock_movement_id',
         'batch_number',
         'manufacturing_date',
         'expiry_date',

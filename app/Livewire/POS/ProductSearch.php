@@ -168,11 +168,10 @@ class ProductSearch extends Component
 
         $initialQty = $batch->quantity;
 
-        // Get total outgoing movements for this batch
+        // Get total outgoing movements for this batch using the new source_stock_movement_id field
         $outgoingQty = \App\Models\StockMovement::where('product_id', $productId)
             ->whereIn('movement_type', ['out', 'damage', 'write_off'])
-            ->where('reference_type', 'App\\Models\\StockMovement')
-            ->where('reference_id', $batchId)
+            ->where('source_stock_movement_id', $batchId)
             ->sum('quantity');
 
         return $initialQty - abs($outgoingQty);
