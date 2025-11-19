@@ -154,11 +154,11 @@ class StockMovement extends Model
 
     /**
      * Get the GRN if this stock movement is from a GRN
+     * Note: This will return null if the stock movement is not from a GRN
      */
     public function grn(): BelongsTo
     {
-        return $this->belongsTo(GRN::class, 'reference_id')
-            ->where('reference_type', 'App\\Models\\GRN');
+        return $this->belongsTo(GRN::class, 'reference_id');
     }
 
     /**
