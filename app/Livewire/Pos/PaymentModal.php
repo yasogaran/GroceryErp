@@ -48,6 +48,11 @@ class PaymentModal extends Component
     public $cashReceived = 0;
     public $change = 0;
 
+    // Payment mode selection for simple payment flow
+    public $selectedPaymentMode = 'cash';
+    public $selectedBankAccountId = null;
+    public $bankAccounts = [];
+
     // Processing state
     public $processing = false;
     public $showPaymentStep = 'amount'; // 'amount' or 'payment'
@@ -61,6 +66,13 @@ class PaymentModal extends Component
         $this->grandTotal = $data['grandTotal'];
         $this->cartData = $data['cartData'];
         $this->show = true;
+
+        // Load bank accounts for payment mode selection
+        $this->bankAccounts = Account::where('account_type', 'asset')
+            ->where('account_code', 'LIKE', '12%') // Bank accounts (1200-1299)
+            ->where('is_active', true)
+            ->orderBy('account_name')
+            ->get();
 
         // Reset
         $this->payments = [];
@@ -78,6 +90,8 @@ class PaymentModal extends Component
         $this->showCustomerSelector = false;
         $this->customerSearchTerm = '';
         $this->selectedCustomerId = $this->cartData['customer_id'] ?? null;
+        $this->selectedPaymentMode = 'cash';
+        $this->selectedBankAccountId = $this->bankAccounts->first()->id ?? null;
     }
 
     /**
@@ -323,12 +337,12 @@ class PaymentModal extends Component
                     ]);
                 }
 
-                // Create payment record (single payment - cash) only if amount > 0
+                // Create payment record (single payment) only if amount > 0
                 if ($actualPaidAmount > 0) {
                     SalePayment::create([
                         'sale_id' => $sale->id,
-                        'payment_mode' => 'cash',
-                        'bank_account_id' => null,
+                        'payment_mode' => $this->selectedPaymentMode,
+                        'bank_account_id' => $this->selectedPaymentMode === 'bank_transfer' ? $this->selectedBankAccountId : null,
                         'amount' => $actualPaidAmount,
                     ]);
                 }
@@ -337,7 +351,13 @@ class PaymentModal extends Component
                 $shift = auth()->user()->currentShift;
                 $shift->increment('total_sales', $actualPaidAmount);
                 $shift->increment('total_transactions');
-                $shift->increment('total_cash_sales', $actualPaidAmount);
+
+                // Update cash or bank sales based on payment mode
+                if ($this->selectedPaymentMode === 'cash') {
+                    $shift->increment('total_cash_sales', $actualPaidAmount);
+                } else {
+                    $shift->increment('total_bank_sales', $actualPaidAmount);
+                }
 
                 // Update customer total purchases and award loyalty points
                 if ($this->cartData['customer_id']) {
@@ -546,6 +566,16 @@ class PaymentModal extends Component
 
         $customer = Customer::find($customerId);
         session()->flash('success', 'Customer selected: ' . $customer->name);
+    }
+
+    /**
+     * Clear selected customer
+     */
+    public function clearCustomer()
+    {
+        $this->selectedCustomerId = null;
+        $this->cartData['customer_id'] = null;
+        session()->flash('success', 'Customer cleared');
     }
 
     /**

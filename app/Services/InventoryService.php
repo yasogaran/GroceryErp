@@ -500,6 +500,16 @@ class InventoryService
             // In reality, each stock IN movement is a separate batch
             $batchKey = $movement->id;
 
+            // Get supplier name if available (from GRN)
+            $supplierName = null;
+            if ($movement->reference_type === 'App\\Models\\GRN' && $movement->reference_id) {
+                // Load GRN with supplier only when needed
+                $grn = \App\Models\GRN::with('supplier')->find($movement->reference_id);
+                if ($grn && $grn->supplier) {
+                    $supplierName = $grn->supplier->name;
+                }
+            }
+
             $batches[] = [
                 'stock_movement_id' => $movement->id,
                 'batch_number' => $movement->batch_number ?? 'N/A',
@@ -510,6 +520,7 @@ class InventoryService
                 'max_selling_price' => $movement->max_selling_price,
                 'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
                 'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
+                'supplier_name' => $supplierName,
             ];
         }
 

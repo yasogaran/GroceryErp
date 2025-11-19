@@ -70,61 +70,25 @@ class ReturnService
                 $product = Product::find($itemData['product_id']);
 
                 // Get the original batch/stock movement from the sale item
-                $originalBatchId = $saleItem->stock_movement_id ?? null;
+                $originalBatch = $saleItem->stockMovement;
+
+                if (!$originalBatch) {
+                    throw new \Exception("Original batch not found for sale item. Cannot process return.");
+                }
 
                 if ($itemData['is_damaged']) {
-                    // For damaged items: First restore to current stock, then move to damaged stock
-
-                    // Step 1: Restore to current stock (reversing the original sale)
-                    $product->increment('current_stock_quantity', $itemData['quantity']);
-
-                    // Create a stock movement to record the restoration
-                    StockMovement::create([
-                        'product_id' => $product->id,
-                        'movement_type' => 'in',
-                        'quantity' => $itemData['quantity'],
-                        'reference_type' => 'return',
-                        'reference_id' => $return->id,
-                        'source_stock_movement_id' => $originalBatchId,
-                        'batch_number' => $saleItem->stockMovement->batch_number ?? null,
-                        'unit_cost' => $saleItem->unit_cost,
-                        'min_selling_price' => $saleItem->stockMovement->min_selling_price ?? $product->min_selling_price,
-                        'max_selling_price' => $saleItem->stockMovement->max_selling_price ?? $product->max_selling_price,
-                        'performed_by' => auth()->id(),
-                        'notes' => 'Returned as damaged from return #' . $return->return_number . ' (restored to current stock)',
-                    ]);
-
-                    // Step 2: Move from current stock to damaged stock
-                    app(InventoryService::class)->markAsDamaged(
-                        $product,
-                        $itemData['quantity'],
-                        [
-                            'reference_type' => 'return',
-                            'reference_id' => $return->id,
-                            'source_stock_movement_id' => $originalBatchId,
-                            'unit_cost' => $saleItem->unit_cost,
-                            'notes' => 'Returned as damaged from return #' . $return->return_number . ': ' . ($itemData['notes'] ?? 'No reason specified')
-                        ]
-                    );
+                    // For damaged items: Add directly to damaged stock without updating batch
+                    // Damaged items are not sellable, so don't increase batch available quantity
+                    $product->increment('damaged_stock_quantity', $itemData['quantity']);
                 } else {
-                    // For non-damaged items: Restore to stock with batch tracking
-                    $product->increment('current_stock_quantity', $itemData['quantity']);
+                    // For non-damaged items: Simply restore to the original batch
+                    // Don't create new StockMovement records as they would be treated as new batches
 
-                    // Create stock movement with proper batch tracking
-                    StockMovement::create([
-                        'product_id' => $product->id,
-                        'movement_type' => 'in',
-                        'quantity' => $itemData['quantity'],
-                        'reference_type' => 'return',
-                        'reference_id' => $return->id,
-                        'source_stock_movement_id' => $originalBatchId, // Link back to original batch
-                        'batch_number' => $saleItem->stockMovement->batch_number ?? null,
-                        'unit_cost' => $saleItem->unit_cost,
-                        'min_selling_price' => $saleItem->stockMovement->min_selling_price ?? $product->min_selling_price,
-                        'max_selling_price' => $saleItem->stockMovement->max_selling_price ?? $product->max_selling_price,
-                        'performed_by' => auth()->id(),
-                        'notes' => 'Restocked from sale return #' . $return->return_number,
-                    ]);
+                    // Increase the original batch quantity
+                    $originalBatch->increment('quantity', $itemData['quantity']);
+
+                    // Increase product current stock
+                    $product->increment('current_stock_quantity', $itemData['quantity']);
                 }
             }
 

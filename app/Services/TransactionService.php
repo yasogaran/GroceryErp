@@ -56,6 +56,17 @@ class TransactionService
                 ];
             }
 
+            // If there's a due amount (credit sale), debit Accounts Receivable
+            if ($sale->due_amount > 0) {
+                $receivablesAccount = $this->getAccountByCode('1310');
+                $lines[] = [
+                    'account_id' => $receivablesAccount->id,
+                    'description' => $description . " - Credit",
+                    'debit' => $sale->due_amount,
+                    'credit' => 0,
+                ];
+            }
+
             // Credit: Sales Revenue (4110)
             $salesAccount = $this->getAccountByCode('4110');
             $lines[] = [
@@ -74,6 +85,7 @@ class TransactionService
                 'reference_id' => $sale->id,
                 'lines' => $lines,
                 'status' => 'draft',
+                'created_by' => $sale->created_by, // Use the sale creator
             ]);
 
             // Auto-post the entry
@@ -129,7 +141,8 @@ class TransactionService
                 description: $description,
                 entryType: 'purchase',
                 referenceType: GRN::class,
-                referenceId: $grn->id
+                referenceId: $grn->id,
+                createdBy: $grn->approved_by ?? $grn->created_by
             );
 
             // Auto-post the entry
@@ -185,7 +198,8 @@ class TransactionService
                 description: $description,
                 entryType: 'payment',
                 referenceType: SupplierPayment::class,
-                referenceId: $payment->id
+                referenceId: $payment->id,
+                createdBy: $payment->created_by
             );
 
             // Auto-post the entry
@@ -241,7 +255,8 @@ class TransactionService
                 description: $description,
                 entryType: 'return',
                 referenceType: SaleReturn::class,
-                referenceId: $return->id
+                referenceId: $return->id,
+                createdBy: $return->created_by
             );
 
             // Auto-post the entry

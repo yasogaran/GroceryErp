@@ -1,9 +1,8 @@
 <div class="bg-white rounded-lg shadow-sm p-4 h-full">
-    <!-- Header Section with Search, Toggles -->
+    <!-- Header Section with Search -->
     <div class="mb-4 space-y-3">
-        <!-- Top Row: Search Bar with Toggles -->
+        <!-- Search Bar -->
         <div class="flex gap-3 items-center">
-            <!-- Search Bar -->
             <div class="flex-1">
                 <input
                     type="text"
@@ -15,65 +14,58 @@
                 >
                 <p class="text-xs text-gray-500 mt-1">Press F1 to focus search | Scan barcode to auto-add</p>
             </div>
-
-            <!-- Batch Selection Toggle Switch -->
-            <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 shrink-0">
-                <span class="text-sm font-medium text-gray-700">Stock:</span>
-                <button
-                    wire:click="toggleBatchSelection"
-                    class="relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $showBatchSelection ? 'bg-green-500' : 'bg-blue-500' }}"
-                    role="switch"
-                    aria-checked="{{ $showBatchSelection ? 'true' : 'false' }}"
-                    title="Toggle between Batch Mode and Auto Mode"
-                >
-                    <span class="inline-block h-6 w-6 transform rounded-full bg-white transition-transform {{ $showBatchSelection ? 'translate-x-9' : 'translate-x-1' }}"></span>
-                </button>
-                <span class="text-xs font-bold {{ $showBatchSelection ? 'text-green-600' : 'text-blue-600' }}">
-                    {{ $showBatchSelection ? 'Batch' : 'Auto' }}
-                </span>
-            </div>
-
-            <!-- View Toggle (Card/List) -->
-            <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1 shrink-0">
-                <button
-                    wire:click="$set('viewMode', 'grid')"
-                    class="p-2 rounded {{ $viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}"
-                    title="Grid View"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                    </svg>
-                </button>
-                <button
-                    wire:click="$set('viewMode', 'list')"
-                    class="p-2 rounded {{ $viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-800' }}"
-                    title="List View"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-            </div>
         </div>
 
-        <!-- Category Filters - Horizontal Scroll -->
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <div class="flex gap-2 pb-2 min-w-max">
-                <button
-                    wire:click="clearCategory"
-                    class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ is_null($selectedCategory) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
-                >
-                    All Categories
-                </button>
-                @foreach($categories as $category)
+        <!-- Category Filters - Horizontal Scroll with Buttons -->
+        <div class="relative flex items-center gap-2">
+            <!-- Left Scroll Button -->
+            <button
+                type="button"
+                onclick="document.getElementById('category-scroll').scrollBy({left: -200, behavior: 'smooth'})"
+                class="shrink-0 bg-white border border-gray-300 hover:bg-gray-50 rounded-full p-2 shadow-sm z-10"
+                title="Scroll Left"
+            >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Categories Container - Hidden Scrollbar -->
+            <div id="category-scroll" class="overflow-x-auto flex-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                <style>
+                    #category-scroll::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <div class="flex gap-2 pb-2 min-w-max">
                     <button
-                        wire:click="selectCategory({{ $category->id }})"
-                        class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ $selectedCategory == $category->id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
+                        wire:click="clearCategory"
+                        class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ is_null($selectedCategory) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
                     >
-                        {{ $category->name }} ({{ $category->products_count }})
+                        All Categories
                     </button>
-                @endforeach
+                    @foreach($categories as $category)
+                        <button
+                            wire:click="selectCategory({{ $category->id }})"
+                            class="px-4 py-2 rounded-full text-sm whitespace-nowrap {{ $selectedCategory == $category->id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}"
+                        >
+                            {{ $category->name }} ({{ $category->products_count }})
+                        </button>
+                    @endforeach
+                </div>
             </div>
+
+            <!-- Right Scroll Button -->
+            <button
+                type="button"
+                onclick="document.getElementById('category-scroll').scrollBy({left: 200, behavior: 'smooth'})"
+                class="shrink-0 bg-white border border-gray-300 hover:bg-gray-50 rounded-full p-2 shadow-sm z-10"
+                title="Scroll Right"
+            >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -100,7 +92,15 @@
 
                         <!-- Product Info -->
                         <h4 class="font-medium text-sm mb-1 line-clamp-2">{{ $product->name }}</h4>
-                        <p class="text-xs text-gray-500 mb-1">{{ $product->category->name ?? 'N/A' }}</p>
+                        <div class="text-xs text-gray-500 mb-1 flex items-center gap-1 flex-wrap">
+                            <span>{{ $product->category->name ?? 'N/A' }}</span>
+                            @if(isset($batch['supplier_name']) && $batch['supplier_name'])
+                                <span class="text-gray-400">|</span>
+                                <span class="text-blue-600 font-medium" title="{{ $batch['supplier_name'] }}">
+                                    {{ \Illuminate\Support\Str::limit($batch['supplier_name'], 10, '') }}
+                                </span>
+                            @endif
+                        </div>
 
                         <!-- Batch Info -->
                         <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-2 text-xs">

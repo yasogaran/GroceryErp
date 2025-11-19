@@ -1,8 +1,8 @@
 <div>
     @if($show)
-        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-8 w-full max-w-3xl">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">Complete Payment</h2>
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg p-6 sm:p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Complete Payment</h2>
 
                 <!-- Bill Amount Display -->
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 mb-6 text-center text-white shadow-lg">
@@ -19,21 +19,30 @@
                     @endphp
                     @if($customer)
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center flex-1 min-w-0">
+                                    <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
-                                    <span class="font-semibold text-green-800">Customer: {{ $customer->name }}</span>
-                                    @if($customer->phone)
-                                        <span class="ml-2 text-sm text-green-600">{{ $customer->phone }}</span>
-                                    @endif
+                                    <div class="min-w-0">
+                                        <span class="font-semibold text-green-800 truncate block">Customer: {{ $customer->name }}</span>
+                                        @if($customer->phone)
+                                            <span class="text-sm text-green-600 block">{{ $customer->phone }}</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <button
-                                    wire:click="openCustomerSelector"
-                                    class="text-sm text-blue-600 hover:text-blue-800 underline">
-                                    Change Customer
-                                </button>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <button
+                                        wire:click="openCustomerSelector"
+                                        class="text-sm text-blue-600 hover:text-blue-800 underline whitespace-nowrap">
+                                        Change
+                                    </button>
+                                    <button
+                                        wire:click="clearCustomer"
+                                        class="text-sm text-red-600 hover:text-red-800 underline whitespace-nowrap">
+                                        Clear
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -91,6 +100,58 @@
                             Exact Amount (Rs. {{ number_format($grandTotal, 2) }})
                         </button>
                     </div>
+                </div>
+
+                <!-- Payment Mode Selection -->
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold text-gray-700 mb-3">Payment Method</label>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <!-- Cash Option -->
+                        <button
+                            type="button"
+                            wire:click="$set('selectedPaymentMode', 'cash')"
+                            class="flex items-center justify-center p-4 rounded-lg border-2 transition-all {{ $selectedPaymentMode === 'cash' ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white hover:border-gray-400' }}">
+                            <div class="text-center">
+                                <svg class="w-8 h-8 mx-auto mb-2 {{ $selectedPaymentMode === 'cash' ? 'text-green-600' : 'text-gray-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="font-semibold {{ $selectedPaymentMode === 'cash' ? 'text-green-700' : 'text-gray-700' }}">
+                                    Cash
+                                </span>
+                            </div>
+                        </button>
+
+                        <!-- Bank Transfer Option -->
+                        <button
+                            type="button"
+                            wire:click="$set('selectedPaymentMode', 'bank_transfer')"
+                            class="flex items-center justify-center p-4 rounded-lg border-2 transition-all {{ $selectedPaymentMode === 'bank_transfer' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400' }}">
+                            <div class="text-center">
+                                <svg class="w-8 h-8 mx-auto mb-2 {{ $selectedPaymentMode === 'bank_transfer' ? 'text-blue-600' : 'text-gray-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                <span class="font-semibold {{ $selectedPaymentMode === 'bank_transfer' ? 'text-blue-700' : 'text-gray-700' }}">
+                                    Bank Transfer
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Bank Account Selection (shown when bank transfer is selected) -->
+                    @if($selectedPaymentMode === 'bank_transfer')
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Bank Account</label>
+                            <select
+                                wire:model="selectedBankAccountId"
+                                class="w-full border-2 border-blue-300 rounded-lg px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                                @foreach($bankAccounts as $account)
+                                    <option value="{{ $account->id }}">
+                                        {{ $account->account_name }} ({{ $account->account_code }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Full Credit Invoice Button (when amount is 0) -->

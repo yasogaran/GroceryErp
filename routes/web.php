@@ -22,6 +22,7 @@ use App\Livewire\Suppliers\Payments\PaymentHistory;
 use App\Livewire\Customers\CustomerManagement;
 use App\Livewire\Shifts\OpenShift;
 use App\Livewire\Shifts\CloseShift;
+use App\Livewire\Shifts\ShiftList;
 use App\Livewire\Pos\PosInterface;
 use App\Livewire\Reports\DailySalesReport;
 use App\Livewire\Reports\StockReport;
@@ -127,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Shift routes (cashier, manager, admin)
     Route::middleware(['check.role:cashier,manager,admin'])->group(function () {
+        Route::get('/shifts', ShiftList::class)->name('shifts.index');
         Route::get('/shift/open', OpenShift::class)->name('shift.open');
         Route::get('/shift/close', CloseShift::class)->name('shift.close')->middleware('shift.active');
     });

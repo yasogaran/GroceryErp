@@ -17,7 +17,16 @@ class ProductSearch extends Component
     protected $listeners = [
         'resetSearch' => 'resetSearch',
         'paymentCompleted' => 'refreshProducts',
+        'toggleBatchMode' => 'toggleBatchSelection',
+        'setViewMode' => 'setViewMode',
     ];
+
+    public function mount()
+    {
+        // Initialize and dispatch initial state to parent via browser events
+        $this->js("window.dispatchEvent(new CustomEvent('batchModeChanged', { detail: { enabled: " . ($this->showBatchSelection ? 'true' : 'false') . " } }))");
+        $this->js("window.dispatchEvent(new CustomEvent('viewModeChanged', { detail: { mode: '{$this->viewMode}' } }))");
+    }
 
     public function updated($property)
     {
@@ -40,6 +49,19 @@ class ProductSearch extends Component
     public function toggleBatchSelection()
     {
         $this->showBatchSelection = !$this->showBatchSelection;
+
+        // Notify parent component about state change via browser event
+        $this->js("window.dispatchEvent(new CustomEvent('batchModeChanged', { detail: { enabled: " . ($this->showBatchSelection ? 'true' : 'false') . " } }))");
+    }
+
+    public function setViewMode($mode)
+    {
+        if (in_array($mode, ['grid', 'list'])) {
+            $this->viewMode = $mode;
+
+            // Notify parent component about state change via browser event
+            $this->js("window.dispatchEvent(new CustomEvent('viewModeChanged', { detail: { mode: '{$this->viewMode}' } }))");
+        }
     }
 
     public function addToCart($productId, $isBoxSale = false, $batchId = null)

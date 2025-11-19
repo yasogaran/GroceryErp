@@ -6,9 +6,12 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Product;
 use App\Models\Customer;
+use App\Models\Shift;
 use App\Services\POSService;
 use App\Services\OfferService;
+use App\Services\ShiftService;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class PosInterface extends Component
 {
@@ -34,9 +37,14 @@ class PosInterface extends Component
     public $customerSearchTerm = '';
     public $showCustomerModal = false;
 
+    // Current shift
+    public $currentShift = null;
+    public $currentShiftBalance = 0;
+
     protected $listeners = [
         'productAdded' => 'addToCart',
         'paymentCompleted' => 'handlePaymentCompleted',
+        'shiftClosed' => 'handleShiftClosed',
     ];
 
     public $lastSaleId = null;
@@ -44,6 +52,34 @@ class PosInterface extends Component
     public function mount()
     {
         $this->loadHeldBills();
+        $this->loadCurrentShift();
+    }
+
+    /**
+     * Load current shift for the logged-in user
+     */
+    public function loadCurrentShift()
+    {
+        $shiftService = app(ShiftService::class);
+        $this->currentShift = $shiftService->getCurrentShift(Auth::user());
+
+        if ($this->currentShift) {
+            $this->currentShiftBalance = $this->currentShift->opening_cash +
+                                        $this->currentShift->total_cash_sales +
+                                        $this->currentShift->total_bank_sales;
+        }
+    }
+
+    /**
+     * Handle shift closed event
+     */
+    public function handleShiftClosed()
+    {
+        $this->clearCart();
+        $this->loadCurrentShift();
+
+        // Redirect to cashier dashboard or show message
+        $this->dispatch('showToast', type: 'info', message: 'Shift closed. Please open a new shift to continue.');
     }
 
     /**
@@ -473,6 +509,9 @@ class PosInterface extends Component
     {
         $this->clearCart();
         $this->lastSaleId = $saleId;
+
+        // Reload shift to update balance
+        $this->loadCurrentShift();
 
         // Dispatch browser event to open print preview in new tab
         $this->dispatch('openPrintPreview', saleId: $saleId);

@@ -5,12 +5,13 @@ namespace App\Livewire\Products;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductPackaging;
+use App\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class CreateProduct extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithToast;
 
     // Basic Info
     public $sku = '';
@@ -145,57 +146,70 @@ class CreateProduct extends Component
      */
     public function save()
     {
-        $validated = $this->validate();
+        try {
+            $validated = $this->validate();
 
-        // Handle image upload
-        $imagePath = null;
-        if ($this->image) {
-            $imagePath = $this->image->store('products', 'public');
-        }
+            // Handle image upload
+            $imagePath = null;
+            if ($this->image) {
+                $imagePath = $this->image->store('products', 'public');
+            }
 
-        // Convert empty strings to null for nullable fields
-        $barcode = !empty($validated['barcode']) ? $validated['barcode'] : null;
-        $description = !empty($validated['description']) ? $validated['description'] : null;
-        $brand = !empty($validated['brand']) ? $validated['brand'] : null;
+            // Convert empty strings to null for nullable fields
+            $barcode = !empty($validated['barcode']) ? $validated['barcode'] : null;
+            $description = !empty($validated['description']) ? $validated['description'] : null;
+            $brand = !empty($validated['brand']) ? $validated['brand'] : null;
 
-        // Create the product
-        $product = Product::create([
-            'sku' => $validated['sku'],
-            'barcode' => $barcode,
-            'name' => $validated['name'],
-            'description' => $description,
-            'category_id' => $validated['category_id'],
-            'brand' => $brand,
-            'base_unit' => $validated['base_unit'],
-            'min_selling_price' => $validated['min_selling_price'],
-            'max_selling_price' => $validated['max_selling_price'],
-            'reorder_level' => $validated['reorder_level'],
-            'image_path' => $imagePath,
-            'is_active' => $validated['is_active'],
-            'has_packaging' => $validated['has_packaging'],
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
-
-        // Create packaging if enabled
-        if ($this->has_packaging) {
-            $packageBarcode = !empty($validated['package_barcode']) ? $validated['package_barcode'] : null;
-
-            ProductPackaging::create([
-                'product_id' => $product->id,
-                'packaging_name' => $validated['packaging_name'],
-                'pieces_per_package' => $validated['pieces_per_package'],
-                'package_barcode' => $packageBarcode,
-                'discount_type' => $validated['discount_type'],
-                'discount_value' => $validated['discount_value'],
+            // Create the product
+            $product = Product::create([
+                'sku' => $validated['sku'],
+                'barcode' => $barcode,
+                'name' => $validated['name'],
+                'description' => $description,
+                'category_id' => $validated['category_id'],
+                'brand' => $brand,
+                'base_unit' => $validated['base_unit'],
+                'min_selling_price' => $validated['min_selling_price'],
+                'max_selling_price' => $validated['max_selling_price'],
+                'reorder_level' => $validated['reorder_level'],
+                'image_path' => $imagePath,
+                'is_active' => $validated['is_active'],
+                'has_packaging' => $validated['has_packaging'],
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
+
+            // Create packaging if enabled
+            if ($this->has_packaging) {
+                $packageBarcode = !empty($validated['package_barcode']) ? $validated['package_barcode'] : null;
+
+                ProductPackaging::create([
+                    'product_id' => $product->id,
+                    'packaging_name' => $validated['packaging_name'],
+                    'pieces_per_package' => $validated['pieces_per_package'],
+                    'package_barcode' => $packageBarcode,
+                    'discount_type' => $validated['discount_type'],
+                    'discount_value' => $validated['discount_value'],
+                ]);
+            }
+
+            // Show success toast notification
+            $this->toastSuccess('Product created successfully!');
+
+            $this->dispatch('product-created');
+            $this->reset();
+            $this->mount(); // Regenerate SKU
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Show validation error toast
+            $this->toastValidationErrors($e);
+
+            throw $e; // Re-throw to show inline errors
+        } catch (\Exception $e) {
+            // Show generic error toast
+            $this->toastError('Failed to create product: ' . $e->getMessage());
+
+            throw $e;
         }
-
-        session()->flash('success', 'Product created successfully.');
-
-        $this->dispatch('product-created');
-        $this->reset();
-        $this->mount(); // Regenerate SKU
     }
 
     /**

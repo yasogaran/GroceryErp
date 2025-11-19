@@ -30,7 +30,7 @@
                             <option value="">Select Supplier</option>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}">
-                                    {{ $supplier->name }} (Outstanding: ₹{{ number_format($supplier->outstanding_balance, 2) }})
+                                    {{ $supplier->name }} (Outstanding: {{ settings('currency_symbol', 'Rs.') }} {{ number_format($supplier->outstanding_balance, 2) }})
                                 </option>
                             @endforeach
                         </select>
@@ -43,7 +43,7 @@
                             <div class="flex justify-between items-center">
                                 <div>
                                     <h4 class="text-sm font-medium text-blue-800">Current Outstanding Balance</h4>
-                                    <p class="mt-1 text-2xl font-bold text-blue-900">₹{{ number_format($selectedSupplier->outstanding_balance, 2) }}</p>
+                                    <p class="mt-1 text-2xl font-bold text-blue-900">{{ settings('currency_symbol', 'Rs.') }} {{ number_format($selectedSupplier->outstanding_balance, 2) }}</p>
                                 </div>
                                 <div class="text-right">
                                     <h4 class="text-sm font-medium text-blue-800">Credit Terms</h4>
@@ -74,7 +74,7 @@
                         </label>
                         <div class="mt-1 relative rounded-md shadow-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="text-gray-500 sm:text-sm">₹</span>
+                                <span class="text-gray-500 sm:text-sm">{{ settings('currency_symbol', 'Rs.') }}</span>
                             </div>
                             <input
                                 wire:model.live="amount"
@@ -104,6 +104,30 @@
                         @error('payment_mode') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
+                    <!-- Deduct from Shift Checkbox (shown only for cash and if active shift exists) -->
+                    @if($payment_mode === 'cash' && $activeShift)
+                        <div class="md:col-span-2">
+                            <div class="bg-amber-50 border border-amber-200 rounded-md p-4">
+                                <label class="flex items-start cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        wire:model="deductFromShift"
+                                        class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    >
+                                    <span class="ml-3">
+                                        <span class="block text-sm font-medium text-amber-900">
+                                            Deduct this payment from my current shift cash
+                                        </span>
+                                        <span class="block text-xs text-amber-700 mt-1">
+                                            Active Shift: Started at {{ $activeShift->shift_start->format('d M Y, h:i A') }} |
+                                            Current Cash: {{ settings('currency_symbol', 'Rs.') }} {{ number_format($activeShift->total_cash_sales, 2) }}
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Bank Account (shown only for bank transfer) -->
                     @if($payment_mode === 'bank_transfer')
                         <div>
@@ -118,7 +142,7 @@
                                 <option value="">Select Bank Account</option>
                                 @foreach($bankAccounts as $account)
                                     <option value="{{ $account->id }}">
-                                        {{ $account->account_name }} ({{ $account->account_code }}) - Balance: ₹{{ number_format($account->balance, 2) }}
+                                        {{ $account->account_name }} ({{ $account->account_code }}) - Balance: {{ settings('currency_symbol', 'Rs.') }} {{ number_format($account->balance, 2) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -219,16 +243,16 @@
                                                 {{ \Carbon\Carbon::parse($allocation['grn_date'])->format('d M Y') }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-right text-gray-900">
-                                                ₹{{ number_format($allocation['total_amount'], 2) }}
+                                                {{ settings('currency_symbol', 'Rs.') }} {{ number_format($allocation['total_amount'], 2) }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-right text-gray-600">
-                                                ₹{{ number_format($allocation['paid_amount'], 2) }}
+                                                {{ settings('currency_symbol', 'Rs.') }} {{ number_format($allocation['paid_amount'], 2) }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-right font-medium text-red-600">
-                                                ₹{{ number_format($allocation['outstanding_amount'], 2) }}
+                                                {{ settings('currency_symbol', 'Rs.') }} {{ number_format($allocation['outstanding_amount'], 2) }}
                                             </td>
                                             <td class="px-4 py-3 text-sm text-right font-bold text-green-600">
-                                                ₹{{ number_format($allocation['allocated_amount'], 2) }}
+                                                {{ settings('currency_symbol', 'Rs.') }} {{ number_format($allocation['allocated_amount'], 2) }}
                                             </td>
                                             <td class="px-4 py-3 text-center">
                                                 @php
@@ -253,7 +277,7 @@
                                             Total Payment Amount:
                                         </td>
                                         <td class="px-4 py-3 text-sm text-right text-blue-900">
-                                            ₹{{ number_format(collect($suggestedAllocations)->sum('allocated_amount'), 2) }}
+                                            {{ settings('currency_symbol', 'Rs.') }} {{ number_format(collect($suggestedAllocations)->sum('allocated_amount'), 2) }}
                                         </td>
                                         <td></td>
                                     </tr>

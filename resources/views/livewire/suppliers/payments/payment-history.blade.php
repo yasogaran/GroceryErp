@@ -111,7 +111,7 @@
                                     {{ $payment->supplier->name }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-green-600">
-                                    ₹{{ number_format($payment->amount, 2) }}
+                                    {{ settings('currency_symbol', 'Rs.') }} {{ number_format($payment->amount, 2) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $payment->payment_mode === 'cash' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
@@ -147,7 +147,7 @@
                                     Total Payments:
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600">
-                                    ₹{{ number_format($payments->sum('amount'), 2) }}
+                                    {{ settings('currency_symbol', 'Rs.') }} {{ number_format($payments->sum('amount'), 2) }}
                                 </td>
                                 <td colspan="3"></td>
                             </tr>

@@ -162,16 +162,16 @@
                                     {{ $grn->items->count() }} items
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-medium">
-                                    ₹{{ number_format($grn->total_amount, 2) }}
+                                    {{ settings('currency_symbol', 'Rs.') }} {{ number_format($grn->total_amount, 2) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
                                     @php
                                         $paidAmount = isset($grn->paid_amount) ? $grn->paid_amount : 0;
                                     @endphp
-                                    <div class="text-gray-900 font-medium">₹{{ number_format($paidAmount, 2) }}</div>
+                                    <div class="text-gray-900 font-medium">{{ settings('currency_symbol', 'Rs.') }} {{ number_format($paidAmount, 2) }}</div>
                                     @if($grn->status === 'approved' && $paidAmount < $grn->total_amount)
                                         <div class="text-xs text-red-600">
-                                            (₹{{ number_format($grn->total_amount - $paidAmount, 2) }} due)
+                                            ({{ settings('currency_symbol', 'Rs.') }} {{ number_format($grn->total_amount - $paidAmount, 2) }} due)
                                         </div>
                                     @endif
                                 </td>

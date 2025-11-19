@@ -5,6 +5,7 @@ namespace App\Livewire\Suppliers\Payments;
 use App\Models\Account;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
+use App\Models\Shift;
 use App\Services\PaymentAllocationService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -19,10 +20,12 @@ class RecordPayment extends Component
     public $bank_reference = '';
     public $reference_number = '';
     public $notes = '';
+    public $deductFromShift = false;
 
     public $selectedSupplier = null;
     public $suggestedAllocations = [];
     public $outstandingGRNs = [];
+    public $activeShift = null;
 
     protected $rules = [
         'supplier_id' => 'required|exists:suppliers,id',
@@ -43,6 +46,11 @@ class RecordPayment extends Component
     public function mount()
     {
         $this->payment_date = now()->format('Y-m-d');
+
+        // Check if current user has an active shift
+        $this->activeShift = Shift::where('cashier_id', auth()->id())
+            ->open()
+            ->first();
     }
 
     public function updatedSupplierId($value)
@@ -124,6 +132,12 @@ class RecordPayment extends Component
             // Allocate payment to GRNs using water-fill logic
             $allocationService = app(PaymentAllocationService::class);
             $allocations = $allocationService->allocatePayment($payment);
+
+            // Deduct from shift if requested and payment is cash
+            if ($this->deductFromShift && $this->payment_mode === 'cash' && $this->activeShift) {
+                $this->activeShift->decrement('total_cash_sales', $this->amount);
+                $this->activeShift->decrement('total_sales', $this->amount);
+            }
 
             $allocationCount = count($allocations);
             session()->flash('success', "Payment recorded successfully and allocated to {$allocationCount} GRN(s)");
