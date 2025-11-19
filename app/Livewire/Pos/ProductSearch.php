@@ -23,9 +23,9 @@ class ProductSearch extends Component
 
     public function mount()
     {
-        // Initialize and dispatch initial state to parent
-        $this->dispatchBrowserEvent('batchModeChanged', ['enabled' => $this->showBatchSelection]);
-        $this->dispatchBrowserEvent('viewModeChanged', ['mode' => $this->viewMode]);
+        // Initialize and dispatch initial state to parent via browser events
+        $this->js("window.dispatchEvent(new CustomEvent('batchModeChanged', { detail: { enabled: " . ($this->showBatchSelection ? 'true' : 'false') . " } }))");
+        $this->js("window.dispatchEvent(new CustomEvent('viewModeChanged', { detail: { mode: '{$this->viewMode}' } }))");
     }
 
     public function updated($property)
@@ -50,8 +50,8 @@ class ProductSearch extends Component
     {
         $this->showBatchSelection = !$this->showBatchSelection;
 
-        // Notify parent component about state change
-        $this->dispatchBrowserEvent('batchModeChanged', ['enabled' => $this->showBatchSelection]);
+        // Notify parent component about state change via browser event
+        $this->js("window.dispatchEvent(new CustomEvent('batchModeChanged', { detail: { enabled: " . ($this->showBatchSelection ? 'true' : 'false') . " } }))");
     }
 
     public function setViewMode($mode)
@@ -59,8 +59,8 @@ class ProductSearch extends Component
         if (in_array($mode, ['grid', 'list'])) {
             $this->viewMode = $mode;
 
-            // Notify parent component about state change
-            $this->dispatchBrowserEvent('viewModeChanged', ['mode' => $this->viewMode]);
+            // Notify parent component about state change via browser event
+            $this->js("window.dispatchEvent(new CustomEvent('viewModeChanged', { detail: { mode: '{$this->viewMode}' } }))");
         }
     }
 
