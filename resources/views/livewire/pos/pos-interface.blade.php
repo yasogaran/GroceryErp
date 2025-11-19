@@ -81,7 +81,7 @@
             <!-- Close Shift -->
             @if($currentShift)
                 <button
-                    onclick="window.location.href='{{ route('shifts.close') }}'"
+                    onclick="window.location.href='{{ route('shift.close') }}'"
                     class="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg flex items-center space-x-2"
                     title="Close current shift"
                 >
