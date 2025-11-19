@@ -346,39 +346,41 @@
             </div>
         @endif
     </div>
-</div>
 
-<style>
-    /* Custom scrollbar styling */
-    .scrollbar-thin::-webkit-scrollbar {
-        height: 6px;
-    }
-    .scrollbar-thin::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    .scrollbar-thin::-webkit-scrollbar-thumb {
-        background: #cbd5e0;
-        border-radius: 10px;
-    }
-    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-        background: #a0aec0;
-    }
-</style>
-
-<script>
-    // Auto-focus search on F1
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'F1') {
-            e.preventDefault();
-            document.getElementById('product-search-input')?.focus();
+    <!-- Inline Styles -->
+    <style>
+        /* Custom scrollbar styling */
+        .scrollbar-thin::-webkit-scrollbar {
+            height: 6px;
         }
-    });
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    </style>
 
-    // Listen for focus event from Livewire
-    window.addEventListener('focusSearch', () => {
-        setTimeout(() => {
-            document.getElementById('product-search-input')?.focus();
-        }, 100);
-    });
-</script>
+    <!-- Inline Scripts -->
+    <script>
+        // Auto-focus search on F1
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                document.getElementById('product-search-input')?.focus();
+            }
+        });
+
+        // Listen for focus event from Livewire
+        window.addEventListener('focusSearch', () => {
+            setTimeout(() => {
+                document.getElementById('product-search-input')?.focus();
+            }, 100);
+        });
+    </script>
+</div>
