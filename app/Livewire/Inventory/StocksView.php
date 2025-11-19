@@ -104,7 +104,7 @@ class StocksView extends Component
         $query = StockMovement::query()
             ->where('movement_type', 'in')
             ->whereNotNull('unit_cost')
-            ->with(['product.category']);
+            ->with(['product.category', 'product.packaging']);
 
         // Calculate remaining quantity for each batch
         $query->select('stock_movements.*')
