@@ -77,68 +77,18 @@ class ReturnService
                 }
 
                 if ($itemData['is_damaged']) {
-                    // For damaged items: Update original batch, then move to damaged stock
-
-                    // Step 1: Restore quantity to the original batch
-                    $originalBatch->increment('quantity', $itemData['quantity']);
-                    $product->increment('current_stock_quantity', $itemData['quantity']);
-
-                    // Create a stock movement to record the restoration
-                    StockMovement::create([
-                        'product_id' => $product->id,
-                        'movement_type' => 'in',
-                        'quantity' => $itemData['quantity'],
-                        'reference_type' => 'return',
-                        'reference_id' => $return->id,
-                        'source_stock_movement_id' => $originalBatch->id,
-                        'batch_number' => $originalBatch->batch_number,
-                        'unit_cost' => $saleItem->unit_cost,
-                        'min_selling_price' => $originalBatch->min_selling_price,
-                        'max_selling_price' => $originalBatch->max_selling_price,
-                        'performed_by' => auth()->id(),
-                        'notes' => 'Returned as damaged from return #' . $return->return_number . ' - Restored to batch ' . $originalBatch->batch_number,
-                    ]);
-
-                    // Step 2: Move from the original batch to damaged stock
-                    app(InventoryService::class)->markAsDamaged(
-                        $product,
-                        $itemData['quantity'],
-                        [
-                            'reference_type' => 'return',
-                            'reference_id' => $return->id,
-                            'source_stock_movement_id' => $originalBatch->id,
-                            'batch_number' => $originalBatch->batch_number,
-                            'unit_cost' => $saleItem->unit_cost,
-                            'notes' => 'Returned as damaged from return #' . $return->return_number . ': ' . ($itemData['notes'] ?? 'No reason specified')
-                        ]
-                    );
-
-                    // Update the original batch quantity again (since markAsDamaged decremented it)
-                    // Net effect: batch quantity stays the same, but damaged stock increases
+                    // For damaged items: Add directly to damaged stock without updating batch
+                    // Damaged items are not sellable, so don't increase batch available quantity
+                    $product->increment('damaged_stock_quantity', $itemData['quantity']);
                 } else {
                     // For non-damaged items: Simply restore to the original batch
+                    // Don't create new StockMovement records as they would be treated as new batches
 
                     // Increase the original batch quantity
                     $originalBatch->increment('quantity', $itemData['quantity']);
 
                     // Increase product current stock
                     $product->increment('current_stock_quantity', $itemData['quantity']);
-
-                    // Create a stock movement record for tracking
-                    StockMovement::create([
-                        'product_id' => $product->id,
-                        'movement_type' => 'in',
-                        'quantity' => $itemData['quantity'],
-                        'reference_type' => 'return',
-                        'reference_id' => $return->id,
-                        'source_stock_movement_id' => $originalBatch->id,
-                        'batch_number' => $originalBatch->batch_number,
-                        'unit_cost' => $saleItem->unit_cost,
-                        'min_selling_price' => $originalBatch->min_selling_price,
-                        'max_selling_price' => $originalBatch->max_selling_price,
-                        'performed_by' => auth()->id(),
-                        'notes' => 'Restocked from sale return #' . $return->return_number . ' - Added back to batch ' . $originalBatch->batch_number,
-                    ]);
                 }
             }
 
