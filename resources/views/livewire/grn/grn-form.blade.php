@@ -288,8 +288,8 @@
                                                 @endif
                                                 {{ number_format($item['received_pieces'], 0) }}
                                             </td>
-                                            <td class="px-2 py-2 text-sm text-right text-gray-900">₹{{ number_format($item['unit_price'], 2) }}</td>
-                                            <td class="px-2 py-2 text-sm text-right font-medium text-gray-900">₹{{ number_format($item['total_amount'], 2) }}</td>
+                                            <td class="px-2 py-2 text-sm text-right text-gray-900">{{ settings('currency_symbol', 'Rs.') }} {{ number_format($item['unit_price'], 2) }}</td>
+                                            <td class="px-2 py-2 text-sm text-right font-medium text-gray-900">{{ settings('currency_symbol', 'Rs.') }} {{ number_format($item['total_amount'], 2) }}</td>
                                             <td class="px-2 py-2 text-center text-sm">
                                                 <div class="flex justify-center gap-2">
                                                     <button
@@ -316,7 +316,7 @@
                                 <tfoot class="bg-gray-50 sticky bottom-0">
                                     <tr class="font-semibold">
                                         <td colspan="3" class="px-3 py-2 text-right text-sm text-gray-900">Grand Total:</td>
-                                        <td class="px-2 py-2 text-sm text-right text-gray-900">₹{{ number_format(array_sum(array_column($items, 'total_amount')), 2) }}</td>
+                                        <td class="px-2 py-2 text-sm text-right text-gray-900">{{ settings('currency_symbol', 'Rs.') }} {{ number_format(array_sum(array_column($items, 'total_amount')), 2) }}</td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
