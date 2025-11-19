@@ -54,15 +54,20 @@ class ProductSearch extends Component
             return;
         }
 
-        // Check stock
+        // Check stock with detailed error message
         $quantity = $isBoxSale && $product->packaging
             ? $product->packaging->pieces_per_package
             : 1;
 
         if ($product->current_stock_quantity < $quantity) {
+            $saleType = $isBoxSale ? 'box' : 'piece';
+            $boxInfo = $isBoxSale ? " (1 box = {$quantity} pieces)" : '';
+            $message = "Insufficient stock for {$product->name}. " .
+                       "Trying to add {$quantity} {$saleType}{$boxInfo}, " .
+                       "but only {$product->current_stock_quantity} pieces available.";
             $this->dispatch('notify', [
                 'type' => 'error',
-                'message' => 'Insufficient stock for ' . $product->name
+                'message' => $message
             ]);
             return;
         }

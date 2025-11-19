@@ -228,6 +228,26 @@ class PaymentModal extends Component
         $this->processing = true;
 
         try {
+            // VALIDATE STOCK BEFORE CREATING SALE
+            foreach ($this->cartData['items'] as $item) {
+                $product = Product::find($item['product_id']);
+
+                if (!$product) {
+                    throw new \Exception("Product not found: {$item['name']}");
+                }
+
+                // Check if sufficient stock is available
+                if ($product->current_stock_quantity < $item['quantity']) {
+                    $saleType = $item['is_box_sale'] ? 'box' : 'piece';
+                    $boxInfo = $item['is_box_sale'] ? " (1 box = {$item['quantity']} pieces)" : '';
+                    throw new \Exception(
+                        "Insufficient stock for {$product->name}. " .
+                        "You are trying to sell {$item['quantity']} {$saleType}{$boxInfo}, " .
+                        "but only {$product->current_stock_quantity} pieces available in stock."
+                    );
+                }
+            }
+
             DB::transaction(function () {
                 // Determine payment status
                 if ($this->paidAmount >= $this->grandTotal) {
@@ -366,6 +386,26 @@ class PaymentModal extends Component
         $this->processing = true;
 
         try {
+            // VALIDATE STOCK BEFORE CREATING SALE
+            foreach ($this->cartData['items'] as $item) {
+                $product = Product::find($item['product_id']);
+
+                if (!$product) {
+                    throw new \Exception("Product not found: {$item['name']}");
+                }
+
+                // Check if sufficient stock is available
+                if ($product->current_stock_quantity < $item['quantity']) {
+                    $saleType = $item['is_box_sale'] ? 'box' : 'piece';
+                    $boxInfo = $item['is_box_sale'] ? " (1 box = {$item['quantity']} pieces)" : '';
+                    throw new \Exception(
+                        "Insufficient stock for {$product->name}. " .
+                        "You are trying to sell {$item['quantity']} {$saleType}{$boxInfo}, " .
+                        "but only {$product->current_stock_quantity} pieces available in stock."
+                    );
+                }
+            }
+
             DB::transaction(function () {
                 // Create sale
                 $sale = Sale::create([

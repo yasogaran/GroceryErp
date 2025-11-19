@@ -64,9 +64,14 @@ class POSInterface extends Component
             ? $product->packaging->pieces_per_package
             : 1;
 
-        // Check stock
+        // Check stock with detailed error message
         if (!app(POSService::class)->checkStock($product, $quantity)) {
-            $this->dispatch('showToast', type: 'error', message: 'Insufficient stock');
+            $saleType = $isBoxSale ? 'box' : 'piece';
+            $boxInfo = $isBoxSale ? " (1 box = {$quantity} pieces)" : '';
+            $message = "Insufficient stock for {$product->name}. " .
+                       "Trying to add {$quantity} {$saleType}{$boxInfo}, " .
+                       "but only {$product->current_stock_quantity} pieces available.";
+            $this->dispatch('showToast', type: 'error', message: $message);
             return;
         }
 
