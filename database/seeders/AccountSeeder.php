@@ -10,7 +10,10 @@ class AccountSeeder extends Seeder
     /**
      * Run the database seeds.
      *
-     * Chart of Accounts Structure:
+     * Simplified Chart of Accounts - Essential Accounts Only
+     * For Billing (Sales), GRN (Purchases), and Returns
+     *
+     * Chart Structure:
      * 1000-1999: Assets
      * 2000-2999: Liabilities
      * 3000-3999: Equity
@@ -44,17 +47,10 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 1110: Cash on Hand - Used for cash sales and cash refunds
         $this->createAccount([
             'account_code' => '1110',
             'account_name' => 'Cash on Hand',
-            'account_type' => 'asset',
-            'parent_id' => $parentAccounts['cash'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '1120',
-            'account_name' => 'Petty Cash',
             'account_type' => 'asset',
             'parent_id' => $parentAccounts['cash'],
             'is_system_account' => true,
@@ -69,22 +65,13 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 1210: Bank Account - Used for bank transfer sales and payments
         $this->createAccount([
             'account_code' => '1210',
-            'account_name' => 'BOC Bank Account',
+            'account_name' => 'Bank Account',
             'account_type' => 'asset',
             'parent_id' => $parentAccounts['bank'],
-            'is_system_account' => false,
-            'balance' => 250000.00,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '1220',
-            'account_name' => 'Peoples Bank Account',
-            'account_type' => 'asset',
-            'parent_id' => $parentAccounts['bank'],
-            'is_system_account' => false,
-            'balance' => 180000.00,
+            'is_system_account' => true,
         ]);
 
         // Accounts Receivable (1300-1399)
@@ -96,6 +83,7 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 1310: Customer Receivables - Used for credit sales
         $this->createAccount([
             'account_code' => '1310',
             'account_name' => 'Customer Receivables',
@@ -113,6 +101,7 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 1410: Stock in Hand - Used for inventory purchases (GRN)
         $this->createAccount([
             'account_code' => '1410',
             'account_name' => 'Stock in Hand',
@@ -121,44 +110,12 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 1420: Damaged Stock - Used for damaged returns and damaged inventory
         $this->createAccount([
             'account_code' => '1420',
             'account_name' => 'Damaged Stock',
             'account_type' => 'asset',
             'parent_id' => $parentAccounts['inventory'],
-            'is_system_account' => true,
-        ]);
-
-        // Fixed Assets (1500-1999)
-        $parentAccounts['fixed_assets'] = $this->createAccount([
-            'account_code' => '1500',
-            'account_name' => 'Fixed Assets',
-            'account_type' => 'asset',
-            'parent_id' => null,
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '1510',
-            'account_name' => 'Furniture & Fixtures',
-            'account_type' => 'asset',
-            'parent_id' => $parentAccounts['fixed_assets'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '1520',
-            'account_name' => 'Equipment',
-            'account_type' => 'asset',
-            'parent_id' => $parentAccounts['fixed_assets'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '1530',
-            'account_name' => 'Vehicles',
-            'account_type' => 'asset',
-            'parent_id' => $parentAccounts['fixed_assets'],
             'is_system_account' => true,
         ]);
 
@@ -184,37 +141,12 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 2110: Supplier Payables - Used for GRN purchases and supplier payments
         $this->createAccount([
             'account_code' => '2110',
             'account_name' => 'Supplier Payables',
             'account_type' => 'liability',
             'parent_id' => $parentAccounts['payables'],
-            'is_system_account' => true,
-        ]);
-
-        // Other Current Liabilities (2200-2299)
-        $this->createAccount([
-            'account_code' => '2200',
-            'account_name' => 'Sales Tax Payable',
-            'account_type' => 'liability',
-            'parent_id' => $parentAccounts['current_liabilities'],
-            'is_system_account' => true,
-        ]);
-
-        // Long-term Liabilities (2500-2999)
-        $parentAccounts['long_term_liabilities'] = $this->createAccount([
-            'account_code' => '2500',
-            'account_name' => 'Long-term Liabilities',
-            'account_type' => 'liability',
-            'parent_id' => null,
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '2510',
-            'account_name' => 'Long-term Loans',
-            'account_type' => 'liability',
-            'parent_id' => $parentAccounts['long_term_liabilities'],
             'is_system_account' => true,
         ]);
 
@@ -230,25 +162,10 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
-        $this->createAccount([
-            'account_code' => '3100',
-            'account_name' => 'Capital',
-            'account_type' => 'equity',
-            'parent_id' => $parentAccounts['equity'],
-            'is_system_account' => true,
-        ]);
-
+        // 3200: Retained Earnings - Accumulates business profits/losses
         $this->createAccount([
             'account_code' => '3200',
             'account_name' => 'Retained Earnings',
-            'account_type' => 'equity',
-            'parent_id' => $parentAccounts['equity'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '3300',
-            'account_name' => 'Owner\'s Drawings',
             'account_type' => 'equity',
             'parent_id' => $parentAccounts['equity'],
             'is_system_account' => true,
@@ -275,6 +192,7 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 4110: Product Sales - Used for all sales revenue
         $this->createAccount([
             'account_code' => '4110',
             'account_name' => 'Product Sales',
@@ -283,37 +201,12 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
-        // Sales Returns & Discounts (4200-4299)
+        // 4200: Sales Returns & Allowances - Used for sales returns
         $this->createAccount([
             'account_code' => '4200',
             'account_name' => 'Sales Returns & Allowances',
             'account_type' => 'income',
             'parent_id' => $parentAccounts['income'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '4210',
-            'account_name' => 'Sales Discounts',
-            'account_type' => 'income',
-            'parent_id' => $parentAccounts['income'],
-            'is_system_account' => true,
-        ]);
-
-        // Other Income (4300-4999)
-        $parentAccounts['other_income'] = $this->createAccount([
-            'account_code' => '4300',
-            'account_name' => 'Other Income',
-            'account_type' => 'income',
-            'parent_id' => $parentAccounts['income'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '4310',
-            'account_name' => 'Interest Income',
-            'account_type' => 'income',
-            'parent_id' => $parentAccounts['other_income'],
             'is_system_account' => true,
         ]);
 
@@ -338,135 +231,12 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
-        $this->createAccount([
-            'account_code' => '5110',
-            'account_name' => 'Purchases',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['cogs'],
-            'is_system_account' => true,
-        ]);
-
-        $this->createAccount([
-            'account_code' => '5120',
-            'account_name' => 'Purchase Returns',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['cogs'],
-            'is_system_account' => true,
-        ]);
-
+        // 5130: Stock Write-offs - Used for damaged stock write-offs
         $this->createAccount([
             'account_code' => '5130',
             'account_name' => 'Stock Write-offs',
             'account_type' => 'expense',
             'parent_id' => $parentAccounts['cogs'],
-            'is_system_account' => true,
-        ]);
-
-        // Operating Expenses (5200-5999)
-        $parentAccounts['operating_expenses'] = $this->createAccount([
-            'account_code' => '5200',
-            'account_name' => 'Operating Expenses',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Salaries & Wages (5210-5219)
-        $this->createAccount([
-            'account_code' => '5210',
-            'account_name' => 'Salaries & Wages',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Rent (5220-5229)
-        $this->createAccount([
-            'account_code' => '5220',
-            'account_name' => 'Rent Expense',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Utilities (5230-5239)
-        $this->createAccount([
-            'account_code' => '5230',
-            'account_name' => 'Utilities Expense',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Marketing & Advertising (5240-5249)
-        $this->createAccount([
-            'account_code' => '5240',
-            'account_name' => 'Marketing & Advertising',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Office Supplies (5250-5259)
-        $this->createAccount([
-            'account_code' => '5250',
-            'account_name' => 'Office Supplies',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Maintenance & Repairs (5260-5269)
-        $this->createAccount([
-            'account_code' => '5260',
-            'account_name' => 'Maintenance & Repairs',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Transportation (5270-5279)
-        $this->createAccount([
-            'account_code' => '5270',
-            'account_name' => 'Transportation Expense',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Insurance (5280-5289)
-        $this->createAccount([
-            'account_code' => '5280',
-            'account_name' => 'Insurance Expense',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Depreciation (5290-5299)
-        $this->createAccount([
-            'account_code' => '5290',
-            'account_name' => 'Depreciation Expense',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Bank Charges (5300-5309)
-        $this->createAccount([
-            'account_code' => '5300',
-            'account_name' => 'Bank Charges',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
-            'is_system_account' => true,
-        ]);
-
-        // Miscellaneous Expenses (5900-5999)
-        $this->createAccount([
-            'account_code' => '5900',
-            'account_name' => 'Miscellaneous Expenses',
-            'account_type' => 'expense',
-            'parent_id' => $parentAccounts['operating_expenses'],
             'is_system_account' => true,
         ]);
     }
