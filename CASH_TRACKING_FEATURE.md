@@ -59,13 +59,30 @@ Your system already had a solid accounting foundation:
 ### Transaction Flow
 
 1. **Transaction Occurs** (Sale, Purchase, Payment, Return, etc.)
-2. **TransactionService** automatically creates a journal entry
+2. **Model Observer** automatically detects the transaction
+   - SaleObserver catches new sales
+   - SaleReturnObserver catches returns
+   - GrnObserver catches purchase approvals
+   - SupplierPaymentObserver catches supplier payments
+3. **TransactionService** automatically creates a journal entry
    - For cash sales: Debit Cash (1110), Credit Sales Revenue (4110)
    - For cash refunds: Debit Sales Returns (4200), Credit Cash (1110)
    - For supplier payments: Debit Payables (2110), Credit Cash (1110)
-3. **JournalEntry** is automatically posted
-4. **Account Balance** is updated in real-time
-5. **Reports** show current cash position
+   - For purchases: Debit Inventory (1410), Credit Payables (2110)
+4. **JournalEntry** is automatically posted
+5. **Account Balance** is updated in real-time via JournalEntryService
+6. **Reports** show current cash position
+
+### Model Observers (Automatic Accounting Integration)
+
+The system uses Laravel model observers to automatically integrate business transactions with the accounting system:
+
+- **SaleObserver** → Calls `TransactionService::postSale()` when sale is created
+- **SaleReturnObserver** → Calls `TransactionService::postSaleReturn()` when return is created
+- **GrnObserver** → Calls `TransactionService::postPurchase()` when GRN is approved
+- **SupplierPaymentObserver** → Calls `TransactionService::postSupplierPayment()` when payment is created
+
+All observers are registered in `app/Providers/AppServiceProvider.php`
 
 ### Account Mapping
 
@@ -178,18 +195,74 @@ Each line affects an account:
 
 ## Key Files Modified/Created
 
-### Created Files
+### Created Files (Initial Implementation)
 - `app/Services/CashAccountService.php` - New service for cash operations
 - `CASH_TRACKING_FEATURE.md` - This documentation
+
+### Created Files (Integration Fix)
+- `app/Observers/SaleReturnObserver.php` - Auto-posts returns to accounting
+- `app/Observers/GrnObserver.php` - Auto-posts purchases to accounting
+- `app/Observers/SupplierPaymentObserver.php` - Auto-posts payments to accounting
 
 ### Modified Files
 - `app/Livewire/Reports/DailySalesReport.php` - Added cash activity tracking
 - `resources/views/livewire/reports/daily-sales-report.blade.php` - Added cash activity UI
+- `app/Observers/SaleObserver.php` - **CRITICAL FIX**: Added accounting integration
+- `app/Providers/AppServiceProvider.php` - Registered new observers
 
 ### Existing Files (No Changes - Already Working)
 - `app/Services/JournalEntryService.php` - Already had account balance updates
 - `app/Services/TransactionService.php` - Already mapped cash to account 1110
 - `app/Services/FinancialReportService.php` - Already had cash book reporting
+
+## Important: Initial Setup Issue & Fix
+
+### The Problem (Discovered During Testing)
+The initial implementation revealed that **transactions were not being posted to the accounting system**. While the reporting infrastructure was built, the integration between business operations (POS sales, returns, purchases, payments) and the accounting system was missing.
+
+**What was happening:**
+- ✅ Sales, returns, purchases, and payments were created successfully
+- ❌ TransactionService was never called to create journal entries
+- ❌ No journal entries = No cash account updates
+- ❌ Daily reports showed zero transactions
+
+### The Fix (Model Observers)
+We implemented Laravel Model Observers to automatically bridge business operations with accounting:
+
+1. **SaleObserver** - When a sale is created (status='completed'), automatically post to accounting
+2. **SaleReturnObserver** - When a return is created, automatically post refund to accounting
+3. **GrnObserver** - When a GRN is approved (status='approved'), automatically post purchase to accounting
+4. **SupplierPaymentObserver** - When a supplier payment is created, automatically post to accounting
+
+**How it works:**
+```php
+// Example: SaleObserver
+public function created(Sale $sale): void
+{
+    if ($sale->status === 'completed' && $sale->payments()->count() > 0) {
+        if (!$this->transactionService->isPosted(Sale::class, $sale->id)) {
+            $this->transactionService->postSale($sale);
+        }
+    }
+}
+```
+
+**Benefits of Observer Pattern:**
+- ✅ Automatic - No manual intervention required
+- ✅ Consistent - Every transaction is posted to accounting
+- ✅ Safe - Duplicate checks prevent double-posting
+- ✅ Resilient - Errors are logged but don't break transactions
+
+### After The Fix
+Now when you create a sale:
+1. ✅ Sale is created in database
+2. ✅ SaleObserver detects it
+3. ✅ TransactionService creates journal entry
+4. ✅ Journal entry is posted
+5. ✅ Cash account balance is updated
+6. ✅ Daily report shows the transaction
+
+**Testing:** Try creating a new cash sale - it will immediately appear in the Daily Sales Report's Cash Account Activity section!
 
 ## Benefits of This Implementation
 
