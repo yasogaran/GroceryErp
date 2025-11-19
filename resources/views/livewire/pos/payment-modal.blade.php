@@ -1,8 +1,8 @@
 <div>
     @if($show)
-        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-8 w-full max-w-3xl">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">Complete Payment</h2>
+        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg p-6 sm:p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Complete Payment</h2>
 
                 <!-- Bill Amount Display -->
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 mb-6 text-center text-white shadow-lg">
@@ -19,21 +19,30 @@
                     @endphp
                     @if($customer)
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center flex-1 min-w-0">
+                                    <svg class="w-5 h-5 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
-                                    <span class="font-semibold text-green-800">Customer: {{ $customer->name }}</span>
-                                    @if($customer->phone)
-                                        <span class="ml-2 text-sm text-green-600">{{ $customer->phone }}</span>
-                                    @endif
+                                    <div class="min-w-0">
+                                        <span class="font-semibold text-green-800 truncate block">Customer: {{ $customer->name }}</span>
+                                        @if($customer->phone)
+                                            <span class="text-sm text-green-600 block">{{ $customer->phone }}</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <button
-                                    wire:click="openCustomerSelector"
-                                    class="text-sm text-blue-600 hover:text-blue-800 underline">
-                                    Change Customer
-                                </button>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <button
+                                        wire:click="openCustomerSelector"
+                                        class="text-sm text-blue-600 hover:text-blue-800 underline whitespace-nowrap">
+                                        Change
+                                    </button>
+                                    <button
+                                        wire:click="clearCustomer"
+                                        class="text-sm text-red-600 hover:text-red-800 underline whitespace-nowrap">
+                                        Clear
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     @endif

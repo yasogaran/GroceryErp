@@ -569,6 +569,16 @@ class PaymentModal extends Component
     }
 
     /**
+     * Clear selected customer
+     */
+    public function clearCustomer()
+    {
+        $this->selectedCustomerId = null;
+        $this->cartData['customer_id'] = null;
+        session()->flash('success', 'Customer cleared');
+    }
+
+    /**
      * Open customer selector
      */
     public function openCustomerSelector()

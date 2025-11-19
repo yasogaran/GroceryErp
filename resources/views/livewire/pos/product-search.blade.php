@@ -92,7 +92,15 @@
 
                         <!-- Product Info -->
                         <h4 class="font-medium text-sm mb-1 line-clamp-2">{{ $product->name }}</h4>
-                        <p class="text-xs text-gray-500 mb-1">{{ $product->category->name ?? 'N/A' }}</p>
+                        <div class="text-xs text-gray-500 mb-1 flex items-center gap-1 flex-wrap">
+                            <span>{{ $product->category->name ?? 'N/A' }}</span>
+                            @if(isset($batch['supplier_name']) && $batch['supplier_name'])
+                                <span class="text-gray-400">|</span>
+                                <span class="text-blue-600 font-medium" title="{{ $batch['supplier_name'] }}">
+                                    {{ \Illuminate\Support\Str::limit($batch['supplier_name'], 10, '') }}
+                                </span>
+                            @endif
+                        </div>
 
                         <!-- Batch Info -->
                         <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-2 text-xs">

@@ -486,10 +486,11 @@ class InventoryService
      */
     public function getAvailableBatches(Product $product): array
     {
-        // Get all stock IN movements (these represent batches)
+        // Get all stock IN movements (these represent batches) with GRN and supplier
         $stockInMovements = StockMovement::where('product_id', $product->id)
             ->where('movement_type', 'in')
             ->whereNotNull('unit_cost')
+            ->with(['grn.supplier'])
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -499,6 +500,12 @@ class InventoryService
             // For simplicity, we're grouping by batch_number + unit_cost + prices
             // In reality, each stock IN movement is a separate batch
             $batchKey = $movement->id;
+
+            // Get supplier name if available (from GRN)
+            $supplierName = null;
+            if ($movement->reference_type === 'App\\Models\\GRN' && $movement->grn && $movement->grn->supplier) {
+                $supplierName = $movement->grn->supplier->name;
+            }
 
             $batches[] = [
                 'stock_movement_id' => $movement->id,
@@ -510,6 +517,7 @@ class InventoryService
                 'max_selling_price' => $movement->max_selling_price,
                 'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
                 'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
+                'supplier_name' => $supplierName,
             ];
         }
 
