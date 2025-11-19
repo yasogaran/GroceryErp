@@ -205,14 +205,14 @@
         <div class="bg-white rounded-lg shadow-sm p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="{{ route('pos') }}" class="flex items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-blue-200 transition-colors">
+                <a href="{{ route('pos.index') }}" class="flex items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-blue-200 transition-colors">
                     <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <span class="font-semibold text-blue-700">New Sale</span>
                 </a>
 
-                <a href="{{ route('returns.manage') }}" class="flex items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border-2 border-orange-200 transition-colors">
+                <a href="{{ route('returns.process') }}" class="flex items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border-2 border-orange-200 transition-colors">
                     <svg class="w-6 h-6 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                     </svg>
@@ -220,14 +220,14 @@
                 </a>
 
                 @if(!$currentShift)
-                    <a href="{{ route('shifts.manage') }}" class="flex items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg border-2 border-green-200 transition-colors">
+                    <a href="{{ route('shift.open') }}" class="flex items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg border-2 border-green-200 transition-colors">
                         <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span class="font-semibold text-green-700">Start Shift</span>
                     </a>
                 @else
-                    <a href="{{ route('shifts.manage') }}" class="flex items-center justify-center p-4 bg-red-50 hover:bg-red-100 rounded-lg border-2 border-red-200 transition-colors">
+                    <a href="{{ route('shift.close') }}" class="flex items-center justify-center p-4 bg-red-50 hover:bg-red-100 rounded-lg border-2 border-red-200 transition-colors">
                         <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
