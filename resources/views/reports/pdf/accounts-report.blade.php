@@ -113,8 +113,8 @@
         <tbody>
             @foreach($accounts as $account)
                 <tr>
-                    <td>{{ $account->code }}</td>
-                    <td>{{ $account->name }}</td>
+                    <td>{{ $account->account_code }}</td>
+                    <td>{{ $account->account_name }}</td>
                     <td>
                         <span class="type-badge type-{{ $account->account_type }}">
                             {{ ucfirst($account->account_type) }}

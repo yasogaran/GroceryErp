@@ -67,7 +67,7 @@
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200">
                         <option value="">All Accounts</option>
                         @foreach($allAccounts as $acc)
-                            <option value="{{ $acc->id }}">{{ $acc->code }} - {{ $acc->name }}</option>
+                            <option value="{{ $acc->id }}">{{ $acc->account_code }} - {{ $acc->account_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -143,10 +143,10 @@
                     @forelse($accounts as $account)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $account->code }}
+                                {{ $account->account_code }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {{ $account->name }}
+                                {{ $account->account_name }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full

@@ -64,7 +64,7 @@ class AccountsReport extends Component
             ->when($this->accountFilter, function ($q) {
                 $q->where('id', $this->accountFilter);
             })
-            ->orderBy('code')
+            ->orderBy('account_code')
             ->get();
 
         foreach ($accounts as $account) {
@@ -132,8 +132,8 @@ class AccountsReport extends Component
         if ($this->reportType === 'summary') {
             $data = $accounts->map(function ($account) {
                 return [
-                    'Code' => $account->code,
-                    'Account Name' => $account->name,
+                    'Code' => $account->account_code,
+                    'Account Name' => $account->account_name,
                     'Type' => ucfirst($account->account_type),
                     'Opening Balance' => number_format($account->opening_balance, 2),
                     'Debits' => number_format($account->period_debits, 2),
@@ -164,8 +164,8 @@ class AccountsReport extends Component
                 foreach ($transactions as $transaction) {
                     $data[] = [
                         'Date' => $transaction->journalEntry->date->format('Y-m-d'),
-                        'Account Code' => $account->code,
-                        'Account Name' => $account->name,
+                        'Account Code' => $account->account_code,
+                        'Account Name' => $account->account_name,
                         'Reference' => $transaction->journalEntry->reference,
                         'Description' => $transaction->journalEntry->description,
                         'Debit' => number_format($transaction->debit, 2),
@@ -215,7 +215,7 @@ class AccountsReport extends Component
             'expenses' => $accounts->where('account_type', 'expense')->sum('closing_balance'),
         ];
 
-        $allAccounts = Account::orderBy('code')->get();
+        $allAccounts = Account::orderBy('account_code')->get();
 
         return view('livewire.report-generation.accounts-report', [
             'accounts' => $accounts,
