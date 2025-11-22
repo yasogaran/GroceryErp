@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Services\InventoryService;
 use App\Services\PrintService;
 use App\Services\LoyaltyService;
+use App\Services\TransactionService;
 use Illuminate\Support\Facades\DB;
 
 class PaymentModal extends Component
@@ -370,6 +371,15 @@ class PaymentModal extends Component
                     app(LoyaltyService::class)->awardPoints($customer, $sale);
                 }
 
+                // Post sale to accounting (creates journal entries for revenue and COGS)
+                // This updates the Inventory account (1410) via COGS entry
+                try {
+                    app(TransactionService::class)->postSale($sale->fresh(['items', 'payments']));
+                } catch (\Exception $e) {
+                    logger()->error('Failed to post sale to accounting: ' . $e->getMessage());
+                    // Continue execution even if accounting fails
+                }
+
                 // Print receipt
                 try {
                     app(PrintService::class)->printReceipt($sale);
@@ -538,6 +548,15 @@ class PaymentModal extends Component
 
                     // Award loyalty points
                     app(LoyaltyService::class)->awardPoints($customer, $sale);
+                }
+
+                // Post sale to accounting (creates journal entries for revenue and COGS)
+                // This updates the Inventory account (1410) via COGS entry
+                try {
+                    app(TransactionService::class)->postSale($sale->fresh(['items', 'payments']));
+                } catch (\Exception $e) {
+                    logger()->error('Failed to post sale to accounting: ' . $e->getMessage());
+                    // Continue execution even if accounting fails
                 }
 
                 // Print receipt
