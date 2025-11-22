@@ -111,6 +111,9 @@
                                     @if($movement->product->category)
                                         <div class="text-xs text-gray-500">{{ $movement->product->category->name }}</div>
                                     @endif
+                                    @if($movement->supplier_name)
+                                        <div class="text-xs text-blue-600 font-medium">Supplier: {{ $movement->supplier_name }}</div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full

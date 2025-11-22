@@ -156,6 +156,8 @@ class GRN extends Model
                 $inventoryService->addStock($product, $item->received_pieces, [
                     'reference_type' => 'grn',
                     'reference_id' => $this->id,
+                    'supplier_id' => $this->supplier_id,
+                    'supplier_name' => $this->supplier->name,
                     'batch_number' => $item->batch_number,
                     'expiry_date' => $item->expiry_date,
                     'manufacturing_date' => $item->manufacturing_date,

@@ -182,6 +182,7 @@ class PosInterface extends Component
                 'min_selling_price' => $minPrice,
                 'max_selling_price' => $maxPrice,
                 'can_adjust_price' => !is_null($minPrice) && $minPrice < $maxPrice,
+                'is_price_adjusted' => false, // Track if price was manually adjusted
                 'batch_id' => $batchDetails['stock_movement_id'] ?? null,
                 'batch_number' => $batchDetails['batch_number'] ?? 'N/A',
                 'batch_cost' => $batchDetails['unit_cost'] ?? null,
@@ -280,6 +281,7 @@ class PosInterface extends Component
         }
 
         $this->cartItems[$key]['unit_price'] = $newPrice;
+        $this->cartItems[$key]['is_price_adjusted'] = true; // Mark as manually adjusted
         $this->calculateTotals();
 
         $this->dispatch('showToast', type: 'success', message: 'Price updated to ₹' . number_format($newPrice, 2));
@@ -315,21 +317,31 @@ class PosInterface extends Component
                 continue;
             }
 
-            // Calculate base pricing (includes box discount)
-            $pricing = $posService->calculateItemPrice(
-                $product,
-                $item['quantity'],
-                $item['is_box_sale']
-            );
+            // Check if price was manually adjusted
+            $isPriceAdjusted = $item['is_price_adjusted'] ?? false;
 
-            $item['unit_price'] = $pricing['unit_price'];
-            $item['item_discount'] = $pricing['discount'];
+            if (!$isPriceAdjusted) {
+                // Calculate base pricing (includes box discount) only if price not manually adjusted
+                $pricing = $posService->calculateItemPrice(
+                    $product,
+                    $item['quantity'],
+                    $item['is_box_sale']
+                );
+
+                $item['unit_price'] = $pricing['unit_price'];
+                $item['item_discount'] = $pricing['discount'];
+                $baseTotal = $pricing['final_total'];
+            } else {
+                // Use manually adjusted price
+                $baseTotal = $item['quantity'] * $item['unit_price'];
+                $item['item_discount'] = 0; // No automatic discount when price is manually adjusted
+            }
 
             // Apply offers (best offer auto-applies)
             $offer = $offerService->findBestOffer(
                 $product,
                 $item['quantity'],
-                $pricing['final_total']
+                $baseTotal
             );
 
             if ($offer) {
@@ -343,7 +355,7 @@ class PosInterface extends Component
             }
 
             // Final total = base price - box discount - offer discount
-            $item['total'] = $pricing['final_total'] - ($item['offer_discount'] ?? 0);
+            $item['total'] = $baseTotal - ($item['offer_discount'] ?? 0);
             $this->subtotal += $item['total'];
         }
 

@@ -500,15 +500,8 @@ class InventoryService
             // In reality, each stock IN movement is a separate batch
             $batchKey = $movement->id;
 
-            // Get supplier name if available (from GRN)
-            $supplierName = null;
-            if ($movement->reference_type === 'App\\Models\\GRN' && $movement->reference_id) {
-                // Load GRN with supplier only when needed
-                $grn = \App\Models\GRN::with('supplier')->find($movement->reference_id);
-                if ($grn && $grn->supplier) {
-                    $supplierName = $grn->supplier->name;
-                }
-            }
+            // Use denormalized supplier_name for fast lookup (no joins needed!)
+            $supplierName = $movement->supplier_name ?? null;
 
             $batches[] = [
                 'stock_movement_id' => $movement->id,
@@ -541,15 +534,8 @@ class InventoryService
             return null;
         }
 
-        // Get supplier name if available (from GRN)
-        $supplierName = null;
-        if ($movement->reference_type === 'App\\Models\\GRN' && $movement->reference_id) {
-            // Load GRN with supplier only when needed
-            $grn = \App\Models\GRN::with('supplier')->find($movement->reference_id);
-            if ($grn && $grn->supplier) {
-                $supplierName = $grn->supplier->name;
-            }
-        }
+        // Use denormalized supplier_name for fast lookup (no joins needed!)
+        $supplierName = $movement->supplier_name ?? null;
 
         return [
             'stock_movement_id' => $movement->id,
