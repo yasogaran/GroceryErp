@@ -77,7 +77,7 @@
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200">
                         <option value="">All Accounts</option>
                         @foreach($accounts as $account)
-                            <option value="{{ $account->id }}">{{ $account->code }} - {{ $account->name }}</option>
+                            <option value="{{ $account->id }}">{{ $account->account_code }} - {{ $account->account_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -173,7 +173,7 @@
                                     <div class="mt-2 space-y-1 text-xs">
                                         @foreach($entry->lines as $line)
                                             <div class="flex justify-between">
-                                                <span>{{ $line->account?->code }} - {{ $line->account?->name }}</span>
+                                                <span>{{ $line->account?->account_code }} - {{ $line->account?->account_name }}</span>
                                                 <span>
                                                     @if($line->debit > 0)
                                                         <span class="text-green-600">Dr: {{ number_format($line->debit, 2) }}</span>

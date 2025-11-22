@@ -131,8 +131,8 @@ class JournalEntriesReport extends Component
                         'Date' => $entry->date->format('Y-m-d'),
                         'Reference' => $entry->reference,
                         'Description' => $entry->description,
-                        'Account Code' => $line->account?->code ?? 'N/A',
-                        'Account Name' => $line->account?->name ?? 'N/A',
+                        'Account Code' => $line->account?->account_code ?? 'N/A',
+                        'Account Name' => $line->account?->account_name ?? 'N/A',
                         'Debit' => number_format($line->debit, 2),
                         'Credit' => number_format($line->credit, 2),
                         'Status' => ucfirst($entry->status),
@@ -165,7 +165,7 @@ class JournalEntriesReport extends Component
                 'startDate' => $this->startDate,
                 'endDate' => $this->endDate,
                 'status' => ucfirst($this->statusFilter),
-                'account' => $this->accountFilter ? Account::find($this->accountFilter)?->name : 'All',
+                'account' => $this->accountFilter ? Account::find($this->accountFilter)?->account_name : 'All',
             ]
         ])->header('Content-Type', 'text/html');
     }
@@ -191,7 +191,7 @@ class JournalEntriesReport extends Component
     public function render()
     {
         $entries = $this->getJournalEntriesQuery()->paginate($this->perPage);
-        $accounts = Account::orderBy('code')->get();
+        $accounts = Account::orderBy('account_code')->get();
         $stats = $this->calculateStats();
 
         return view('livewire.report-generation.journal-entries-report', [

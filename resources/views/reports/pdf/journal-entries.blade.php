@@ -138,7 +138,7 @@
                             {{ $entry->description }}
                             <div class="entry-lines">
                                 @foreach($entry->lines as $line)
-                                    <div>{{ $line->account?->code }} - {{ $line->account?->name }}:
+                                    <div>{{ $line->account?->account_code }} - {{ $line->account?->account_name }}:
                                         @if($line->debit > 0)
                                             Dr {{ number_format($line->debit, 2) }}
                                         @else
@@ -187,8 +187,8 @@
                             <td>{{ $entry->date->format('Y-m-d') }}</td>
                             <td>{{ $entry->reference }}</td>
                             <td>{{ $entry->description }}</td>
-                            <td>{{ $line->account?->code ?? 'N/A' }}</td>
-                            <td>{{ $line->account?->name ?? 'N/A' }}</td>
+                            <td>{{ $line->account?->account_code ?? 'N/A' }}</td>
+                            <td>{{ $line->account?->account_name ?? 'N/A' }}</td>
                             <td class="right">{{ number_format($line->debit, 2) }}</td>
                             <td class="right">{{ number_format($line->credit, 2) }}</td>
                             <td>
