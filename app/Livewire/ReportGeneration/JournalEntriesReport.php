@@ -18,7 +18,7 @@ class JournalEntriesReport extends Component
     public $endDate;
     public $statusFilter = 'all'; // all, draft, posted, reversed
     public $accountFilter = '';
-    public $sortBy = 'date';
+    public $sortBy = 'entry_date';
     public $sortDirection = 'desc';
     public $perPage = 25;
     public $reportType = 'summary'; // summary, detailed
