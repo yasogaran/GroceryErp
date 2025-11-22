@@ -177,11 +177,11 @@
                     <td>{{ $invoice->invoice_number }}</td>
                     <td>{{ $invoice->created_at->format('Y-m-d H:i') }}</td>
                     <td>{{ $invoice->customer?->name ?? 'Walk-in' }}</td>
-                    <td>{{ $invoice->user?->name ?? 'N/A' }}</td>
-                    <td class="right">{{ $invoice->saleItems->count() }}</td>
+                    <td>{{ $invoice->cashier?->name ?? 'N/A' }}</td>
+                    <td class="right">{{ $invoice->items->count() }}</td>
                     <td class="right">{{ number_format($invoice->total_amount, 2) }}</td>
                     <td class="right">{{ number_format($invoice->paid_amount, 2) }}</td>
-                    <td class="right">{{ number_format($invoice->balance, 2) }}</td>
+                    <td class="right">{{ number_format($invoice->due_amount, 2) }}</td>
                     <td>
                         <span class="status {{ $invoice->payment_status }}">{{ ucfirst($invoice->payment_status) }}</span>
                     </td>
@@ -197,8 +197,8 @@
             <tr>
                 <td colspan="5" class="right">Totals:</td>
                 <td class="right">{{ number_format($invoices->sum('total_amount'), 2) }}</td>
-                <td class="right">{{ number_format($invoices->sum('paid_amount'), 2) }}</td>
-                <td class="right">{{ number_format($invoices->sum('balance'), 2) }}</td>
+                <td class="right">{{ number_format($invoices->sum(fn($inv) => $inv->paid_amount), 2) }}</td>
+                <td class="right">{{ number_format($invoices->sum(fn($inv) => $inv->due_amount), 2) }}</td>
                 <td colspan="2"></td>
             </tr>
         </tfoot>

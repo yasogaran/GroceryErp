@@ -80,7 +80,7 @@ class InvoiceHistoryReport extends Component
 
     public function getInvoicesQuery()
     {
-        $query = Sale::with(['user', 'customer', 'saleItems'])
+        $query = Sale::with(['cashier', 'customer', 'items'])
             ->when($this->search, function ($q) {
                 $q->where('invoice_number', 'like', '%' . $this->search . '%');
             })
@@ -117,14 +117,13 @@ class InvoiceHistoryReport extends Component
                 'Date' => $invoice->created_at->format('Y-m-d H:i:s'),
                 'Customer' => $invoice->customer?->name ?? 'Walk-in Customer',
                 'Customer Phone' => $invoice->customer?->phone ?? 'N/A',
-                'Cashier' => $invoice->user?->name ?? 'N/A',
-                'Items Count' => $invoice->saleItems->count(),
+                'Cashier' => $invoice->cashier?->name ?? 'N/A',
+                'Items Count' => $invoice->items->count(),
                 'Subtotal' => number_format($invoice->subtotal, 2),
                 'Discount' => number_format($invoice->discount_amount, 2),
-                'Tax' => number_format($invoice->tax_amount, 2),
                 'Total Amount' => number_format($invoice->total_amount, 2),
                 'Paid Amount' => number_format($invoice->paid_amount, 2),
-                'Balance Due' => number_format($invoice->balance, 2),
+                'Balance Due' => number_format($invoice->due_amount, 2),
                 'Payment Status' => ucfirst($invoice->payment_status),
                 'Invoice Type' => $invoice->payment_status === 'completed' ? 'Cash Invoice' : 'Credit Invoice',
             ];
@@ -132,7 +131,7 @@ class InvoiceHistoryReport extends Component
 
         $headers = [
             'Invoice #', 'Date', 'Customer', 'Customer Phone', 'Cashier',
-            'Items Count', 'Subtotal', 'Discount', 'Tax', 'Total Amount',
+            'Items Count', 'Subtotal', 'Discount', 'Total Amount',
             'Paid Amount', 'Balance Due', 'Payment Status', 'Invoice Type'
         ];
 
@@ -167,8 +166,12 @@ class InvoiceHistoryReport extends Component
         return [
             'total_invoices' => $invoices->count(),
             'total_amount' => $invoices->sum('total_amount'),
-            'total_paid' => $invoices->sum('paid_amount'),
-            'total_balance' => $invoices->sum('balance'),
+            'total_paid' => $invoices->sum(function ($invoice) {
+                return $invoice->paid_amount;
+            }),
+            'total_balance' => $invoices->sum(function ($invoice) {
+                return $invoice->due_amount;
+            }),
             'completed_invoices' => $invoices->where('payment_status', 'completed')->count(),
             'credit_invoices' => $invoices->whereIn('payment_status', ['partial', 'pending'])->count(),
             'average_invoice' => $invoices->count() > 0 ? $invoices->sum('total_amount') / $invoices->count() : 0,

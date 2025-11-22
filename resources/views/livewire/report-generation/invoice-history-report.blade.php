@@ -178,10 +178,10 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                {{ $invoice->user?->name ?? 'N/A' }}
+                                {{ $invoice->cashier?->name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100">
-                                {{ $invoice->saleItems->count() }}
+                                {{ $invoice->items->count() }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900 dark:text-gray-100">
                                 Rs. {{ number_format($invoice->total_amount, 2) }}
@@ -190,7 +190,7 @@
                                 Rs. {{ number_format($invoice->paid_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 dark:text-red-400">
-                                Rs. {{ number_format($invoice->balance, 2) }}
+                                Rs. {{ number_format($invoice->due_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if($invoice->payment_status === 'completed')
@@ -230,16 +230,16 @@
                 <tfoot class="bg-gray-50 dark:bg-gray-900">
                     <tr>
                         <td colspan="5" class="px-6 py-3 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
-                            Totals:
+                            Page Totals:
                         </td>
                         <td class="px-6 py-3 text-right text-sm font-bold text-gray-900 dark:text-gray-100">
                             Rs. {{ number_format($invoices->sum('total_amount'), 2) }}
                         </td>
                         <td class="px-6 py-3 text-right text-sm font-bold text-green-600 dark:text-green-400">
-                            Rs. {{ number_format($invoices->sum('paid_amount'), 2) }}
+                            Rs. {{ number_format($invoices->sum(fn($inv) => $inv->paid_amount), 2) }}
                         </td>
                         <td class="px-6 py-3 text-right text-sm font-bold text-red-600 dark:text-red-400">
-                            Rs. {{ number_format($invoices->sum('balance'), 2) }}
+                            Rs. {{ number_format($invoices->sum(fn($inv) => $inv->due_amount), 2) }}
                         </td>
                         <td colspan="2"></td>
                     </tr>
