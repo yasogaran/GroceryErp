@@ -186,5 +186,15 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['check.role:store_keeper,manager,admin'])->prefix('barcodes')->name('barcodes.')->group(function () {
         Route::get('/labels', LabelPrinting::class)->name('labels');
     });
+
+    // Report Generation routes (manager, admin) - New comprehensive report generation system
+    Route::middleware(['check.role:manager,admin'])->prefix('report-generation')->name('report-generation.')->group(function () {
+        Route::get('/', \App\Livewire\ReportGeneration\ReportGenerationIndex::class)->name('index');
+        Route::get('/stock-inventory', \App\Livewire\ReportGeneration\StockInventoryReport::class)->name('stock-inventory');
+        Route::get('/sales', \App\Livewire\ReportGeneration\SalesReport::class)->name('sales');
+        Route::get('/accounts', \App\Livewire\ReportGeneration\AccountsReport::class)->name('accounts');
+        Route::get('/invoice-history', \App\Livewire\ReportGeneration\InvoiceHistoryReport::class)->name('invoice-history');
+        Route::get('/journal-entries', \App\Livewire\ReportGeneration\JournalEntriesReport::class)->name('journal-entries');
+    });
 });
 
