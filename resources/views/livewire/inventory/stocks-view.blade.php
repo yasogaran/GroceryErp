@@ -221,6 +221,9 @@
                                             <div class="text-sm text-gray-400 italic">No batch number</div>
                                         @endif
                                         <div class="text-xs text-gray-500">ID: #{{ $batch->id }}</div>
+                                        @if($batch->supplier_name)
+                                            <div class="text-xs text-blue-600 font-medium">{{ $batch->supplier_name }}</div>
+                                        @endif
                                     </div>
                                 </td>
 
