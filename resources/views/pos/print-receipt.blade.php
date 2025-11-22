@@ -36,6 +36,15 @@
             border-bottom: 2px solid #1f2937;
             padding-bottom: 1rem;
             margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .header .logo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            max-width: 120px;
+            max-height: 80px;
         }
 
         .header h1 {
@@ -391,12 +400,12 @@
             </svg>
             Print (Ctrl+P)
         </button>
-        <a href="{{ route('pos.index') }}" class="btn btn-secondary">
+        <button onclick="closeInvoice()" class="btn btn-secondary">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
-            Back to POS
-        </a>
+            Close Invoice
+        </button>
     </div>
 
     <!-- Receipt Container -->
@@ -404,6 +413,9 @@
         <div class="receipt-container">
             <!-- Header -->
             <div class="header">
+                <!-- Logo (Left Top) - Update path in settings or replace /images/logo.png with your logo path -->
+                <img src="/images/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+
                 <h1>{{ config('app.name', 'Grocery ERP') }}</h1>
                 @php
                     $settings = \App\Models\Setting::first();
@@ -563,9 +575,9 @@
                 <button onclick="window.print()" class="btn btn-primary">
                     Print Receipt
                 </button>
-                <a href="{{ route('pos.index') }}" class="btn btn-secondary">
-                    Back to POS
-                </a>
+                <button onclick="closeInvoice()" class="btn btn-secondary">
+                    Close Invoice
+                </button>
             </div>
         </div>
     </div>
@@ -579,6 +591,20 @@
                 window.print();
             }
         });
+
+        // Function to close invoice tab/window
+        function closeInvoice() {
+            // Try to close the window
+            window.close();
+
+            // If window.close() doesn't work (tab not opened by script),
+            // redirect to POS as fallback
+            setTimeout(function() {
+                if (!window.closed) {
+                    window.location.href = '{{ route("pos.index") }}';
+                }
+            }, 100);
+        }
     </script>
 </body>
 </html>
