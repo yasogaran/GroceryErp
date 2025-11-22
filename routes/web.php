@@ -7,10 +7,13 @@ use App\Livewire\Settings\SettingsManagement;
 use App\Livewire\ActivityLogs;
 use App\Livewire\Auth\Login;
 use App\Livewire\Categories\CategoryManagement;
+use App\Livewire\Categories\ImportCategories;
 use App\Livewire\Accounts\AccountManagement;
 use App\Livewire\Inventory\StockMovements;
 use App\Livewire\Inventory\StocksView;
+use App\Livewire\Inventory\ImportStock;
 use App\Livewire\Products\ProductManagement;
+use App\Livewire\Products\ImportProducts;
 use App\Livewire\Suppliers\SupplierManagement;
 use App\Livewire\Suppliers\SupplierForm;
 use App\Livewire\Suppliers\SupplierLedger;
@@ -70,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
     // Category routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/categories', CategoryManagement::class)->name('categories.index');
+        Route::get('/categories/import', ImportCategories::class)->name('categories.import');
     });
 
     // Account routes (accountant, admin)
@@ -86,11 +90,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/stock-movements', StockMovements::class)->name('stock-movements.index');
         Route::get('/stocks', StocksView::class)->name('stocks.index');
+        Route::get('/stocks/import', ImportStock::class)->name('stocks.import');
     });
 
     // Product routes (store_keeper, manager, admin)
     Route::middleware(['check.role:store_keeper,manager,admin'])->group(function () {
         Route::get('/products', ProductManagement::class)->name('products.index');
+        Route::get('/products/import', ImportProducts::class)->name('products.import');
     });
 
     // Supplier routes (manager, admin)
