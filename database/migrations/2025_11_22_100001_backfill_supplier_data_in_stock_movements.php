@@ -14,7 +14,7 @@ return new class extends Migration
     public function up(): void
     {
         // Only backfill for stock movements that reference GRNs
-        DB::statement("
+        $updatedCount = DB::update("
             UPDATE stock_movements sm
             INNER JOIN grns g ON sm.reference_id = g.id AND sm.reference_type = 'grn'
             INNER JOIN suppliers s ON g.supplier_id = s.id
@@ -25,7 +25,6 @@ return new class extends Migration
         ");
 
         // Log the number of records updated
-        $updatedCount = DB::affectedRows();
         if ($updatedCount > 0) {
             \Log::info("Backfilled supplier data for {$updatedCount} stock movements");
         }
