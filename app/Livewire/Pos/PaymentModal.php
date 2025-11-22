@@ -371,14 +371,8 @@ class PaymentModal extends Component
                     app(LoyaltyService::class)->awardPoints($customer, $sale);
                 }
 
-                // Post sale to accounting (creates journal entries for revenue and COGS)
-                // This updates the Inventory account (1410) via COGS entry
-                try {
-                    app(TransactionService::class)->postSale($sale->fresh(['items', 'payments']));
-                } catch (\Exception $e) {
-                    logger()->error('Failed to post sale to accounting: ' . $e->getMessage());
-                    // Continue execution even if accounting fails
-                }
+                // Note: Accounting journal entries are automatically created by SaleObserver
+                // which posts the sale to accounting after transaction commits
 
                 // Print receipt
                 try {
@@ -550,14 +544,8 @@ class PaymentModal extends Component
                     app(LoyaltyService::class)->awardPoints($customer, $sale);
                 }
 
-                // Post sale to accounting (creates journal entries for revenue and COGS)
-                // This updates the Inventory account (1410) via COGS entry
-                try {
-                    app(TransactionService::class)->postSale($sale->fresh(['items', 'payments']));
-                } catch (\Exception $e) {
-                    logger()->error('Failed to post sale to accounting: ' . $e->getMessage());
-                    // Continue execution even if accounting fails
-                }
+                // Note: Accounting journal entries are automatically created by SaleObserver
+                // which posts the sale to accounting after transaction commits
 
                 // Print receipt
                 try {
