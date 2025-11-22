@@ -247,7 +247,7 @@
                                 </span>
                                 <span class="block text-xs text-amber-700 mt-1">
                                     Active Shift: Started at {{ $activeShift->shift_start->format('d M Y, h:i A') }} |
-                                    Current Cash: {{ settings('currency_symbol', 'Rs.') }} {{ number_format($activeShift->total_cash_sales, 2) }}
+                                    Current Cash: {{ settings('currency_symbol', 'Rs.') }} {{ number_format($activeShift->opening_cash + $activeShift->total_sales, 2) }}
                                 </span>
                             </span>
                         </label>
