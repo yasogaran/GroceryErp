@@ -132,7 +132,7 @@
             <tbody>
                 @foreach($entries as $entry)
                     <tr>
-                        <td>{{ $entry->date->format('Y-m-d') }}</td>
+                        <td>{{ $entry->entry_date->format('Y-m-d') }}</td>
                         <td>{{ $entry->reference }}</td>
                         <td>
                             {{ $entry->description }}
@@ -184,7 +184,7 @@
                 @foreach($entries as $entry)
                     @foreach($entry->lines as $line)
                         <tr>
-                            <td>{{ $entry->date->format('Y-m-d') }}</td>
+                            <td>{{ $entry->entry_date->format('Y-m-d') }}</td>
                             <td>{{ $entry->reference }}</td>
                             <td>{{ $entry->description }}</td>
                             <td>{{ $line->account?->account_code ?? 'N/A' }}</td>

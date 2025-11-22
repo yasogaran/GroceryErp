@@ -75,16 +75,16 @@ class AccountsReport extends Component
             $periodDebits = JournalEntryLine::where('account_id', $account->id)
                 ->whereHas('journalEntry', function ($q) {
                     $q->where('status', 'posted')
-                        ->whereDate('date', '>=', $this->startDate)
-                        ->whereDate('date', '<=', $this->endDate);
+                        ->whereDate('entry_date', '>=', $this->startDate)
+                        ->whereDate('entry_date', '<=', $this->endDate);
                 })
                 ->sum('debit');
 
             $periodCredits = JournalEntryLine::where('account_id', $account->id)
                 ->whereHas('journalEntry', function ($q) {
                     $q->where('status', 'posted')
-                        ->whereDate('date', '>=', $this->startDate)
-                        ->whereDate('date', '<=', $this->endDate);
+                        ->whereDate('entry_date', '>=', $this->startDate)
+                        ->whereDate('entry_date', '<=', $this->endDate);
                 })
                 ->sum('credit');
 
@@ -108,13 +108,13 @@ class AccountsReport extends Component
                 $q->where('status', 'posted');
 
                 if ($beforeStartDate && $startDate) {
-                    $q->whereDate('date', '<', $startDate);
+                    $q->whereDate('entry_date', '<', $startDate);
                 } else {
                     if ($startDate) {
-                        $q->whereDate('date', '>=', $startDate);
+                        $q->whereDate('entry_date', '>=', $startDate);
                     }
                     if ($endDate) {
-                        $q->whereDate('date', '<=', $endDate);
+                        $q->whereDate('entry_date', '<=', $endDate);
                     }
                 }
             });
@@ -154,8 +154,8 @@ class AccountsReport extends Component
                 $transactions = JournalEntryLine::where('account_id', $account->id)
                     ->whereHas('journalEntry', function ($q) {
                         $q->where('status', 'posted')
-                            ->whereDate('date', '>=', $this->startDate)
-                            ->whereDate('date', '<=', $this->endDate);
+                            ->whereDate('entry_date', '>=', $this->startDate)
+                            ->whereDate('entry_date', '<=', $this->endDate);
                     })
                     ->with('journalEntry')
                     ->orderBy('id')
@@ -163,7 +163,7 @@ class AccountsReport extends Component
 
                 foreach ($transactions as $transaction) {
                     $data[] = [
-                        'Date' => $transaction->journalEntry->date->format('Y-m-d'),
+                        'Date' => $transaction->journalEntry->entry_date->format('Y-m-d'),
                         'Account Code' => $account->account_code,
                         'Account Name' => $account->account_name,
                         'Reference' => $transaction->journalEntry->reference,

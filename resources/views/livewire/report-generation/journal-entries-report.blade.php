@@ -159,7 +159,7 @@
                     @forelse($entries as $entry)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                {{ $entry->date->format('Y-m-d') }}
+                                {{ $entry->entry_date->format('Y-m-d') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">
                                 {{ $entry->reference }}

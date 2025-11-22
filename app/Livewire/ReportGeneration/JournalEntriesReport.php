@@ -83,10 +83,10 @@ class JournalEntriesReport extends Component
                 });
             })
             ->when($this->startDate, function ($q) {
-                $q->whereDate('date', '>=', $this->startDate);
+                $q->whereDate('entry_date', '>=', $this->startDate);
             })
             ->when($this->endDate, function ($q) {
-                $q->whereDate('date', '<=', $this->endDate);
+                $q->whereDate('entry_date', '<=', $this->endDate);
             })
             ->when($this->statusFilter !== 'all', function ($q) {
                 $q->where('status', $this->statusFilter);
@@ -107,7 +107,7 @@ class JournalEntriesReport extends Component
         if ($this->reportType === 'summary') {
             $data = $entries->map(function ($entry) {
                 return [
-                    'Date' => $entry->date->format('Y-m-d'),
+                    'Date' => $entry->entry_date->format('Y-m-d'),
                     'Reference' => $entry->reference,
                     'Description' => $entry->description,
                     'Status' => ucfirst($entry->status),
@@ -128,7 +128,7 @@ class JournalEntriesReport extends Component
             foreach ($entries as $entry) {
                 foreach ($entry->lines as $line) {
                     $data[] = [
-                        'Date' => $entry->date->format('Y-m-d'),
+                        'Date' => $entry->entry_date->format('Y-m-d'),
                         'Reference' => $entry->reference,
                         'Description' => $entry->description,
                         'Account Code' => $line->account?->account_code ?? 'N/A',
