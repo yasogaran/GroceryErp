@@ -541,6 +541,16 @@ class InventoryService
             return null;
         }
 
+        // Get supplier name if available (from GRN)
+        $supplierName = null;
+        if ($movement->reference_type === 'App\\Models\\GRN' && $movement->reference_id) {
+            // Load GRN with supplier only when needed
+            $grn = \App\Models\GRN::with('supplier')->find($movement->reference_id);
+            if ($grn && $grn->supplier) {
+                $supplierName = $grn->supplier->name;
+            }
+        }
+
         return [
             'stock_movement_id' => $movement->id,
             'batch_number' => $movement->batch_number ?? 'N/A',
@@ -550,6 +560,7 @@ class InventoryService
             'grn_date' => $movement->created_at->format('Y-m-d'),
             'manufacturing_date' => $movement->manufacturing_date?->format('Y-m-d'),
             'expiry_date' => $movement->expiry_date?->format('Y-m-d'),
+            'supplier_name' => $supplierName,
         ];
     }
 }

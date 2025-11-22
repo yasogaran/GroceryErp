@@ -96,6 +96,37 @@
                     </div>
 
                     <div class="space-y-3">
+                        <!-- Category Filter -->
+                        <div>
+                            <label for="categoryFilter" class="block text-xs font-medium text-gray-700 mb-1">
+                                Filter by Category
+                            </label>
+                            <select
+                                wire:model.live="categoryFilter"
+                                id="categoryFilter"
+                                class="block w-full border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            >
+                                <option value="">All Categories</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Product Search -->
+                        <div>
+                            <label for="productSearch" class="block text-xs font-medium text-gray-700 mb-1">
+                                Search Product
+                            </label>
+                            <input
+                                wire:model.live.debounce.300ms="productSearch"
+                                type="text"
+                                id="productSearch"
+                                placeholder="Search by name or SKU..."
+                                class="block w-full border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            >
+                        </div>
+
                         <!-- Product -->
                         <div>
                             <label for="product_id" class="block text-xs font-medium text-gray-700 mb-1">
@@ -108,9 +139,17 @@
                             >
                                 <option value="">Select Product</option>
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
+                                    <option value="{{ $product->id }}">
+                                        {{ $product->name }} ({{ $product->sku }})
+                                        @if($product->category)
+                                            - {{ $product->category->name }}
+                                        @endif
+                                    </option>
                                 @endforeach
                             </select>
+                            @if($products->count() === 0 && ($categoryFilter || $productSearch))
+                                <p class="mt-1 text-xs text-amber-600">No products found. Try adjusting your filters.</p>
+                            @endif
                         </div>
 
                         <!-- Boxes and Pieces -->
@@ -240,9 +279,10 @@
                             <button
                                 wire:click.prevent="addItem"
                                 type="button"
+                                id="addItemBtn"
                                 class="w-full px-4 py-2 {{ $editingItemIndex !== null ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700' }} text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $editingItemIndex !== null ? 'focus:ring-blue-500' : 'focus:ring-green-500' }} text-sm font-medium"
                             >
-                                {{ $editingItemIndex !== null ? 'Update Item' : 'Add Item' }}
+                                {{ $editingItemIndex !== null ? 'Update Item' : 'Add Item' }} <span class="text-xs opacity-75">(F2)</span>
                             </button>
                         </div>
                     </div>
@@ -344,12 +384,40 @@
                 </a>
                 <button
                     type="submit"
+                    id="submitGrnBtn"
                     class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     {{ count($items) === 0 ? 'disabled' : '' }}
                 >
-                    {{ $isEditMode ? 'Update GRN' : 'Create GRN' }}
+                    {{ $isEditMode ? 'Update GRN' : 'Create GRN' }} <span class="text-xs opacity-75">(F3)</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // F2 - Add/Update Item
+            if (event.key === 'F2') {
+                event.preventDefault();
+                const addItemBtn = document.getElementById('addItemBtn');
+                if (addItemBtn) {
+                    addItemBtn.click();
+                }
+            }
+
+            // F3 - Submit GRN
+            if (event.key === 'F3') {
+                event.preventDefault();
+                const submitBtn = document.getElementById('submitGrnBtn');
+                if (submitBtn && !submitBtn.disabled) {
+                    submitBtn.click();
+                }
+            }
+        });
+    });
+</script>
+@endpush

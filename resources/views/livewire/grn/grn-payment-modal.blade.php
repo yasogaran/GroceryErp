@@ -134,7 +134,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Payment Mode <span class="text-red-500">*</span>
                     </label>
-                    <select wire:model="payment_mode"
+                    <select wire:model.live="payment_mode"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="cash">Cash</option>
                         <option value="bank_transfer">Bank Transfer</option>
@@ -144,8 +144,27 @@
                     @enderror
                 </div>
 
-                <!-- Bank Reference (shown only for bank transfer) -->
+                <!-- Bank Account (shown only for bank transfer) -->
                 @if($payment_mode === 'bank_transfer')
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Bank Account <span class="text-red-500">*</span>
+                    </label>
+                    <select wire:model="bank_account_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('bank_account_id') border-red-500 @enderror">
+                        <option value="">Select Bank Account</option>
+                        @foreach($bankAccounts as $account)
+                            <option value="{{ $account->id }}">
+                                {{ $account->account_name }} ({{ $account->account_code }}) - Balance: ₹{{ number_format($account->balance, 2) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('bank_account_id')
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <!-- Bank Reference (shown only for bank transfer) -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Bank Reference

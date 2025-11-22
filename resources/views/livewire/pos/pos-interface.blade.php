@@ -155,7 +155,16 @@
                         <div class="flex justify-between items-start mb-2">
                             <div class="flex-1">
                                 <h4 class="font-medium text-gray-800">{{ $item['name'] }}</h4>
-                                <p class="text-xs text-gray-500">{{ $item['sku'] }}</p>
+                                <p class="text-xs text-gray-500 flex items-center gap-1 flex-wrap">
+                                    <span>{{ $item['category_name'] ?? 'N/A' }}</span>
+                                    @if(isset($item['supplier_name']) && $item['supplier_name'])
+                                        <span class="text-gray-400">|</span>
+                                        <span class="text-blue-600 font-medium" title="{{ $item['supplier_name'] }}">
+                                            {{ \Illuminate\Support\Str::limit($item['supplier_name'], 15, '') }}
+                                        </span>
+                                    @endif
+                                </p>
+                                <p class="text-xs text-gray-400">{{ $item['sku'] }}</p>
 
                                 @if($item['is_box_sale'])
                                     <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mt-1">

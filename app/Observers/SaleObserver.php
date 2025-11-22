@@ -33,8 +33,8 @@ class SaleObserver
             usleep(100000); // 100ms delay
 
             try {
-                // Reload the sale with fresh data from database
-                $freshSale = Sale::with('payments')->find($sale->id);
+                // Reload the sale with fresh data from database (include items for COGS calculation)
+                $freshSale = Sale::with(['payments', 'items'])->find($sale->id);
 
                 if (!$freshSale) {
                     Log::warning("Sale #{$sale->id} not found after creation", [

@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Services\InventoryService;
 use App\Services\PrintService;
 use App\Services\LoyaltyService;
+use App\Services\TransactionService;
 use Illuminate\Support\Facades\DB;
 
 class PaymentModal extends Component
@@ -349,15 +350,17 @@ class PaymentModal extends Component
 
                 // Update shift totals
                 $shift = auth()->user()->currentShift;
-                $shift->increment('total_sales', $actualPaidAmount);
-                $shift->increment('total_transactions');
 
-                // Update cash or bank sales based on payment mode
+                // Only increment total_sales for cash payments (shift tracks drawer/cash on hand)
                 if ($this->selectedPaymentMode === 'cash') {
+                    $shift->increment('total_sales', $actualPaidAmount);
                     $shift->increment('total_cash_sales', $actualPaidAmount);
                 } else {
+                    // Bank payments don't affect shift cash drawer
                     $shift->increment('total_bank_sales', $actualPaidAmount);
                 }
+
+                $shift->increment('total_transactions');
 
                 // Update customer total purchases and award loyalty points
                 if ($this->cartData['customer_id']) {
@@ -367,6 +370,9 @@ class PaymentModal extends Component
                     // Award loyalty points (only on paid amount for credit invoices)
                     app(LoyaltyService::class)->awardPoints($customer, $sale);
                 }
+
+                // Note: Accounting journal entries are automatically created by SaleObserver
+                // which posts the sale to accounting after transaction commits
 
                 // Print receipt
                 try {
@@ -509,16 +515,24 @@ class PaymentModal extends Component
 
                 // Update shift totals
                 $shift = auth()->user()->currentShift;
-                $shift->increment('total_sales', $this->cartData['total']);
                 $shift->increment('total_transactions');
 
                 // Update cash and bank totals separately
+                // Only cash payments affect shift total_sales (drawer/cash on hand)
+                $totalCashAmount = 0;
                 foreach ($this->payments as $payment) {
                     if ($payment['mode'] === 'cash') {
                         $shift->increment('total_cash_sales', $payment['amount']);
+                        $totalCashAmount += $payment['amount'];
                     } else {
+                        // Bank payments don't affect shift cash drawer
                         $shift->increment('total_bank_sales', $payment['amount']);
                     }
+                }
+
+                // Only increment total_sales by cash amount (shift tracks drawer/cash on hand)
+                if ($totalCashAmount > 0) {
+                    $shift->increment('total_sales', $totalCashAmount);
                 }
 
                 // Update customer total purchases and award loyalty points
@@ -529,6 +543,9 @@ class PaymentModal extends Component
                     // Award loyalty points
                     app(LoyaltyService::class)->awardPoints($customer, $sale);
                 }
+
+                // Note: Accounting journal entries are automatically created by SaleObserver
+                // which posts the sale to accounting after transaction commits
 
                 // Print receipt
                 try {

@@ -6,6 +6,7 @@ use App\Models\GRN;
 use App\Models\GRNItem;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -34,6 +35,10 @@ class GrnForm extends Component
     public $isEditMode = false;
     public $selectedProduct = null;
     public $editingItemIndex = null; // Track which item is being edited
+
+    // Product filtering
+    public $categoryFilter = '';
+    public $productSearch = '';
 
     protected $rules = [
         'supplier_id' => 'required|exists:suppliers,id',
@@ -300,10 +305,27 @@ class GrnForm extends Component
     public function render()
     {
         $suppliers = Supplier::active()->orderBy('name')->get();
-        $products = Product::active()->orderBy('name')->get();
+        $categories = Category::active()->orderBy('name')->get();
+
+        // Filter products based on category and search
+        $productsQuery = Product::with('category')->active();
+
+        if ($this->categoryFilter) {
+            $productsQuery->where('category_id', $this->categoryFilter);
+        }
+
+        if ($this->productSearch) {
+            $productsQuery->where(function($query) {
+                $query->where('name', 'like', '%' . $this->productSearch . '%')
+                      ->orWhere('sku', 'like', '%' . $this->productSearch . '%');
+            });
+        }
+
+        $products = $productsQuery->orderBy('name')->get();
 
         return view('livewire.grn.grn-form', [
             'suppliers' => $suppliers,
+            'categories' => $categories,
             'products' => $products,
         ]);
     }

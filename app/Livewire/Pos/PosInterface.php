@@ -88,7 +88,7 @@ class PosInterface extends Component
     public function addToCart($productId, $isBoxSale = false, $batchId = null)
     {
         // Fresh query to get latest stock quantity
-        $product = Product::with('packaging')->find($productId);
+        $product = Product::with(['packaging', 'category'])->find($productId);
 
         if (!$product) {
             $this->dispatch('showToast', type: 'error', message: 'Product not found');
@@ -131,6 +131,7 @@ class PosInterface extends Component
                 'min_selling_price' => $fifoBatch['min_selling_price'],
                 'max_selling_price' => $fifoBatch['max_selling_price'],
                 'batch_number' => $fifoBatch['batch_number'],
+                'supplier_name' => $fifoBatch['supplier_name'] ?? null,
             ];
         }
 
@@ -174,6 +175,7 @@ class PosInterface extends Component
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'sku' => $product->sku,
+                'category_name' => $product->category->name ?? 'N/A',
                 'is_box_sale' => $isBoxSale,
                 'quantity' => $quantity,
                 'unit_price' => $maxPrice, // Default to max price (MRP)
@@ -183,6 +185,7 @@ class PosInterface extends Component
                 'batch_id' => $batchDetails['stock_movement_id'] ?? null,
                 'batch_number' => $batchDetails['batch_number'] ?? 'N/A',
                 'batch_cost' => $batchDetails['unit_cost'] ?? null,
+                'supplier_name' => $batchDetails['supplier_name'] ?? null,
                 'item_discount' => 0,
                 'offer_id' => null,
                 'offer_discount' => 0,

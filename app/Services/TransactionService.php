@@ -26,10 +26,15 @@ class TransactionService
     /**
      * Post a sale transaction to accounting
      *
-     * Accounting Entry:
+     * Creates TWO journal entries:
+     *
+     * Entry 1 - Revenue Recognition:
      * DR Cash/Bank/Customer Receivable (payment mode)
      * CR Sales Revenue
-     * CR Sales Discount (if any)
+     *
+     * Entry 2 - COGS Recognition (updates Inventory):
+     * DR Cost of Goods Sold (5110)
+     * CR Inventory (1410) - This decreases inventory value
      *
      * @param Sale $sale
      * @return void
@@ -40,15 +45,17 @@ class TransactionService
         DB::beginTransaction();
 
         try {
-            $lines = [];
-            $totalAmount = $sale->total_amount;
             $description = "Sale #{$sale->invoice_number}";
+
+            // === ENTRY 1: Revenue Recognition ===
+            $revenueLines = [];
+            $totalAmount = $sale->total_amount;
 
             // Handle multiple payment methods
             foreach ($sale->payments as $payment) {
                 $debitAccount = $this->getPaymentAccount($payment->payment_mode, $payment->bank_account_id);
 
-                $lines[] = [
+                $revenueLines[] = [
                     'account_id' => $debitAccount,
                     'description' => $description . " - {$payment->payment_mode}",
                     'debit' => $payment->amount,
@@ -59,7 +66,7 @@ class TransactionService
             // If there's a due amount (credit sale), debit Accounts Receivable
             if ($sale->due_amount > 0) {
                 $receivablesAccount = $this->getAccountByCode('1310');
-                $lines[] = [
+                $revenueLines[] = [
                     'account_id' => $receivablesAccount->id,
                     'description' => $description . " - Credit",
                     'debit' => $sale->due_amount,
@@ -69,33 +76,75 @@ class TransactionService
 
             // Credit: Sales Revenue (4110)
             $salesAccount = $this->getAccountByCode('4110');
-            $lines[] = [
+            $revenueLines[] = [
                 'account_id' => $salesAccount->id,
                 'description' => $description,
                 'debit' => 0,
                 'credit' => $totalAmount,
             ];
 
-            // Create journal entry
+            // Create revenue journal entry
             $this->journalService->createEntry([
                 'entry_date' => $sale->created_at->toDateString(),
-                'description' => $description,
+                'description' => $description . " - Revenue",
                 'entry_type' => 'sale',
                 'reference_type' => Sale::class,
                 'reference_id' => $sale->id,
-                'lines' => $lines,
+                'lines' => $revenueLines,
                 'status' => 'draft',
-                'created_by' => $sale->created_by, // Use the sale creator
+                'created_by' => $sale->created_by,
             ]);
 
-            // Auto-post the entry
-            $entry = \App\Models\JournalEntry::where('reference_type', Sale::class)
+            // Auto-post the revenue entry
+            $revenueEntry = \App\Models\JournalEntry::where('reference_type', Sale::class)
                 ->where('reference_id', $sale->id)
+                ->where('description', 'like', '%Revenue%')
                 ->latest()
                 ->first();
 
-            if ($entry) {
-                $this->journalService->postEntry($entry);
+            if ($revenueEntry) {
+                $this->journalService->postEntry($revenueEntry);
+            }
+
+            // === ENTRY 2: COGS Recognition (Updates Inventory Account 1410) ===
+            // Calculate total COGS from sale items
+            $totalCOGS = 0;
+            foreach ($sale->items as $item) {
+                if ($item->unit_cost && $item->quantity) {
+                    $totalCOGS += ($item->unit_cost * $item->quantity);
+                }
+            }
+
+            // Only create COGS entry if we have cost data
+            if ($totalCOGS > 0) {
+                // DR: Cost of Goods Sold (5110)
+                $cogsAccount = $this->getAccountByCode('5110');
+
+                // CR: Inventory/Stock in Hand (1410) - This decreases inventory value
+                $inventoryAccount = $this->getAccountByCode('1410');
+
+                $this->journalService->createSimpleEntry(
+                    entryDate: $sale->created_at->toDateString(),
+                    debitAccountId: $cogsAccount->id,
+                    creditAccountId: $inventoryAccount->id,
+                    amount: number_format($totalCOGS, 2, '.', ''),
+                    description: $description . " - COGS",
+                    entryType: 'sale',
+                    referenceType: Sale::class,
+                    referenceId: $sale->id,
+                    createdBy: $sale->created_by
+                );
+
+                // Auto-post the COGS entry
+                $cogsEntry = \App\Models\JournalEntry::where('reference_type', Sale::class)
+                    ->where('reference_id', $sale->id)
+                    ->where('description', 'like', '%COGS%')
+                    ->latest()
+                    ->first();
+
+                if ($cogsEntry) {
+                    $this->journalService->postEntry($cogsEntry);
+                }
             }
 
             DB::commit();
