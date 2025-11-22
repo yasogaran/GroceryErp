@@ -153,7 +153,7 @@
                         <td>
                             <span class="status {{ $entry->status }}">{{ ucfirst($entry->status) }}</span>
                         </td>
-                        <td>{{ $entry->createdBy?->name ?? 'N/A' }}</td>
+                        <td>{{ $entry->creator?->name ?? 'N/A' }}</td>
                     </tr>
                 @endforeach
             </tbody>

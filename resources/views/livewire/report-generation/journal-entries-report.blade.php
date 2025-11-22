@@ -208,7 +208,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                {{ $entry->createdBy?->name ?? 'N/A' }}
+                                {{ $entry->creator?->name ?? 'N/A' }}
                                 <div class="text-xs text-gray-500">{{ $entry->created_at->format('Y-m-d H:i') }}</div>
                             </td>
                         </tr>

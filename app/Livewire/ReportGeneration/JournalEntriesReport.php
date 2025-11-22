@@ -75,7 +75,7 @@ class JournalEntriesReport extends Component
 
     public function getJournalEntriesQuery()
     {
-        $query = JournalEntry::with(['lines.account', 'createdBy'])
+        $query = JournalEntry::with(['lines.account', 'creator'])
             ->when($this->search, function ($q) {
                 $q->where(function ($q) {
                     $q->where('reference', 'like', '%' . $this->search . '%')
@@ -113,7 +113,7 @@ class JournalEntriesReport extends Component
                     'Status' => ucfirst($entry->status),
                     'Total Debit' => number_format($entry->lines->sum('debit'), 2),
                     'Total Credit' => number_format($entry->lines->sum('credit'), 2),
-                    'Created By' => $entry->createdBy?->name ?? 'N/A',
+                    'Created By' => $entry->creator?->name ?? 'N/A',
                     'Created At' => $entry->created_at->format('Y-m-d H:i:s'),
                 ];
             })->toArray();
