@@ -159,10 +159,10 @@
                                 {{ $sale->customer?->name ?? 'Walk-in' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                {{ $sale->user?->name ?? 'N/A' }}
+                                {{ $sale->cashier?->name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100">
-                                {{ $sale->saleItems->count() }}
+                                {{ $sale->items->count() }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100">
                                 Rs. {{ number_format($sale->subtotal, 2) }}
@@ -174,7 +174,7 @@
                                 Rs. {{ number_format($sale->total_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-green-600 dark:text-green-400">
-                                Rs. {{ number_format($sale->saleItems->sum('profit'), 2) }}
+                                Rs. {{ number_format($sale->items->sum('profit'), 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if($sale->payment_status === 'completed')
@@ -215,7 +215,7 @@
                             Rs. {{ number_format($sales->sum('total_amount'), 2) }}
                         </td>
                         <td class="px-6 py-3 text-right text-sm font-bold text-green-600 dark:text-green-400">
-                            Rs. {{ number_format($sales->sum(fn($s) => $s->saleItems->sum('profit')), 2) }}
+                            Rs. {{ number_format($sales->sum(fn($s) => $s->items->sum('profit')), 2) }}
                         </td>
                         <td></td>
                     </tr>

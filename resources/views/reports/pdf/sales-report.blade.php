@@ -176,12 +176,12 @@
                     <td>{{ $sale->invoice_number }}</td>
                     <td>{{ $sale->created_at->format('Y-m-d H:i') }}</td>
                     <td>{{ $sale->customer?->name ?? 'Walk-in' }}</td>
-                    <td>{{ $sale->user?->name ?? 'N/A' }}</td>
-                    <td class="right">{{ $sale->saleItems->count() }}</td>
+                    <td>{{ $sale->cashier?->name ?? 'N/A' }}</td>
+                    <td class="right">{{ $sale->items->count() }}</td>
                     <td class="right">{{ number_format($sale->subtotal, 2) }}</td>
                     <td class="right">{{ number_format($sale->discount_amount, 2) }}</td>
                     <td class="right">{{ number_format($sale->total_amount, 2) }}</td>
-                    <td class="right">{{ number_format($sale->saleItems->sum('profit'), 2) }}</td>
+                    <td class="right">{{ number_format($sale->items->sum('profit'), 2) }}</td>
                     <td>
                         <span class="status {{ $sale->payment_status }}">{{ ucfirst($sale->payment_status) }}</span>
                     </td>
@@ -194,7 +194,7 @@
                 <td class="right">{{ number_format($sales->sum('subtotal'), 2) }}</td>
                 <td class="right">{{ number_format($sales->sum('discount_amount'), 2) }}</td>
                 <td class="right">{{ number_format($sales->sum('total_amount'), 2) }}</td>
-                <td class="right">{{ number_format($sales->sum(fn($s) => $s->saleItems->sum('profit')), 2) }}</td>
+                <td class="right">{{ number_format($sales->sum(fn($s) => $s->items->sum('profit')), 2) }}</td>
                 <td></td>
             </tr>
         </tfoot>
