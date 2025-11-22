@@ -231,6 +231,15 @@ class AccountSeeder extends Seeder
             'is_system_account' => true,
         ]);
 
+        // 5110: COGS - Merchandise - Used for cost of goods sold on sales
+        $this->createAccount([
+            'account_code' => '5110',
+            'account_name' => 'COGS - Merchandise',
+            'account_type' => 'expense',
+            'parent_id' => $parentAccounts['cogs'],
+            'is_system_account' => true,
+        ]);
+
         // 5130: Stock Write-offs - Used for damaged stock write-offs
         $this->createAccount([
             'account_code' => '5130',
