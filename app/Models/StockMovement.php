@@ -33,6 +33,8 @@ class StockMovement extends Model
         'reference_type',
         'reference_id',
         'source_stock_movement_id',
+        'supplier_id',
+        'supplier_name',
         'batch_number',
         'manufacturing_date',
         'expiry_date',
@@ -159,6 +161,14 @@ class StockMovement extends Model
     public function grn(): BelongsTo
     {
         return $this->belongsTo(GRN::class, 'reference_id');
+    }
+
+    /**
+     * Get the supplier associated with this stock movement
+     */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     /**
