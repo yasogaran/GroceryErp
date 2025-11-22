@@ -4,6 +4,7 @@ namespace App\Livewire\Grn;
 
 use App\Models\GRN;
 use App\Models\SupplierPayment;
+use App\Models\Account;
 use App\Services\PaymentAllocationService;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ class GrnPaymentModal extends Component
     public $payment_date;
     public $payment_amount = '';
     public $payment_mode = 'cash';
+    public $bank_account_id = '';
     public $bank_reference = '';
     public $reference_number = '';
     public $notes = '';
@@ -31,6 +33,7 @@ class GrnPaymentModal extends Component
                 'payment_date' => 'required|date',
                 'payment_amount' => 'required|numeric|min:0.01|max:' . $this->grn->total_amount,
                 'payment_mode' => 'required|in:cash,bank_transfer',
+                'bank_account_id' => 'nullable|exists:accounts,id',
                 'bank_reference' => 'nullable|string|max:100',
                 'reference_number' => 'nullable|string|max:100',
                 'notes' => 'nullable|string',
@@ -75,6 +78,12 @@ class GrnPaymentModal extends Component
             return;
         }
 
+        // Additional validation for bank transfer
+        if ($this->payment_mode === 'bank_transfer' && empty($this->bank_account_id)) {
+            $this->addError('bank_account_id', 'Please select a bank account for bank transfer.');
+            return;
+        }
+
         $this->validate();
 
         try {
@@ -85,6 +94,7 @@ class GrnPaymentModal extends Component
                     'payment_date' => $this->payment_date,
                     'amount' => $this->payment_amount,
                     'payment_mode' => $this->payment_mode,
+                    'bank_account_id' => $this->payment_mode === 'bank_transfer' ? $this->bank_account_id : null,
                     'bank_reference' => $this->bank_reference,
                     'reference_number' => $this->reference_number,
                     'notes' => $this->notes ?: "Payment for GRN {$this->grn->grn_number}",
@@ -109,6 +119,15 @@ class GrnPaymentModal extends Component
 
     public function render()
     {
-        return view('livewire.grn.grn-payment-modal');
+        // Get bank accounts (asset type accounts starting with 12xx)
+        $bankAccounts = Account::where('account_type', 'asset')
+            ->where('account_code', 'LIKE', '12%') // Bank accounts (1200-1299)
+            ->where('is_active', true)
+            ->orderBy('account_name')
+            ->get();
+
+        return view('livewire.grn.grn-payment-modal', [
+            'bankAccounts' => $bankAccounts,
+        ]);
     }
 }
