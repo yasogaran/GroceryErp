@@ -191,9 +191,9 @@
                 <th>Product Name</th>
                 <th>Category</th>
                 <th class="right">Stock</th>
-                <th class="right">Min/Max</th>
-                <th class="right">Cost</th>
-                <th class="right">Selling</th>
+                <th class="right">Reorder Level</th>
+                <th class="right">Avg Cost</th>
+                <th class="right">Min-Max Price</th>
                 <th class="right">Value</th>
                 <th class="center">Status</th>
             </tr>
@@ -205,15 +205,15 @@
                     <td>{{ $product->barcode }}</td>
                     <td>{{ $product->name }}</td>
                     <td>{{ $product->category?->name ?? 'N/A' }}</td>
-                    <td class="right">{{ number_format($product->quantity, 2) }} {{ $product->unit }}</td>
-                    <td class="right">{{ $product->minimum_quantity }} / {{ $product->maximum_quantity ?? 'N/A' }}</td>
-                    <td class="right">{{ number_format($product->cost_price, 2) }}</td>
-                    <td class="right">{{ number_format($product->selling_price, 2) }}</td>
-                    <td class="right">{{ number_format($product->quantity * $product->cost_price, 2) }}</td>
+                    <td class="right">{{ number_format($product->current_stock_quantity, 2) }} {{ $product->base_unit }}</td>
+                    <td class="right">{{ number_format($product->reorder_level, 2) }}</td>
+                    <td class="right">{{ number_format($product->getAverageUnitCost(), 2) }}</td>
+                    <td class="right">{{ number_format($product->min_selling_price, 2) }} - {{ number_format($product->max_selling_price, 2) }}</td>
+                    <td class="right">{{ number_format($product->current_stock_quantity * $product->getAverageUnitCost(), 2) }}</td>
                     <td class="center">
-                        @if($product->quantity == 0)
+                        @if($product->current_stock_quantity == 0)
                             <span class="status out-of-stock">Out of Stock</span>
-                        @elseif($product->quantity <= $product->minimum_quantity)
+                        @elseif($product->current_stock_quantity <= $product->reorder_level)
                             <span class="status low-stock">Low Stock</span>
                         @else
                             <span class="status in-stock">In Stock</span>

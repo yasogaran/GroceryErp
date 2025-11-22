@@ -121,20 +121,20 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Category
                         </th>
-                        <th wire:click="sortBy('quantity')" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <th wire:click="sortBy('current_stock_quantity')" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
                             Stock
-                            @if($sortBy === 'quantity')
+                            @if($sortBy === 'current_stock_quantity')
                                 <span class="ml-1">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Min/Max
+                            Reorder Level
                         </th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Cost Price
+                            Avg Cost
                         </th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Selling Price
+                            Selling Price (Min-Max)
                         </th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Stock Value
@@ -160,26 +160,26 @@
                                 {{ $product->category?->name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100">
-                                {{ number_format($product->quantity, 2) }} {{ $product->unit }}
+                                {{ number_format($product->current_stock_quantity, 2) }} {{ $product->base_unit }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 dark:text-gray-400">
-                                {{ $product->minimum_quantity }} / {{ $product->maximum_quantity ?? 'N/A' }}
+                                {{ number_format($product->reorder_level, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100">
-                                Rs. {{ number_format($product->cost_price, 2) }}
+                                Rs. {{ number_format($product->getAverageUnitCost(), 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-gray-100">
-                                Rs. {{ number_format($product->selling_price, 2) }}
+                                Rs. {{ number_format($product->min_selling_price, 2) }} - Rs. {{ number_format($product->max_selling_price, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900 dark:text-gray-100">
-                                Rs. {{ number_format($product->quantity * $product->cost_price, 2) }}
+                                Rs. {{ number_format($product->current_stock_quantity * $product->getAverageUnitCost(), 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if($product->quantity == 0)
+                                @if($product->current_stock_quantity == 0)
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                         Out of Stock
                                     </span>
-                                @elseif($product->quantity <= $product->minimum_quantity)
+                                @elseif($product->current_stock_quantity <= $product->reorder_level)
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                                         Low Stock
                                     </span>

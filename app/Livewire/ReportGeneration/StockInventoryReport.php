@@ -66,14 +66,14 @@ class StockInventoryReport extends Component
             ->when($this->stockStatus !== 'all', function ($q) {
                 switch ($this->stockStatus) {
                     case 'out_of_stock':
-                        $q->where('quantity', 0);
+                        $q->where('current_stock_quantity', 0);
                         break;
                     case 'low_stock':
-                        $q->whereColumn('quantity', '<=', 'minimum_quantity')
-                            ->where('quantity', '>', 0);
+                        $q->whereColumn('current_stock_quantity', '<=', 'reorder_level')
+                            ->where('current_stock_quantity', '>', 0);
                         break;
                     case 'in_stock':
-                        $q->whereColumn('quantity', '>', 'minimum_quantity');
+                        $q->whereColumn('current_stock_quantity', '>', 'reorder_level');
                         break;
                 }
             });
@@ -86,18 +86,20 @@ class StockInventoryReport extends Component
         $products = $this->getProductsQuery()->get();
 
         $data = $products->map(function ($product) {
+            $avgCost = $product->getAverageUnitCost();
             return [
                 'SKU' => $product->sku,
                 'Barcode' => $product->barcode,
                 'Product Name' => $product->name,
                 'Category' => $product->category?->name ?? 'N/A',
-                'Current Stock' => $product->quantity,
-                'Minimum Stock' => $product->minimum_quantity,
-                'Maximum Stock' => $product->maximum_quantity ?? 'N/A',
-                'Unit' => $product->unit,
-                'Cost Price' => number_format($product->cost_price, 2),
-                'Selling Price' => number_format($product->selling_price, 2),
-                'Stock Value' => number_format($product->quantity * $product->cost_price, 2),
+                'Current Stock' => $product->current_stock_quantity,
+                'Damaged Stock' => $product->damaged_stock_quantity,
+                'Reorder Level' => $product->reorder_level,
+                'Unit' => $product->base_unit,
+                'Avg Cost Price' => number_format($avgCost, 2),
+                'Min Selling Price' => number_format($product->min_selling_price, 2),
+                'Max Selling Price' => number_format($product->max_selling_price, 2),
+                'Stock Value' => number_format($product->current_stock_quantity * $avgCost, 2),
                 'Status' => $this->getStockStatus($product),
             ];
         })->toArray();
@@ -108,11 +110,12 @@ class StockInventoryReport extends Component
             'Product Name',
             'Category',
             'Current Stock',
-            'Minimum Stock',
-            'Maximum Stock',
+            'Damaged Stock',
+            'Reorder Level',
             'Unit',
-            'Cost Price',
-            'Selling Price',
+            'Avg Cost Price',
+            'Min Selling Price',
+            'Max Selling Price',
             'Stock Value',
             'Status'
         ];
@@ -125,7 +128,7 @@ class StockInventoryReport extends Component
     {
         $products = $this->getProductsQuery()->get();
         $totalValue = $products->sum(function ($product) {
-            return $product->quantity * $product->cost_price;
+            return $product->current_stock_quantity * $product->getAverageUnitCost();
         });
 
         return response()->view('reports.pdf.stock-inventory', [
@@ -142,9 +145,9 @@ class StockInventoryReport extends Component
 
     private function getStockStatus($product)
     {
-        if ($product->quantity == 0) {
+        if ($product->current_stock_quantity == 0) {
             return 'Out of Stock';
-        } elseif ($product->quantity <= $product->minimum_quantity) {
+        } elseif ($product->current_stock_quantity <= $product->reorder_level) {
             return 'Low Stock';
         } else {
             return 'In Stock';
@@ -158,15 +161,15 @@ class StockInventoryReport extends Component
         $categories = Category::orderBy('name')->get();
 
         $totalValue = $this->getProductsQuery()->get()->sum(function ($product) {
-            return $product->quantity * $product->cost_price;
+            return $product->current_stock_quantity * $product->getAverageUnitCost();
         });
 
         $stats = [
             'total_products' => $this->getProductsQuery()->count(),
             'total_value' => $totalValue,
-            'out_of_stock' => Product::where('quantity', 0)->count(),
-            'low_stock' => Product::whereColumn('quantity', '<=', 'minimum_quantity')
-                ->where('quantity', '>', 0)->count(),
+            'out_of_stock' => Product::where('current_stock_quantity', 0)->count(),
+            'low_stock' => Product::whereColumn('current_stock_quantity', '<=', 'reorder_level')
+                ->where('current_stock_quantity', '>', 0)->count(),
         ];
 
         return view('livewire.report-generation.stock-inventory-report', [
