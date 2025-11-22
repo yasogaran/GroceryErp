@@ -96,6 +96,37 @@
                     </div>
 
                     <div class="space-y-3">
+                        <!-- Category Filter -->
+                        <div>
+                            <label for="categoryFilter" class="block text-xs font-medium text-gray-700 mb-1">
+                                Filter by Category
+                            </label>
+                            <select
+                                wire:model.live="categoryFilter"
+                                id="categoryFilter"
+                                class="block w-full border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            >
+                                <option value="">All Categories</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Product Search -->
+                        <div>
+                            <label for="productSearch" class="block text-xs font-medium text-gray-700 mb-1">
+                                Search Product
+                            </label>
+                            <input
+                                wire:model.live.debounce.300ms="productSearch"
+                                type="text"
+                                id="productSearch"
+                                placeholder="Search by name or SKU..."
+                                class="block w-full border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            >
+                        </div>
+
                         <!-- Product -->
                         <div>
                             <label for="product_id" class="block text-xs font-medium text-gray-700 mb-1">
@@ -108,9 +139,17 @@
                             >
                                 <option value="">Select Product</option>
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
+                                    <option value="{{ $product->id }}">
+                                        {{ $product->name }} ({{ $product->sku }})
+                                        @if($product->category)
+                                            - {{ $product->category->name }}
+                                        @endif
+                                    </option>
                                 @endforeach
                             </select>
+                            @if($products->count() === 0 && ($categoryFilter || $productSearch))
+                                <p class="mt-1 text-xs text-amber-600">No products found. Try adjusting your filters.</p>
+                            @endif
                         </div>
 
                         <!-- Boxes and Pieces -->
